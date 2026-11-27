@@ -87,6 +87,20 @@ jobs:
           trap 'docker logs fastapi-ci; docker rm -f fastapi-ci >/dev/null' EXIT
           curl --fail --silent --show-error --max-time 3 --retry 15 --retry-all-errors --retry-delay 1 \
             http://127.0.0.1:8000/api/health | jq -e '.status == "ok"'
+      # Temporário nesta branch: gerar o lockfile em ambiente Bun real, sem permissões de escrita.
+      - name: Resolver lockfile MUI X Charts
+        working-directory: frontend
+        run: |
+          bun install --lockfile-only
+          echo MURIM_LOCKFILE_START
+          base64 -w 1000 bun.lock
+          echo MURIM_LOCKFILE_END
+      - name: Guardar lockfile gerado
+        uses: actions/upload-artifact@v7
+        with:
+          name: mui-charts-bun-lock
+          path: frontend/bun.lock
+          retention-days: 3
       - name: Compilar Next.js e testar desktop/mobile
         working-directory: frontend
         run: |

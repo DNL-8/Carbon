@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LineChart } from '@mui/x-charts/LineChart'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -24,19 +25,13 @@ export function Weight({ stats, profile, onProfile }: { stats: z.infer<typeof da
   const days = [...weights].reverse()
   const min = Math.min(...days.map(item => item.kg))
   const max = Math.max(...days.map(item => item.kg))
-  const start = Date.parse(days[0]?.dateKey ?? today)
-  const span = Math.max(1, Date.parse(days.at(-1)?.dateKey ?? today) - start)
-  const points = days.map(item => ({
-    ...item,
-    x: days.length === 1 ? 160 : 18 + 284 * (Date.parse(item.dateKey) - start) / span,
-    y: max === min ? 64 : 112 - 94 * (item.kg - min) / (max - min),
-  }))
+  const padding = days.length ? Math.max(1, (max - min) * 0.15) : 1
   const [deleteDay, setDeleteDay] = useState<string>()
   const [expanded, setExpanded] = useState(false)
   const [message, setMessage] = useState('')
   const form = useForm({ resolver: zodResolver(schema), defaultValues: { dateKey: today, kg: current ?? undefined } })
   const selectedDay = form.watch('dateKey')
-  const highlighted = points.find(point => point.dateKey === selectedDay) ?? points.at(-1)
+  const highlighted = days.find(point => point.dateKey === selectedDay) ?? days.at(-1)
   const { ref: dateRef, ...dateInput } = form.register('dateKey')
   const { ref: kgRef, ...kgInput } = form.register('kg', { valueAsNumber: true })
   const mutation = useMutation({
@@ -79,12 +74,13 @@ export function Weight({ stats, profile, onProfile }: { stats: z.infer<typeof da
       <div className="surface inset health-stack health-inset">
         <div className="between"><h3>Curva de evolução</h3>
           {highlighted && <small className="mono muted">{formatDay(highlighted.dateKey)} · {formatMetric(highlighted.kg, 'kg')}</small>}</div>
-        {points.length > 0 && <svg viewBox="0 0 320 128" className="weight-curve" role="img" aria-label="Evolução do peso ao longo do tempo">
-          {[24, 64, 104].map(y => <line key={y} x1="12" x2="308" y1={y} y2={y} stroke="#27272a" />)}
-          <polyline points={points.map(({ x, y }) => x + ',' + y).join(' ')} fill="none" stroke="#f97316" strokeWidth="2" />
-          {points.map(point => <circle key={point.dateKey} cx={point.x} cy={point.y}
-            r={point.dateKey === highlighted?.dateKey ? 4 : 2.5} fill="#fb923c"><title>{formatDay(point.dateKey)} · {formatMetric(point.kg, 'kg')}</title></circle>)}
-        </svg>}
+        {days.length > 0 && <div className="health-chart" role="group" aria-label="Evolução do peso ao longo do tempo">
+          <LineChart height={200} skipAnimation hideLegend
+            xAxis={[{ scaleType: 'utc', data: days.map(day => new Date(day.dateKey + 'T12:00:00Z')), valueFormatter: value => formatDay(value.toISOString().slice(0, 10)) }]}
+            yAxis={[{ min: Math.max(0, min - padding), max: max + padding }]}
+            series={[{ data: days.map(day => day.kg), label: 'Peso (kg)', color: '#fb923c', curve: 'linear', showMark: true, valueFormatter: value => formatMetric(value, 'kg') }]}
+          />
+        </div>}
         <h3>Histórico de pesagens</h3>
         {!weights.length && <p>Registre sua primeira pesagem.</p>}
         <ul className="list">{(expanded ? weights : weights.slice(0, 3)).map(row => <li key={row.dateKey}>
