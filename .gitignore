@@ -1,5 +1,6 @@
 node_modules/
 build/
+android/.idea/
 android/.gradle/
 android/.kotlin/
 android/local.properties
