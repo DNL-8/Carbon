@@ -14,7 +14,7 @@ import { Glyph } from './glyph'
 type Mode = 'login' | 'register' | 'recover'
 const emailSchema = z.object({ email: z.email('Informe um e-mail válido.'), password: z.string(), name: z.string() })
 
-export function Login() {
+export function Login({ googleOnly = false }: { googleOnly?: boolean }) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [mode, setMode] = useState<Mode>('login')
@@ -91,9 +91,10 @@ export function Login() {
     <section aria-labelledby="auth-access" className="auth-panel">
       <div><h2 id="auth-access">Acessar o Murim</h2><p>Entre para continuar sua jornada.</p></div>
       <Button className="google-button" onClick={google} disabled={busy} fullWidth><b aria-hidden="true">G</b>{social ? 'Conectando…' : 'Entrar com Google'}</Button>
-      <div className="auth-divider">ou com e-mail</div>
+      {!googleOnly && <div className="auth-divider">ou com e-mail</div>}
       {error && <Alert severity="error" onClose={() => setError('')}>{error}</Alert>}
       {message && <Alert severity="info" role="status">{message}</Alert>}
+      {!googleOnly && <>
       <Tabs value={selected} onChange={(_, value: Mode) => select(value)} variant="fullWidth" aria-label="Modo de acesso por e-mail" className="auth-tabs">
         <Tab value="login" label="Entrar" id="tab-login" aria-controls="panel-login" disabled={busy} />
         <Tab value="register" label="Criar conta" id="tab-register" aria-controls="panel-register" disabled={busy} />
@@ -109,7 +110,8 @@ export function Login() {
         {mode === 'recover' && <Button onClick={() => select('login')} disabled={busy}>Voltar ao login</Button>}
         <Button type="submit" className="auth-submit" variant="contained" disabled={busy} fullWidth>{formState.isSubmitting ? 'Enviando…' : mode === 'register' ? 'Criar conta e entrar' : mode === 'recover' ? 'Enviar link de recuperação' : 'Entrar com e-mail'}</Button>
       </form></div>
-      <div className="auth-guest"><Button onClick={() => setGuest(true)} disabled={busy}>Entrar como visitante</Button></div>
+      </>}
+      {!googleOnly && <div className="auth-guest"><Button onClick={() => setGuest(true)} disabled={busy}>Entrar como visitante</Button></div>}
     </section>
   </div></main>
 }

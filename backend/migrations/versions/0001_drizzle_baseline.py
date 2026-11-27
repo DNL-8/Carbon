@@ -1,10 +1,13 @@
-"""Adopt the eight existing Drizzle migrations without changing business data."""
+"""Adopt Drizzle 0007 or explicitly bootstrap an empty PostgreSQL schema."""
+
+from os import environ
 
 from alembic import op
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
+from sqlalchemy import inspect
 
-from app.schema import metadata
+from migrations.baseline_schema import metadata
 
 revision = "0001_drizzle_baseline"
 down_revision = None
@@ -14,6 +17,11 @@ depends_on = None
 
 def upgrade():
     connection = op.get_bind()
+    # Never infer that a database is new from a missing business table.
+    # Explicit opt-in, and only a completely empty default schema, can bootstrap.
+    tables = set(inspect(connection).get_table_names()) - {"murim_alembic_version"}
+    if not tables and environ.get("MURIM_BOOTSTRAP_EMPTY") == "1":
+        metadata.create_all(connection, checkfirst=False)
     migration = MigrationContext.configure(
         connection, opts={"compare_server_default": True, "version_table": "murim_alembic_version"},
     )
