@@ -173,6 +173,8 @@ def duplicate_provider_activity(db: Connection, user: str, item: Activity) -> bo
     if item.source not in {"health_connect", "strava"} or item.durationMinutes <= 0:
         return False
     day = datetime.fromisoformat(item.dateKey)
+    if not 2 <= day.year <= 9998:
+        return False
     existing = db.execute(text("""
         SELECT data FROM fitness_health_activity
         WHERE user_id = :uid AND source = :other

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   backup:
-    if: github.ref == 'refs/heads/main' && vars.NUXT_BACKUP_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && (vars.MURIM_BACKUP_ENABLED == 'true' || (vars.MURIM_BACKUP_ENABLED == '' && vars.NUXT_BACKUP_ENABLED == 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -20,8 +20,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y age
       - name: Gerar cópia criptografada
         env:
-          PGDATABASE: ${{ secrets.NUXT_BACKUP_DATABASE_URL }}
-          AGE_RECIPIENT: ${{ vars.NUXT_BACKUP_AGE_RECIPIENT }}
+          PGDATABASE: ${{ secrets.MURIM_BACKUP_DATABASE_URL || secrets.NUXT_BACKUP_DATABASE_URL }}
+          AGE_RECIPIENT: ${{ vars.MURIM_BACKUP_AGE_RECIPIENT || vars.NUXT_BACKUP_AGE_RECIPIENT }}
         run: bash scripts/postgres-backup.sh murim-postgres.dump.age
       - uses: actions/upload-artifact@v7
         with:

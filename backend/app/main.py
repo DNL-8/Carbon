@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -96,9 +96,12 @@ def ready(settings: Annotated[Settings, Depends(get_settings)]):
 
     try:
         from .python_auth import config
+        from .schema import metadata
 
         config(settings)
         with engine().connect() as conn:
+            if not set(metadata.tables).issubset(inspect(conn).get_table_names()):
+                raise ValueError("Schema incompleto")
             conn.execute(text("SELECT xp FROM fitness_progress LIMIT 0"))
         return {"ready": True}
     except (HTTPException, SQLAlchemyError, ValueError):

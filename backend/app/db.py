@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from contextlib import contextmanager
 from functools import lru_cache
 
 from fastapi import HTTPException
@@ -37,3 +38,8 @@ def get_db() -> Iterator[Connection]:
             yield conn
     except SQLAlchemyError:
         raise HTTPException(503, "Banco de dados indisponivel") from None
+
+
+def get_db_factory():
+    """Delay acquiring a connection until external HTTP requests finish."""
+    return contextmanager(get_db)

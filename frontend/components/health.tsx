@@ -93,9 +93,9 @@ export function Health({ owner, overview, profile, onProfile }: {
               />
             </div> : <p>Sem medições para a métrica selecionada.</p>}
             <details><summary>Valores da tendência por dia</summary>
-              <ul className="list">{data.trend.map(day => <li key={day.dateKey}>
+              <ul className="list">{trend.map(day => <li key={day.dateKey}>
                 <time dateTime={day.dateKey}>{formatDay(day.dateKey)}</time>
-                <strong>{day[metric] == null ? 'Sem medição' : formatMetric(day[metric], unit)}</strong>
+                <strong>{day.value == null ? 'Sem medição' : formatMetric(day.value, unit)}</strong>
               </li>)}</ul>
             </details>
           </>}

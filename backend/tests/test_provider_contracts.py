@@ -94,9 +94,11 @@ def test_oracle_redacts_identifiers_and_bounds_output(monkeypatch):
 def test_strava_sync_reuses_import_and_refreshes_cookie(client, monkeypatch):
     from unittest.mock import MagicMock
 
-    from app.db import get_db
+    from contextlib import nullcontext
 
-    app.dependency_overrides[get_db] = lambda: MagicMock()
+    from app.db import get_db_factory
+
+    app.dependency_overrides[get_db_factory] = lambda: lambda: nullcontext(MagicMock())
     settings = app.dependency_overrides[get_settings]()
     session = strava.StravaSession(userId="owner", access="old", refresh="fixture-refresh",
                                    expires=int(time.time()), athleteId=51)
@@ -114,6 +116,17 @@ def test_strava_sync_reuses_import_and_refreshes_cookie(client, monkeypatch):
     response = client.post("/api/strava/sync", json={"days": 90}, headers={"Origin": ORIGIN})
     assert response.json() == {"imported": 0, "duplicates": 0, "xp": 0, "truncated": True}
     value = response.headers["set-cookie"].split(";", 1)[0].split("=", 1)[1]
+    assert strava.unseal(value, settings, strava.StravaSession).refresh == "fixture-rotated"
+
+    # A rotated refresh token must survive even if the activity request fails.
+    client.cookies.set(strava.SESSION, strava.seal(session, settings))
+    def fail(*_args):
+        from fastapi import HTTPException
+        raise HTTPException(502, "Falha de teste")
+    monkeypatch.setattr(strava, "fetch_activities", fail)
+    failed = client.post("/api/strava/sync", json={"days": 90}, headers={"Origin": ORIGIN})
+    assert failed.status_code == 502
+    value = failed.headers["set-cookie"].split(";", 1)[0].split("=", 1)[1]
     assert strava.unseal(value, settings, strava.StravaSession).refresh == "fixture-rotated"
 
 

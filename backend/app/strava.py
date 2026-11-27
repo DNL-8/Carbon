@@ -16,13 +16,12 @@ import httpx
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field, ValidationError
-from sqlalchemy.engine import Connection
 
 from .auth import require_user
 from .config import Settings, get_settings
-from .db import get_db
+from .db import get_db_factory
 from .health_import import Activity, Number, persist_import
 from .strava_config import public_strava_config
 from .write_access import require_write_user
@@ -261,7 +260,7 @@ def disconnect(request: Request, response: Response, user: Writer, settings: Con
 
 @router.post("/sync")
 def sync(body: SyncInput, request: Request, response: Response, user: Writer, settings: Config,
-         db: Annotated[Connection, Depends(get_db)]):
+         db_factory: Annotated[object, Depends(get_db_factory)]):
     configured(settings)
     session = read_session(request, user, settings)
     if session is None:
@@ -275,9 +274,15 @@ def sync(body: SyncInput, request: Request, response: Response, user: Writer, se
         refreshed = True
     try:
         records, truncated = fetch_activities(session, body.days)
-        with db.begin():
+        with db_factory() as db, db.begin():
             result = persist_import(db, user, "strava", records, [])
-    finally:
-        if refreshed:
-            save_session(response, session, settings)
+    except HTTPException as exc:
+        if not refreshed:
+            raise
+        failure = JSONResponse({"statusCode": exc.status_code, "statusMessage": exc.detail},
+                               status_code=exc.status_code, headers=exc.headers)
+        save_session(failure, session, settings)
+        return failure
+    if refreshed:
+        save_session(response, session, settings)
     return {key: result[key] for key in ("imported", "duplicates", "xp")} | {"truncated": truncated}
