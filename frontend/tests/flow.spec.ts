@@ -17,7 +17,16 @@ async function validateAccessibility(page: Page) {
 
 
 test('autentica, conclui uma vez após falha e preserva a recompensa após recarregar', async ({ page }) => {
-  await page.goto('/')
+  const response = await page.goto('/')
+  const policy = response?.headers()['content-security-policy'] ?? ''
+  expect(policy).toContain("script-src 'self' 'nonce-")
+  expect(policy).toContain("'strict-dynamic'")
+  expect(policy).not.toContain("'unsafe-eval'")
+  const nonce = policy.match(/script-src 'self' 'nonce-([^']+)'/)?.[1]
+  expect(nonce).toBeTruthy()
+  expect(await page.locator('script[nonce]').first().evaluate((element: HTMLScriptElement) => element.nonce)).toBe(nonce)
+  const next = await page.request.get('/')
+  expect(next.headers()['content-security-policy']).not.toContain(`'nonce-${nonce}'`)
   await validateViewport(page)
   await validateAccessibility(page)
   await login(page, 'a')

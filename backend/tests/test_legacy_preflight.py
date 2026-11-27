@@ -1,6 +1,9 @@
+import os
 from unittest.mock import MagicMock
 
 import pytest
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 from scripts import legacy_preflight as preflight
 
@@ -37,3 +40,24 @@ def test_inventory_only_reads_allowlisted_counts(monkeypatch):
         'SELECT count(*) FROM public."auth_user"',
         'SELECT count(*) FROM public."users"',
     }
+
+
+def test_inventory_real_postgres():
+    raw = os.environ.get("MURIM_TEST_DATABASE_URL")
+    if not raw:
+        pytest.skip("isolated PostgreSQL not configured")
+    url = make_url(raw)
+    if (url.get_backend_name() != "postgresql" or url.host != "127.0.0.1"
+            or url.database != "murim_fastapi_test" or url.query):
+        pytest.fail("isolated loopback PostgreSQL required")
+    engine = create_engine(url.set(drivername="postgresql+psycopg"), hide_parameters=True)
+    try:
+        with engine.connect() as conn, conn.begin():
+            conn.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY"))
+            result = preflight.inventory(conn)
+            assert result["schema"] == "target"
+            assert result["missing_target_tables"] == []
+            assert result["missing_target_columns"] == {}
+            assert not result["automatic_migration_permitted"]
+    finally:
+        engine.dispose()

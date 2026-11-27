@@ -23,7 +23,7 @@ const theme = createTheme({
   },
 })
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: { queries: { staleTime: 30_000, retry: false }, mutations: { retry: false } },
   }))
@@ -37,7 +37,7 @@ export function Providers({ children }: { children: ReactNode }) {
     window.addEventListener('storage', syncSession)
     return () => window.removeEventListener('storage', syncSession)
   }, [queryClient])
-  return <AppRouterCacheProvider options={{enableCssLayer: true}}><ThemeProvider theme={theme}><CssBaseline />
+  return <AppRouterCacheProvider options={{enableCssLayer: true, nonce}}><ThemeProvider theme={theme}><CssBaseline />
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   </ThemeProvider></AppRouterCacheProvider>
 }
