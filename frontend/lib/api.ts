@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch'
 import { z } from 'zod'
 import type { paths, components } from './api.generated'
-import { profileSchema, workoutTypes, experienceLevels } from '../../web/shared/training'
+import { profileSchema, workoutTypes, experienceLevels } from '../shared/training'
 
 export const api = createClient<paths>({})
 export type FinishInput = components['schemas']['FinishInput']

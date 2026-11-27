@@ -1,7 +1,7 @@
 # Murim para Android
 
 <<<<<<< HEAD
-Aplicativo Kotlin/Jetpack Compose para ler dados autorizados do Health Connect e sincronizá-los com Nitro/PostgreSQL (Neon).
+Aplicativo Kotlin/Jetpack Compose para ler dados autorizados do Health Connect e sincronizá-los com FastAPI/PostgreSQL (Neon).
 
 ## Fluxo
 
@@ -18,7 +18,7 @@ Requisitos: JDK 17, Android SDK 35, Gradle wrapper do projeto. O pacote de relea
 
 No Windows, dentro de android:
 =======
-O aplicativo usa Kotlin e Jetpack Compose. Ele lê dados do Health Connect e sincroniza métricas e atividades com a API Nitro do App-fitness, que persiste os dados no Postgres.
+O aplicativo usa Kotlin e Jetpack Compose. Ele lê dados do Health Connect e sincroniza métricas e atividades com a API FastAPI do App-fitness, que persiste os dados no Postgres.
 
 - O Android busca o identificador OAuth em `/api/mobile/config`. O Google Sign-In fornece um ID token ao Better Auth, e o cookie de sessão é guardado em armazenamento local criptografado.
 - A sincronização manual consulta os últimos 30 dias, conforme as permissões concedidas. O WorkManager agenda uma execução a cada seis horas quando há permissão de leitura em segundo plano e conexão de rede.
@@ -45,9 +45,9 @@ Configure JAVA_HOME e ANDROID_HOME (ou sdk.dir) quando necessário.
 Registre o package e SHA-1 do certificado de assinatura no projeto Google OAuth correspondente ao client web do Murim. O APK aponta para https://murim-iota.vercel.app por padrão. Para usar outro ambiente, defina `FITNESS_API_ORIGIN` ou passe `-PfitnessApiOrigin=https://seu-app.example` ao Gradle. Entre com a mesma conta Google que usa no site; conceda as permissões Health Connect e execute a sincronização. Confirme o resultado no site e a ausência de duplicidades. A compilação CI não garante autenticação nem sincronização real no dispositivo.
 
 <<<<<<< HEAD
-O usuário pode revogar permissões no Health Connect; backup automático Android está desativado. O Android sincroniza com a API Nitro usando a sessão do Better Auth.
+O usuário pode revogar permissões no Health Connect; backup automático Android está desativado. O Android sincroniza com a API FastAPI usando a sessão do Better Auth.
 
-[Integrações](../docs/integracoes-nuxt.md)
+[Autenticação](../docs/python-auth-cutover.md)
 =======
 A compilação usa `https://murim-iota.vercel.app` por padrão. Para apontar o APK para outra instância, configure `FITNESS_API_ORIGIN` no ambiente ou passe `-PfitnessApiOrigin=https://seu-app.example` ao Gradle. Use uma origem HTTPS compatível com a configuração de autenticação do servidor.
 

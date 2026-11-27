@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { Alert, Button, MenuItem, TextField } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
-import { manualHealthImportSchema, manualHealthSource } from '../../web/shared/health'
+import { manualHealthImportSchema, manualHealthSource } from '../shared/health'
 import { api, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { importResult, sources, type ManualSource } from '../lib/health-api'

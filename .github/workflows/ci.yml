@@ -60,21 +60,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.5
-      - run: bun install --frozen-lockfile
-        working-directory: .
-      - name: Auditar dependências de produção
-        run: bun audit --production --audit-level high
-        working-directory: .
-      - run: DATABASE_URL_DIRECT="$MURIM_TEST_DATABASE_URL" bun run db:migrate
-        working-directory: .
-      - name: Verificar adoção e reversão do baseline Alembic
+      - name: Inicializar banco descartável via Alembic
         run: |
           export MURIM_MIGRATION_DATABASE_URL="$MURIM_TEST_DATABASE_URL"
-          uv run alembic upgrade head
+          MURIM_BOOTSTRAP_EMPTY=1 uv run alembic upgrade head
           uv run alembic check
-          uv run alembic downgrade base
-          uv run alembic upgrade head
-      - name: Testar inicialização Alembic sem Drizzle
+      - name: Testar inicialização e preservação do schema Alembic
         env:
           PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |
@@ -90,24 +81,17 @@ jobs:
           trap 'docker logs fastapi-ci; docker rm -f fastapi-ci >/dev/null' EXIT
           curl --fail --silent --show-error --max-time 3 --retry 15 --retry-all-errors --retry-delay 1 \
             http://127.0.0.1:8000/api/health | jq -e '.status == "ok"'
-      - run: bun run build:nuxt
-        working-directory: .
-        env:
-          NITRO_PRESET: node-server
       - name: Compilar Next.js e testar desktop/mobile
         working-directory: frontend
         run: |
           bun install --frozen-lockfile
+          bun audit --production --audit-level high
           bun run generate:api
           git diff --exit-code -- lib/api.generated.ts
           bun run typecheck
           bun run build
           bunx playwright install --with-deps chromium
           bun run test
-          bunx playwright test --config playwright.authlib.config.ts
-      - name: Verificar paridade e reversão FastAPI / Nuxt
-        run: node scripts/check-fastapi-http.mjs --browser
-        working-directory: .
       - name: Guardar relatórios de falha do Playwright
         if: failure()
         uses: actions/upload-artifact@v4

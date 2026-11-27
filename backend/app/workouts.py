@@ -88,7 +88,7 @@ class WorkoutInput(BaseModel):
 
 def lock_workout(db: Connection, user: str, workout_id: str) -> None:
     # Serialize Python writes for this owner/workout even before its row exists.
-    # Mixed Nitro/FastAPI writes must remain disabled until cutover.
+    # Writes require explicit enablement and verified ownership.
     db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
                {"key": json.dumps(["murim-workout", user, workout_id])})
 

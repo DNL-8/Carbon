@@ -18,7 +18,7 @@ PATH = "/api/saude/peso"
 def setup(monkeypatch):
     db = MagicMock()
     app.dependency_overrides[get_settings] = lambda: Settings(
-        enable_writes=True, better_auth_url=ORIGIN, _env_file=None,
+        enable_writes=True, app_origin=ORIGIN, _env_file=None,
     )
     app.dependency_overrides[current_user] = lambda: {"id": "owner", "emailVerified": True}
     app.dependency_overrides[get_db] = lambda: db
@@ -83,7 +83,7 @@ def test_requires_verified_session(setup, user, status):
 def test_writes_disabled_by_default(setup):
     client, db = setup
     app.dependency_overrides[get_settings] = lambda: Settings(
-        better_auth_url=ORIGIN, _env_file=None,
+        app_origin=ORIGIN, _env_file=None,
     )
     assert client.put(PATH, json={"kg": 80}, headers={"Origin": ORIGIN}).status_code == 503
     db.execute.assert_not_called()

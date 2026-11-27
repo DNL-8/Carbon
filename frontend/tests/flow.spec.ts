@@ -1,11 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
-import { randomUUID } from 'node:crypto'
-import { readFile, unlink } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import AxeBuilder from '@axe-core/playwright'
 import { buildSamsungHealthSampleCsv } from '../../src/utils/healthParsers'
 
-const password = 'synthetic-local-test-password'
+import { login } from './google-login'
+
+test.beforeEach(async ({ request }) => { expect((await request.post('http://127.0.0.1:38212/__fixture/reset?profiles=false')).ok()).toBeTruthy() })
 
 async function validateViewport(page: Page) {
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
@@ -16,36 +15,12 @@ async function validateAccessibility(page: Page) {
   expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map(node => node.target) }))).toEqual([])
 }
 
-async function register(page: Page) {
-  const email = 'murim-frontend-' + randomUUID() + '@example.test'
-  const response = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: 'http://127.0.0.1:38200' },
-    data: { email, password, name: 'Jogador de teste', callbackURL: '/' },
-  })
-  expect(response.status()).toBe(200)
-  const file = fileURLToPath(new URL('../.e2e-mail/' + email, import.meta.url))
-  await expect.poll(() => readFile(file, 'utf8').catch(() => '')).toMatch(/^http:\/\//)
-  const verify = await readFile(file, 'utf8')
-  await unlink(file)
-  const confirmation = await page.request.get(verify, { maxRedirects: 0 })
-  expect(confirmation.status()).toBe(302)
-  return email
-}
 
 test('autentica, conclui uma vez após falha e preserva a recompensa após recarregar', async ({ page }) => {
-  const email = await register(page)
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Acessar o Murim' })).toBeVisible()
   await validateViewport(page)
   await validateAccessibility(page)
-  await page.getByRole('tab', { name: 'Entrar', exact: true }).focus()
-  await page.keyboard.press('ArrowRight')
-  await expect(page.getByRole('tab', { name: 'Criar conta', exact: true })).toBeFocused()
-  await page.keyboard.press('ArrowLeft')
-
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(email)
-  await page.getByLabel('Senha', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).click()
+  await login(page, 'a')
   await expect(page.getByRole('heading', { name: 'Crie sua ficha de personagem' })).toBeVisible()
   await page.getByRole('textbox', { name: 'Nome do herói' }).fill('Herói de teste')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
@@ -96,30 +71,9 @@ test('autentica, conclui uma vez após falha e preserva a recompensa após recar
   expect((await page.request.get('/api/extrato')).status()).toBe(401)
 })
 
-test('visitante percorre um treino sem alterar o extrato', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Entrar como visitante' }).click()
-  await expect(page.getByRole('heading', { name: 'Catálogo de treinos' })).toBeVisible()
-  await page.getByRole('button', { name: /^Iniciar treino:/ }).first().click()
-  await page.getByRole('button', { name: 'Concluir série 1', exact: true }).click()
-  await page.getByRole('button', { name: 'Finalizar treino' }).click()
-  const writes: string[] = []
-  page.on('request', request => {
-    if (request.method() === 'POST' && request.url().endsWith('/api/treinos/concluir')) writes.push(request.url())
-  })
-  await page.getByRole('button', { name: 'Concluir treino', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Treino concluído como visitante' })).toBeVisible()
-  expect(writes).toEqual([])
-  await validateViewport(page)
-})
-
 test('treinos personalizados, progressão e arsenal usam os contratos reais', async ({ page }) => {
   test.setTimeout(90_000)
-  const email = await register(page)
-  await page.goto('/')
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(email)
-  await page.getByLabel('Senha', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).click()
+  await login(page, 'a')
   await page.getByRole('textbox', { name: 'Nome do herói' }).fill('Herói de RPG')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   const go = (name: string) => page.getByRole('link', { name, exact: true }).filter({ visible: true }).click()
@@ -193,11 +147,7 @@ test('treinos personalizados, progressão e arsenal usam os contratos reais', as
 
 test('peso, importações, Android, Strava e consentimento no Oráculo', async ({ page }) => {
   test.setTimeout(100_000)
-  const email = await register(page)
-  await page.goto('/')
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(email)
-  await page.getByLabel('Senha', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).click()
+  await login(page, 'a')
   await page.getByRole('textbox', { name: 'Nome do herói' }).fill('Herói da saúde')
   await page.getByRole('button', { name: 'Criar ficha' }).click()
 
@@ -249,11 +199,6 @@ test('peso, importações, Android, Strava e consentimento no Oráculo', async (
   await validateViewport(page)
 
   const strava = page.getByRole('region', { name: 'Strava · OAuth' })
-  await page.route(/\/api\/strava\/(?:auth-url|sync|disconnect)$/, async route => {
-    // The isolated fixture advertises a public HTTPS origin while Chromium runs on loopback HTTP.
-    const response = await route.fetch({ headers: { ...route.request().headers(), origin: 'https://murim.example.test' } })
-    await route.fulfill({ response })
-  })
   await page.route(/^https:\/\/www\.strava\.com\/oauth\/authorize\?/, async route => {
     const url = new URL(route.request().url())
     const state = url.searchParams.get('state')
@@ -290,100 +235,4 @@ test('peso, importações, Android, Strava e consentimento no Oráculo', async (
   await expect(consent).not.toBeChecked()
   await validateViewport(page)
   await validateAccessibility(page)
-})
-
-test('troca e reverte o frontend na mesma origem com sessão e treinos preservados', async ({ page }, testInfo) => {
-  test.setTimeout(90_000)
-  const origin = 'http://127.0.0.1:38200'
-  const account = await register(page)
-  await page.goto('/')
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(account)
-  await page.getByLabel('Senha', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).click()
-  await page.getByRole('textbox', { name: 'Nome do herói' }).fill('Herói da reversão')
-  await page.getByRole('button', { name: 'Criar ficha' }).click()
-
-  async function snapshot() {
-    async function read(path: string) {
-      const response = await page.request.get(path)
-      expect(response.status()).toBe(200)
-      return response.json()
-    }
-    const [session, hero, progress, history, ledger, state, health, ready] = await Promise.all([
-      read('/api/auth/get-session'), read('/api/heroi'), read('/api/progresso'),
-      read('/api/treinos/historico'), read('/api/extrato'), read('/api/estado'), read('/api/health'), read('/api/ready'),
-    ])
-    expect(session.user.email).toBe(account)
-    expect(health.status).toBe('ok')
-    expect(ready).toEqual({ ready: true })
-    return { session: session.session.id, hero, progress, history, ledger, state }
-  }
-
-  async function use(frontend: 'next' | 'nuxt', path: string) {
-    await page.context().addCookies([{ name: 'murim_test_frontend', value: frontend, url: origin }])
-    const result = await page.goto(path)
-    expect(result?.headers()['x-murim-test-frontend']).toBe(frontend)
-    expect(new URL(page.url()).origin).toBe(origin)
-  }
-
-  async function finish(weightKg: string) {
-    await page.getByRole('spinbutton', { name: 'Carga (kg) série 1' }).fill(weightKg)
-    await page.getByRole('button', { name: 'Concluir série 1', exact: true }).click()
-    await page.getByRole('button', { name: 'Finalizar treino', exact: true }).click()
-    const finished = page.waitForResponse(result => result.url().endsWith('/api/treinos/concluir') && result.request().method() === 'POST')
-    await page.getByRole('button', { name: 'Concluir treino', exact: true }).click()
-    const response = await finished
-    expect(response.status()).toBe(200)
-    const receipt = page.getByRole('region', { name: 'Treino salvo' })
-    await expect(receipt).toBeVisible()
-    if (process.env.MURIM_CAPTURE_CUTOVER === '1') {
-      const frontend = response.headers()['x-murim-test-frontend']
-      await receipt.screenshot({ path: testInfo.outputPath('recibo-' + frontend + '.png'), animations: 'disabled' })
-    }
-    return response.request().postDataJSON()
-  }
-
-  await page.getByRole('button', { name: 'Iniciar treino', exact: true }).click()
-  const first = await finish('25')
-  const saved = await snapshot()
-  expect(saved.history.history.map(({ id }: { id: string }) => id)).toEqual([first.id])
-  expect(saved.ledger.entries).toHaveLength(1)
-  expect(saved.progress.xp).toBeGreaterThan(0)
-
-  await use('nuxt', '/')
-  await expect(page.getByTestId('hero-xp')).toHaveText(saved.progress.xp + ' XP')
-  await validateViewport(page)
-  expect(await snapshot()).toEqual(saved)
-  const replay = await page.request.post('/api/treinos/concluir', { data: first, headers: { Origin: origin } })
-  expect(replay.status()).toBe(200)
-  expect(await snapshot()).toEqual(saved)
-
-  await page.getByRole('button', { name: 'Iniciar treino', exact: true }).first().click()
-  const second = await finish('27')
-  expect(second.id).not.toBe(first.id)
-  const { today } = await page.request.get('/api/painel').then(response => response.json())
-  const android = await page.request.post('/api/saude/health-connect', {
-    headers: { Origin: origin },
-    data: { source: 'health_connect', activities: [], dailyMetrics: [{ dateKey: today, steps: 6200 }] },
-  })
-  expect(android.status()).toBe(200)
-  const metrics = await page.request.get('/api/saude/health-connect').then(response => response.json())
-  expect(metrics.latestSteps).toBe(6200)
-  const legacy = await snapshot()
-  expect(legacy.session).toBe(saved.session)
-  expect(legacy.history.history.map(({ id }: { id: string }) => id)).toEqual([second.id, first.id])
-  expect(legacy.ledger.entries).toHaveLength(2)
-  expect(legacy.progress.xp).toBeGreaterThan(saved.progress.xp)
-
-  await use('next', '/?tab=extrato')
-  await expect(page.getByRole('heading', { name: 'Extrato de recompensas' })).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Lançamentos do extrato' }).getByRole('listitem')).toHaveCount(2)
-  expect(await snapshot()).toEqual(legacy)
-  expect(await page.request.get('/api/saude/health-connect').then(response => response.json())).toEqual(metrics)
-  await validateViewport(page)
-  await page.getByRole('button', { name: 'Sair da conta' }).click()
-  await expect(page.getByRole('heading', { name: 'Acessar o Murim' })).toBeVisible()
-  await use('nuxt', '/')
-  await expect(page.getByRole('heading', { name: 'Acessar o Murim' })).toBeVisible()
-  expect((await page.request.get('/api/extrato')).status()).toBe(401)
 })

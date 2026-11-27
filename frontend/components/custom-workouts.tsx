@@ -7,7 +7,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { WorkoutTemplate } from '../../src/types/fitness'
-import { customWorkoutSchema, workoutTypes, type CustomWorkoutInput } from '../../web/shared/training'
+import { customWorkoutSchema, workoutTypes, type CustomWorkoutInput } from '../shared/training'
 import { api, read, workoutResult } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 

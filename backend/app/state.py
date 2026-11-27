@@ -1,4 +1,4 @@
-"""Raw character state for synchronizing the existing Nuxt client."""
+"""Raw character state for synchronizing the web and Android clients."""
 
 from typing import Annotated
 

@@ -22,7 +22,7 @@ async function proxy(request: NextRequest, context: RouteContext<'/api/[...path]
     return Response.json({ statusMessage: 'Rota indisponível' }, { status: 404 })
   }
   const route = path.join('/')
-  const isAuth = path[0] === 'auth' && path.length > 1
+  const isAuth = (request.method === 'GET' && ['auth/get-session', 'auth/callback/google'].includes(route)) || (request.method === 'POST' && ['auth/sign-in/social', 'auth/sign-out'].includes(route))
   const isCustomWorkout = path.length === 3 && path[0] === 'treinos' && path[1] === 'personalizados'
     && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(path[2])
     && ['PUT', 'DELETE'].includes(request.method)
@@ -31,8 +31,7 @@ async function proxy(request: NextRequest, context: RouteContext<'/api/[...path]
   }
   const probe = request.method === 'GET' && (route === 'health' || route === 'ready')
   try {
-    const pythonAuth = process.env.MURIM_AUTH_PROVIDER === 'authlib'
-    const url = upstream(!pythonAuth && (isAuth || (probe && route === 'health')) ? 'auth' : 'fastapi')
+    const url = upstream()
     url.pathname = '/api/' + route
     url.search = request.nextUrl.search
     const headers = new Headers()

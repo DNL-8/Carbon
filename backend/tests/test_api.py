@@ -1,10 +1,9 @@
 from unittest.mock import MagicMock
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from app.auth import current_user, fetch_session
+from app.auth import current_user
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.main import app
@@ -67,29 +66,6 @@ def test_invalid_cursor(client):
     assert client.get("/api/extrato?cursor=-1").status_code == 400
 
 
-def test_auth_bridge(monkeypatch):
-    def handler(request):
-        assert request.url.host == "auth.example.com"
-        assert request.url.path == "/api/auth/get-session"
-        assert not request.url.query
-        assert request.headers["cookie"] == "better-auth.session_token=fixture"
-        return httpx.Response(200, headers={"Set-Cookie": "better-auth.session_token=renewed"},
-                              json={"user": {"id": "u", "emailVerified": True}})
-
-    original = httpx.Client
-    monkeypatch.setattr(httpx, "Client", lambda **kw: original(
-        transport=httpx.MockTransport(handler), **kw))
-    settings = Settings(auth_origin="https://auth.example.com", _env_file=None)
-    cookies = []
-    assert fetch_session("better-auth.session_token=fixture", settings, cookies)["id"] == "u"
-    assert cookies == ["better-auth.session_token=renewed"]
-
-
-def test_reject_insecure_remote_auth():
-    with pytest.raises(ValueError):
-        Settings(auth_origin="http://example.com", _env_file=None)
-
-
 def test_mobile_config(client):
     app.dependency_overrides[get_settings] = lambda: Settings(
         google_client_id="  public-id  ", google_client_secret="fixture", _env_file=None
@@ -123,7 +99,7 @@ def test_mobile_config_missing_secret(client):
 )
 def test_strava_config(client, url, secret, configured, callback):
     app.dependency_overrides[get_settings] = lambda: Settings(
-        better_auth_url=url, strava_client_id="public",
+        app_origin=url, strava_client_id="public",
         strava_client_secret="never-return-this", strava_session_secret=secret,
         _env_file=None,
     )
@@ -134,7 +110,7 @@ def test_strava_config(client, url, secret, configured, callback):
 
 def test_strava_config_missing_credentials(client):
     app.dependency_overrides[get_settings] = lambda: Settings(
-        better_auth_url="https://murim.example", strava_client_id="",
+        app_origin="https://murim.example", strava_client_id="",
         strava_client_secret="", strava_session_secret="",
         _env_file=None,
     )

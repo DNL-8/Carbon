@@ -16,7 +16,7 @@ ORIGIN = "http://127.0.0.1:38200"
 
 
 def settings():
-    return Settings(_env_file=None, auth_provider="authlib", better_auth_url=ORIGIN,
+    return Settings(_env_file=None, app_origin=ORIGIN,
                     google_client_id="test-client", google_client_secret="fixture",
                     python_auth_secret="x" * 48, google_users={"sub-a": "existing-a",
                                                               "sub-b": "existing-b"})

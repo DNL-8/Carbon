@@ -20,7 +20,7 @@ PROFILE = {
 def setup():
     db = MagicMock()
     app.dependency_overrides[get_settings] = lambda: Settings(
-        enable_writes=True, better_auth_url=ORIGIN, _env_file=None,
+        enable_writes=True, app_origin=ORIGIN, _env_file=None,
     )
     app.dependency_overrides[current_user] = lambda: {"id": "owner", "emailVerified": True}
     app.dependency_overrides[get_db] = lambda: db
@@ -85,7 +85,7 @@ def test_profile_write_guard(setup):
     assert client.put("/api/heroi", json=PROFILE,
                       headers={"Origin": "https://other.example"}).status_code == 403
     app.dependency_overrides[get_settings] = lambda: Settings(
-        enable_writes=False, better_auth_url=ORIGIN, _env_file=None,
+        enable_writes=False, app_origin=ORIGIN, _env_file=None,
     )
     assert client.put("/api/heroi", json=PROFILE, headers={"Origin": ORIGIN}).status_code == 503
     db.execute.assert_not_called()

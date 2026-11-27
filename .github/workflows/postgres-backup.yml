@@ -1,0 +1,31 @@
+name: Backup PostgreSQL
+on:
+  schedule:
+    - cron: '30 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    if: github.ref == 'refs/heads/main' && vars.NUXT_BACKUP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Instalar age
+        run: sudo apt-get update && sudo apt-get install -y age
+      - name: Gerar cópia criptografada
+        env:
+          PGDATABASE: ${{ secrets.NUXT_BACKUP_DATABASE_URL }}
+          AGE_RECIPIENT: ${{ vars.NUXT_BACKUP_AGE_RECIPIENT }}
+        run: bash scripts/postgres-backup.sh murim-postgres.dump.age
+      - uses: actions/upload-artifact@v7
+        with:
+          name: murim-postgres-${{ github.run_id }}
+          path: murim-postgres.dump.age
+          if-no-files-found: error
+          retention-days: 30
