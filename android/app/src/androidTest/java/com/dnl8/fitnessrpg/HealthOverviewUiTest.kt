@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -29,10 +30,19 @@ class HealthOverviewUiTest {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
-        instrumentation.targetContext.openFileOutput("$name.png", 0).use {
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
+        try {
+            // AGP collects additional test output before removing the test APKs.
+            val configured = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")
+            val directory = if (configured.isNullOrBlank()) {
+                checkNotNull(instrumentation.targetContext.getExternalFilesDir("ui-captures"))
+            } else File(configured)
+            check(directory.isDirectory || directory.mkdirs())
+            File(directory, "$name.png").outputStream().use {
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
+            }
+        } finally {
+            bitmap.recycle()
         }
-        bitmap.recycle()
     }
 
     @Test fun summaryWithSyntheticMeasurements() {

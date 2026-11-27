@@ -39,3 +39,5 @@ O build e os testes unitários verificam o APK e o contrato HTTP. A homologaçã
 ## Testes instrumentados
 
 O job Android executa os testes de interface Compose em emulador API 35 com dados sintéticos e publica capturas e relatórios, além do APK debug de CI. O APK de CI aponta para `https://murim-ci.example.test` e serve somente para testes de interface; para login/sincronização compile com a origem HTTPS real autorizada. O teste não concede permissões reais nem simula uma homologação completa do Health Connect. Em um emulador local iniciado, execute `./gradlew :app:connectedDebugAndroidTest` (Windows: `.\\gradlew.bat :app:connectedDebugAndroidTest`).
+
+As capturas são exportadas pelo diretório adicional de resultados do Android Gradle Plugin antes da desinstalação dos APKs de teste. O CI verifica assinatura PNG, dimensões, integridade dos chunks e presença das três capturas; arquivos de erro do ADB não são considerados imagens válidas.
