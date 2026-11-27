@@ -7,6 +7,10 @@ O aplicativo Kotlin e Jetpack Compose lê dados autorizados no Health Connect e 
 - A API recebe lotes de até 25 atividades e 25 métricas diárias. Ela deduplica atividades, atualiza sessões Health Connect com o mesmo identificador sem conceder XP novamente e preserva os valores de métricas omitidas. O contador de duplicatas inclui sessões atualizadas. Amostras de frequência cardíaca complementam sessões de exercício. Medições diárias ausentes ou inválidas são omitidas. O contrato legado de atividades ainda envia zeros para distância, calorias, elevação e zonas não coletadas; o relatório web trata esses zeros do Health Connect como indisponíveis, sem reescrever o histórico.
 - Consulte os resultados em **Saúde → Sincronização**. O usuário pode revogar permissões no Health Connect. O backup automático do aplicativo Android está desativado.
 
+## Resumo de saúde
+
+A aba Resumo apresenta tempo em exercício, energia ativa, passos, sessão de sono mais longa e faixa de frequência cardíaca, com gráficos dos últimos sete dias. A ação Atualizar lê os registros autorizados e não os envia ao servidor; a aba Conexão mantém a sincronização existente. Os dados do resumo ficam somente em memória e são limpos ao retomar a atividade, trocar de conta ou alterar permissões. Lacunas indicam ausência de medição; não são inventados pontos, metas ou escores. O resumo usa a janela de leitura existente de 30 dias, filtrada para sete dias na apresentação.
+
 ## Ambiente local
 
 As configurações locais do Android Studio (`.idea/`) não são versionadas. Abra a pasta `android/` como projeto Gradle; o IDE pode recriar esses arquivos localmente. O Gradle wrapper e os manifests permanecem versionados.

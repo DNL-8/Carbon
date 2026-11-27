@@ -54,6 +54,10 @@ Os valores acima são existentes, não uma certificação de contraste de todas 
 
 O tema atual é escuro verde: fundo `#101410`, superfície `#192019`, variante `#232D22`, ação `#B8F575`, texto `#F1F5EA`, texto secundário `#C0CCBA` e erro `#FFB4AB`. O hero tem raio 28 dp. Preserve essa identidade nativa e contraste, não replique automaticamente o tema laranja web. Estados de login, permissões parciais, sincronização, erro e logout devem ser claros.
 
+### Resumo Health Connect
+
+Referência visual autorizada: organização em cartões de saúde, valores destacados, mini gráficos e navegação simples das telas de Saúde fornecidas pelo usuário. Adaptação nativa no tema verde escuro Murim, com laranja para atividade, lavanda para sono e rosa para frequência cardíaca. Abas Resumo e Conexão; preservar login, permissões e sincronização. O resumo local é atualizado por ação explícita, exibe sete dias, mantém lacunas e não grava dados localmente. Não incluir pontuação de sono, ciclo menstrual, humor ou recuperação cardíaca pós-treino sem dados e contratos específicos. Gráficos têm descrições de acessibilidade por dia.
+
 ## Checklist para mudanças visuais
 
 - [ ] Usar tokens e componentes existentes, sem redefinir o tema global.

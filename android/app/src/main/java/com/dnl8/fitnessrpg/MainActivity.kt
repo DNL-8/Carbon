@@ -32,6 +32,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import kotlinx.coroutines.CancellationException
+import java.time.Instant
+import java.time.ZoneId
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -77,6 +82,10 @@ class MainActivity : ComponentActivity() {
             var hasHealthPermissions by remember { mutableStateOf(false) }
             var isSigningIn by remember { mutableStateOf(false) }
             var isSyncing by remember { mutableStateOf(false) }
+            var overview by remember { mutableStateOf<HealthOverview?>(null) }
+            var isReading by remember { mutableStateOf(false) }
+            var healthTab by remember { mutableIntStateOf(0) }
+            var previewRevision by remember { mutableIntStateOf(0) }
             var message by remember {
                 mutableStateOf(
                     if (authRepository.isSignedIn()) {
@@ -96,6 +105,8 @@ class MainActivity : ComponentActivity() {
             val permissionsLauncher = rememberLauncherForActivityResult(
                 PermissionController.createRequestPermissionResultContract(),
             ) { granted ->
+                overview = null
+                previewRevision++
                 val grantedCount = HealthConnectManager.permissions.count { it in granted }
                 hasHealthPermissions = grantedCount > 0
                 message = when (grantedCount) {
@@ -108,6 +119,8 @@ class MainActivity : ComponentActivity() {
                 if (healthConnectAvailable) HealthConnectManager(this@MainActivity) else null
             }
             LaunchedEffect(healthConnect, resumeCount, isLoggedIn) {
+                overview = null
+                previewRevision++
                 hasHealthPermissions = isLoggedIn && healthConnect?.hasReadPermission() == true
             }
             val backgroundLauncher = rememberLauncherForActivityResult(
@@ -164,6 +177,8 @@ class MainActivity : ComponentActivity() {
 
             val accountAction: () -> Unit = {
                 if (isLoggedIn) {
+                    overview = null
+                    previewRevision++
                     scope.launch {
                         authRepository.signOut()
                         WorkManager.getInstance(this@MainActivity).cancelUniqueWork("health-connect-sync")
@@ -187,6 +202,35 @@ class MainActivity : ComponentActivity() {
                             message = "Google não está configurado no servidor Murim ou a conexão falhou."
                         }
                     }
+                }
+            }
+            val refreshOverview: () -> Unit = {
+                isReading = true
+                overview = null
+                val revision = previewRevision
+                scope.launch {
+                    try {
+                        healthSyncMutex.withLock {
+                            val manager = checkNotNull(healthConnect)
+                            val account = authRepository.getCurrentUserId() ?: error("Entre novamente.")
+                            val session = TokenStore.getSessionCookie() ?: error("Entre novamente.")
+                            val types = manager.changeScope()
+                            val records = withTimeoutOrNull(60_000L) { manager.readRecentRecords() }
+                                ?: error("Tempo esgotado na leitura.")
+                            check(types == manager.changeScope() && account == authRepository.getCurrentUserId()
+                                && session == TokenStore.getSessionCookie())
+                            if (revision == previewRevision && isLoggedIn) {
+                                val now = Instant.now()
+                                val zone = ZoneId.systemDefault()
+                                overview = buildHealthOverview(records, now.atZone(zone).toLocalDate(), zone, now)
+                                message = "Resumo atualizado. Nenhum dado foi enviado ao servidor."
+                            }
+                        }
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        if (revision == previewRevision) message = "Não foi possível ler os dados autorizados. Confira as permissões e tente novamente."
+                    } finally { isReading = false }
                 }
             }
             val syncAction: () -> Unit = {
@@ -217,6 +261,7 @@ class MainActivity : ComponentActivity() {
 
                             check(authRepository.getCurrentUserId() == account && TokenStore.getSessionCookie() == session)
                             check(manager.changeScope() == types) { "As permissões foram alteradas durante a coleta." }
+                            val revision = previewRevision
                             val syncRepo = SyncRepository(authRepository)
                             val result = withTimeoutOrNull(60_000L) {
                                 syncRepo.syncRecords(records, session) { sent, total ->
@@ -228,6 +273,12 @@ class MainActivity : ComponentActivity() {
                                 return@launch
                             }
 
+                            if (revision == previewRevision && account == authRepository.getCurrentUserId()
+                                && types == manager.changeScope()) {
+                                val now = Instant.now()
+                                val zone = ZoneId.systemDefault()
+                                overview = buildHealthOverview(records, now.atZone(zone).toLocalDate(), zone, now)
+                            }
                             if (manager.canReadInBackground()) {
                                 scheduleBackgroundSync()
                             } else {
@@ -258,7 +309,13 @@ class MainActivity : ComponentActivity() {
                                 .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
-                            FitnessHero()
+                            if (isLoggedIn) {
+                                HealthOverviewHeader()
+                                TabRow(selectedTabIndex = healthTab) {
+                                    Tab(selected = healthTab == 0, onClick = { healthTab = 0 }, text = { Text("Resumo") })
+                                    Tab(selected = healthTab == 1, onClick = { healthTab = 1 }, text = { Text("Conexão") })
+                                }
+                            } else FitnessHero()
 
                             if (!isLoggedIn) {
                                 FitnessPanel {
@@ -291,7 +348,11 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            FitnessPanel {
+                            if (isLoggedIn && healthTab == 0) {
+                                HealthOverviewCards(overview, isReading || isSyncing, healthConnectAvailable && hasHealthPermissions,
+                                    refreshOverview, { healthTab = 1 })
+                            }
+                            if (!isLoggedIn || healthTab == 1) FitnessPanel {
                                 Text("Health Connect", style = MaterialTheme.typography.titleLarge)
                                 Text(
                                     when (healthConnectStatus) {
@@ -312,19 +373,19 @@ class MainActivity : ComponentActivity() {
                                     if (hasHealthPermissions) {
                                         Button(
                                             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                                            enabled = !isSyncing,
+                                            enabled = !isSyncing && !isReading,
                                             onClick = syncAction,
                                         ) { Text(if (isSyncing) "Sincronizando…" else "Sincronizar agora") }
                                     }
                                     OutlinedButton(
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                                        enabled = !isSyncing,
+                                        enabled = !isSyncing && !isReading,
                                         onClick = { permissionsLauncher.launch(HealthConnectManager.permissions) },
                                     ) { Text(if (hasHealthPermissions) "Gerenciar permissões" else "Permitir acesso") }
 
                                     if (healthConnect?.supportsBackgroundRead == true && hasHealthPermissions) {
                                         TextButton(
-                                            enabled = !isSyncing,
+                                            enabled = !isSyncing && !isReading,
                                             onClick = {
                                                 backgroundLauncher.launch(setOf(HealthConnectManager.backgroundPermission))
                                             },
@@ -341,8 +402,8 @@ class MainActivity : ComponentActivity() {
                             TextButton(onClick = {
                                 startActivity(Intent(this@MainActivity, PermissionsRationaleActivity::class.java))
                             }) { Text(stringResource(R.string.health_connect_privacy_title)) }
-                            if (isLoggedIn) {
-                                TextButton(enabled = !isSyncing, onClick = accountAction) { Text("Sair da conta") }
+                            if (isLoggedIn && healthTab == 1) {
+                                TextButton(enabled = !isSyncing && !isReading, onClick = accountAction) { Text("Sair da conta") }
                             }
                         }
                     }
