@@ -10,6 +10,10 @@ Aplicativo privado de treinos e saúde para duas pessoas, com progressão de Ca�
 - Android Kotlin e Health Connect.
 - Playwright, pytest e GitHub Actions.
 
+## Design
+
+Consulte [DESIGN.md](DESIGN.md) para identidade visual, componentes, gráficos e acessibilidade.
+
 ## Desenvolvimento
 
 Use Node 24, Bun 1.4.5, Python 3.13, uv e PostgreSQL isolado. Backend e frontend são executados separadamente.
