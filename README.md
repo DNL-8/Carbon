@@ -25,4 +25,6 @@ Use Node 24, Bun 1.4.5, Python 3.13, uv e PostgreSQL isolado. Backend e frontend
 
 O [CI](docs/ci.md) executa os checks Aplicação e Android. Os testes de integração usam PostgreSQL descartável e simulam Google, Gemini e Strava. A homologação com os provedores reais e com Health Connect em aparelho físico requer configuração privada.
 
+Para os testes com provedores reais e dispositivo físico, siga o [roteiro de homologação](docs/homologacao.md).
+
 Antes de conectar um banco existente, confira o [guia de compatibilidade PostgreSQL e Neon](docs/neon-postgresql.md). Guarde credenciais e o mapeamento das contas fora do Git.
