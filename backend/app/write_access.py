@@ -12,10 +12,10 @@ def require_write_user(
     settings: Annotated[Settings, Depends(get_settings)],
     request: Request,
 ) -> str:
-    # Explicit opt-in while Nitro is authoritative. Never trust Host/X-Forwarded-Host.
+    # Explicit opt-in for business writes. Never trust Host/X-Forwarded-Host.
     if not settings.enable_writes:
         raise HTTPException(503, "Escrita indisponivel")
-    origin = web_origin(settings.better_auth_url)
+    origin = web_origin(settings.app_origin)
     if not origin or request.headers.get("origin") != origin:
         raise HTTPException(403, "Origem invalida")
     return user

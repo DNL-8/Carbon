@@ -19,9 +19,9 @@ TTL = 604800
 
 
 def config(settings):
-    origin = web_origin(settings.better_auth_url)
+    origin = web_origin(settings.app_origin)
     users = settings.google_users
-    if (settings.auth_provider != "authlib" or not origin
+    if (not origin
             or not (origin.startswith(("https://", "http://127.0.0.1:")))
             or not settings.google_client_id or not settings.google_client_secret
             or len(settings.python_auth_secret) < 32 or not 1 <= len(users) <= 2

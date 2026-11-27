@@ -5,8 +5,8 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Linea
 import { useMutation } from '@tanstack/react-query'
 import type { WorkoutTemplate } from '../../src/types/fitness'
 import { parseExercisePrescription, formatSecondsMMSS } from '../../src/utils/rpgLogic'
-import { completedFocusSets, initialFocusSets } from '../../web/shared/focus'
-import { getWorkoutCombat } from '../../web/shared/boss'
+import { completedFocusSets, initialFocusSets } from '../shared/focus'
+import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { healthSource, manualHealthSource } from '../../web/shared/health'
+import { healthSource, manualHealthSource } from '../shared/health'
 
 export type Period = '7' | '28' | '90'
 export type Source = 'all' | z.infer<typeof healthSource>

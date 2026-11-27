@@ -1,5 +1,0 @@
-{
-  "framework": "nuxtjs",
-  "installCommand": "bash scripts/vercel-install.sh",
-  "buildCommand": "NITRO_PRESET=vercel bun run build:nuxt && mkdir -p .vercel && cp -a web/.vercel/output .vercel/ && test -f .vercel/output/config.json"
-}

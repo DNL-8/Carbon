@@ -18,7 +18,7 @@ ORIGIN = "https://murim.example.test"
 def client():
     app.dependency_overrides[current_user] = lambda: {"id": "owner", "emailVerified": True}
     app.dependency_overrides[get_settings] = lambda: Settings(
-        better_auth_url=ORIGIN, enable_writes=True, strava_client_id="1",
+        app_origin=ORIGIN, enable_writes=True, strava_client_id="1",
         strava_client_secret="fixture", strava_session_secret="a" * 40, _env_file=None,
     )
     with TestClient(app, base_url=ORIGIN, follow_redirects=False) as test_client:
@@ -115,7 +115,7 @@ def test_oracle_http_respects_health_opt_in(client, monkeypatch):
     from app.health_summary import today_in_sao_paulo
 
     app.dependency_overrides[get_settings] = lambda: Settings(
-        better_auth_url=ORIGIN, enable_writes=True, gemini_api_key="fixture",
+        app_origin=ORIGIN, enable_writes=True, gemini_api_key="fixture",
         gemini_model="fixture-model", _env_file=None,
     )
     connection = MagicMock()

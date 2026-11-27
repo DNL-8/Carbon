@@ -58,8 +58,6 @@ Db = Annotated[Connection, Depends(get_db)]
 @app.middleware("http")
 async def no_cache(request: Request, call_next):
     response = await call_next(request)
-    for cookie in getattr(request.state, "auth_cookies", ()):
-        response.headers.append("Set-Cookie", cookie)
     if request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
         if request.url.path not in {"/api/health", "/api/ready", "/api/mobile/config", "/api/strava/config", "/api/catalogo"}:
@@ -97,12 +95,9 @@ def ready(settings: Annotated[Settings, Depends(get_settings)]):
     from .db import engine
 
     try:
-        if settings.auth_provider == "authlib":
-            from .python_auth import config
+        from .python_auth import config
 
-            config(settings)
-        elif not settings.auth_origin:
-            raise ValueError("missing auth origin")
+        config(settings)
         with engine().connect() as conn:
             conn.execute(text("SELECT xp FROM fitness_progress LIMIT 0"))
         return {"ready": True}

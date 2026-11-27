@@ -24,7 +24,7 @@ def web_origin(raw: str) -> str | None:
 
 
 def public_strava_config(settings: Settings) -> dict:
-    origin = web_origin(settings.better_auth_url)
+    origin = web_origin(settings.app_origin)
     configured = bool(
         settings.strava_client_id.strip()
         and settings.strava_client_secret.strip()

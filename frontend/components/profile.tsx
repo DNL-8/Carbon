@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Alert, Button, MenuItem, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { profileSchema, type ProfileInput } from '../../web/shared/training'
+import { profileSchema, type ProfileInput } from '../shared/training'
 import { api, profileResult, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 
