@@ -169,17 +169,17 @@ def activity_xp(duration: float, distance: float, sport: str) -> int:
 
 
 def duplicate_provider_activity(db: Connection, user: str, item: Activity) -> bool:
-    # Match exact start and duration only across the two device providers.
-    if item.source not in {"health_connect", "strava"} or item.durationMinutes <= 0:
+    # CSV may have a synthetic midday timestamp. Do not infer duplicates from it.
+    if item.source == "csv" or item.durationMinutes <= 0:
         return False
     day = datetime.fromisoformat(item.dateKey)
     if not 2 <= day.year <= 9998:
         return False
     existing = db.execute(text("""
         SELECT data FROM fitness_health_activity
-        WHERE user_id = :uid AND source = :other
+        WHERE user_id = :uid AND source <> :source AND source <> 'csv'
         AND (data->>'dateKey') BETWEEN :first AND :last
-    """), {"uid": user, "other": "strava" if item.source == "health_connect" else "health_connect",
+    """), {"uid": user, "source": item.source,
              "first": (day - timedelta(days=1)).date().isoformat(),
              "last": (day + timedelta(days=1)).date().isoformat()}).scalars()
     for data in existing:
@@ -188,9 +188,14 @@ def duplicate_provider_activity(db: Connection, user: str, item: Activity) -> bo
             same_duration = abs(float(data["durationMinutes"]) - item.durationMinutes) < 1 / 60
             distance = float(data.get("distanceKm") or 0)
             compatible_distance = not distance or not item.distanceKm or abs(distance - item.distanceKm) <= 0.05
-            if same_start and same_duration and compatible_distance:
+            # Require compatible activity type as well as the measured instant.
+            # Exact normalized names only; do not infer equivalence of distinct sports.
+            same_sport = re.sub(r"[^a-z0-9]", "", data["sportType"].lower()) == re.sub(
+                r"[^a-z0-9]", "", item.sportType.lower()
+            )
+            if same_start and same_duration and compatible_distance and same_sport:
                 return True
-        except (KeyError, TypeError, ValueError, OverflowError):
+        except (KeyError, TypeError, ValueError, OverflowError, AttributeError):
             continue
     return False
 

@@ -43,8 +43,12 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
         + " ORDER BY CASE WHEN pg_input_is_valid(data->>'startedAt', 'timestamp with time zone')"
           " THEN CAST(data->>'startedAt' AS timestamptz) END DESC NULLS LAST, source, external_id LIMIT 20"
     )
-    # Legacy Android sends zero for uncollected activity measurements.
+    # GPX calories were previously estimated and are not measured by our importer.
+    # Do not present old estimates as measurements; retain original stored data.
     for activity in activities:
+        if activity["source"] == "gpx":
+            activity["data"]["calories"] = None
+        # Legacy Android sends zero for uncollected activity measurements.
         if activity["source"] == "health_connect":
             for key in ("distanceKm", "calories", "elevationGainM"):
                 if activity["data"].get(key) == 0:
@@ -61,7 +65,8 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
           sum(CAST(data->>'durationMinutes' AS double precision)) AS "durationMinutes",
           sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'distanceKm' AS double precision), 0)
                    ELSE CAST(data->>'distanceKm' AS double precision) END) AS "distanceKm",
-          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
+          sum(CASE WHEN source = 'gpx' THEN NULL
+                   WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
                    ELSE CAST(data->>'calories' AS double precision) END) AS calories
         """ + ACTIVITY_FILTER + " GROUP BY data->>'dateKey' ORDER BY data->>'dateKey'"
     )
@@ -71,7 +76,8 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
           coalesce(sum(CAST(data->>'durationMinutes' AS double precision)), 0) AS "durationMinutes",
           sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'distanceKm' AS double precision), 0)
                    ELSE CAST(data->>'distanceKm' AS double precision) END) AS "distanceKm",
-          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
+          sum(CASE WHEN source = 'gpx' THEN NULL
+                   WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
                    ELSE CAST(data->>'calories' AS double precision) END) AS calories,
           avg(CAST(data->>'avgHeartRate' AS double precision)) AS "avgHeartRate",
           coalesce(sum(CAST(data->'zoneMinutes'->>0 AS double precision)), 0) AS z1,

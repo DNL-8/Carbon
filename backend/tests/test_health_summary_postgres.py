@@ -118,6 +118,17 @@ def test_unmeasured_android_activity_metrics(db):
     assert next(row for row in mixed["activities"] if row["source"] == "csv")["data"]["distanceKm"] == 0
 
 
+def test_gpx_estimated_calories_not_reported_as_measurements(db):
+    activity(db, "a", "gpx", "historic", "2026-11-27", calories=120)
+    result = read_health_summary(db, "a", "7", "gpx", TODAY)
+    assert result["activities"][0]["data"]["calories"] is None
+    assert result["trend"][0]["calories"] is None
+    assert result["totals"]["calories"] is None
+    activity(db, "a", "csv", "measured", "2026-11-27", calories=80)
+    assert read_health_summary(db, "a", "7", "all", TODAY)["totals"]["calories"] == 80
+    assert db.execute(text("SELECT data->>'calories' FROM fitness_health_activity WHERE external_id='historic'")).scalar_one() == "120"
+
+
 def test_empty_summary_and_recent_limit(db):
     empty = read_health_summary(db, "a", "30", "all", TODAY)
     assert empty["activities"] == empty["dailyMetrics"] == empty["trend"] == []

@@ -12,8 +12,10 @@ A arquitetura Next.js/FastAPI permanece inalterada. Correções de auditoria sã
 
 ## Backend
 
-- Limites de dados de saúde, proteção de XP e votos, idempotência do treino e correções de atividades Strava. Deduplicação entre Health Connect/Strava é conservadora: mesmo instante, duração e distância compatível. Não concilia histórico já duplicado, arquivos manuais ou registros com identificadores/timestamps diferentes. A segunda fonte de um registro duplicado não é persistida separadamente.
+- Limites de dados de saúde, proteção de XP e votos, idempotência do treino e correções de atividades Strava. Deduplicação entre fontes com horários registrados (Health Connect, Strava, Apple, Samsung e GPX) é conservadora: mesmo instante, duração, tipo normalizado e distância compatível. CSV fica excluído da deduplicação entre fontes, pois pode usar horários sintéticos. Não concilia histórico já duplicado ou registros com horários/tipos diferentes. A segunda fonte de um registro duplicado não é persistida separadamente.
 - Revogação Strava via OAuth revoke e preservação do token rotacionado em falhas. Conexões são adquiridas após consultas externas Strava e liberadas antes de Gemini. Limite Gemini continua por processo; não foi adicionada infraestrutura de filas/cache.
 - Readiness verifica presença das tabelas esperadas. Relatórios ordenam instantes reais, tratando horários antigos inválidos como ausentes (PostgreSQL 16+; CI usa PostgreSQL 18). Migrações históricas, IDs, cookie legado e colunas auth_* são mantidos por compatibilidade com sessões, APKs e bases existentes. Não excluir ou alterar produção sem plano de migração.
 - Backup aceita nomes MURIM_BACKUP_* com fallback legado; CI testa restauração de uma base descartável. Homologação do backup real e do schema Neon de destino continua pendente.
 - Health Connect mantém a janela de 30 dias. Reconciliação de exclusões, alterações antigas, ausência explícita de medições e possíveis duplicatas entre todas as fontes requer etapa própria.
+
+- Relatórios não apresentam calorias GPX antigas estimadas como medições: excluem-nas dos agregados e preservam o registro original. Outros zeros legados ainda podem ser ambíguos.

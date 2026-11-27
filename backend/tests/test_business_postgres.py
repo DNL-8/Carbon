@@ -166,6 +166,21 @@ def test_cross_provider_exact_duplicate_and_vow_removal(database):
         change_vow(conn, user, ChangeVow(action="delete", id=vow), "2026-11-27")
 
 
+def test_cross_source_import_excludes_csv_and_distinct_sports(database):
+    engine, (user, other) = database
+    original = fixture_activity()
+    with engine.begin() as conn:
+        persist_import(conn, user, "health_connect", [original], [])
+        for source in ("apple_health", "samsung_health", "gpx"):
+            duplicate = original.model_copy(update={"source": source, "externalId": source + "_1"})
+            assert persist_import(conn, user, source, [duplicate], [])["xp"] == 0
+        csv = original.model_copy(update={"source": "csv", "externalId": "csv_1"})
+        assert persist_import(conn, user, "csv", [csv], [])["imported"] == 1
+        distinct = original.model_copy(update={"source": "gpx", "externalId": "gpx_2", "sportType": "Cycling"})
+        assert persist_import(conn, user, "gpx", [distinct], [])["imported"] == 1
+        assert persist_import(conn, other, "gpx", [distinct], [])["imported"] == 1
+
+
 def test_concurrent_arsenal_purchase(database):
     engine, (user, other) = database
     with engine.begin() as conn:

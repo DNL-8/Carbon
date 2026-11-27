@@ -15,7 +15,7 @@ import { Weight } from './weight'
 type Section = 'visao-geral' | 'atividades' | 'evolucao' | 'sincronizacao'
 const sections = [['visao-geral', 'Visão geral'], ['atividades', 'Atividades'], ['evolucao', 'Evolução'], ['sincronizacao', 'Sincronização']] as const
 type TrendMetric = 'durationMinutes' | 'distanceKm' | 'calories'
-const details = { durationMinutes: ['Duração', 'min'], distanceKm: ['Distância', 'km'], calories: ['Calorias estimadas', 'kcal'] } as const
+const details = { durationMinutes: ['Duração', 'min'], distanceKm: ['Distância', 'km'], calories: ['Calorias registradas', 'kcal'] } as const
 
 export function Health({ owner, overview, profile, onProfile }: {
   owner: string; overview?: z.infer<typeof dashboardResult>; profile?: ProfileInput | null; onProfile: () => void
@@ -76,9 +76,9 @@ export function Health({ owner, overview, profile, onProfile }: {
       {totals && <>
         <div className="rpg-grid">{([
           ['Tempo de treino', totals.durationMinutes, 'min'], ['Distância', totals.distanceKm, 'km'],
-          ['Calorias estimadas', totals.calories, 'kcal'], ['Frequência cardíaca média', totals.avgHeartRate, 'bpm'],
+          ['Calorias registradas', totals.calories, 'kcal'], ['Frequência cardíaca média', totals.avgHeartRate, 'bpm'],
         ] as const).map(([label, value, suffix]) => <article className="surface metric" key={label}><p>{label}</p><strong className="orange mono">{formatMetric(value, suffix)}</strong></article>)}</div>
-        <p>Distância e calorias consideram somente as medições disponíveis.</p>
+        <p>Distância e calorias consideram os registros disponíveis. Calorias estimadas anteriormente pelo importador GPX não entram no relatório.</p>
         <section className="surface overview" aria-labelledby="trend-title">
           <header className="between"><h2 id="trend-title">Tendência de atividade</h2>
             <TextField select label="Métrica do gráfico" value={metric} onChange={event => setMetric(event.target.value as TrendMetric)} size="small">
