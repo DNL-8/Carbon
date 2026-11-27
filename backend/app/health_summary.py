@@ -40,7 +40,8 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
 
     activities = rows(
         'SELECT external_id AS id, source, data ' + ACTIVITY_FILTER
-        + " ORDER BY (data->>'startedAt') DESC, source, external_id LIMIT 20"
+        + " ORDER BY CASE WHEN pg_input_is_valid(data->>'startedAt', 'timestamp with time zone')"
+          " THEN CAST(data->>'startedAt' AS timestamptz) END DESC NULLS LAST, source, external_id LIMIT 20"
     )
     # Legacy Android sends zero for uncollected activity measurements.
     for activity in activities:

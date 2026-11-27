@@ -92,6 +92,18 @@ def test_summary_filters_and_totals(db):
     assert all_sources["totals"]["avgHeartRate"] == 130
 
 
+def test_summary_orders_real_instants_and_tolerates_legacy_invalid_time(db):
+    for ident in ("early", "late", "legacy"):
+        activity(db, "a", "csv", ident, "2026-11-27")
+    for ident, stamp in (("early", "2026-11-27T13:00:00+03:00"),
+                         ("late", "2026-11-27T11:00:00Z"), ("legacy", "invalid")):
+        db.execute(text("""UPDATE fitness_health_activity
+            SET data = jsonb_set(data, '{startedAt}', to_jsonb(CAST(:stamp AS text)))
+            WHERE external_id = :ident"""), {"stamp": stamp, "ident": ident})
+    result = read_health_summary(db, "a", "7", "all", TODAY)
+    assert [row["id"] for row in result["activities"]] == ["late", "early", "legacy"]
+
+
 def test_unmeasured_android_activity_metrics(db):
     activity(db, "a", "health_connect", "android", "2026-11-27", distance=0, calories=0)
     result = read_health_summary(db, "a", "7", "health_connect", TODAY)

@@ -135,10 +135,12 @@ export function parseGpxContent(
   const hrValues: number[] = [];
 
   for (const pt of points) {
-    const lat = Number(pt.getAttribute('lat'));
-    const lon = Number(pt.getAttribute('lon'));
+    const rawLat = pt.getAttribute('lat');
+    const rawLon = pt.getAttribute('lon');
+    const lat = Number(rawLat);
+    const lon = Number(rawLon);
 
-    if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+    if (rawLat?.trim() && rawLon?.trim() && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
       if (prevLat !== null && prevLon !== null) {
         totalDistKm += haversineDistanceKm(prevLat, prevLon, lat, lon);
       }
@@ -180,15 +182,11 @@ export function parseGpxContent(
     }
   }
 
-  const startDt = firstTime ?? new Date();
-  const durationMinutes =
-    firstTime && lastTime
-      ? Math.max(1, Math.round((lastTime.getTime() - firstTime.getTime()) / 60000))
-      : Math.max(10, Math.round(totalDistKm * 6));
-
-  if (!firstTime) {
-    warnings.push('O arquivo GPX não continha timestamps; duração estimada pela distância.');
+  if (!firstTime || !lastTime || lastTime.getTime() <= firstTime.getTime()) {
+    throw new Error('GPX sem horários válidos de início e fim. Não é possível determinar a data e a duração da atividade.');
   }
+  const startDt = firstTime;
+  const durationMinutes = Math.round((lastTime.getTime() - firstTime.getTime()) / 1000) / 60;
 
   const avgHeartRate =
     hrValues.length > 0
@@ -203,9 +201,9 @@ export function parseGpxContent(
       : estimateZoneMinutesFromAvgHr(avgHeartRate, durationMinutes, maxHr);
 
   const distanceKm = Number(totalDistKm.toFixed(2));
-  const calories = Math.round(
-    durationMinutes * (avgHeartRate ? (avgHeartRate / 140) * 8.5 : 8)
-  );
+  // GPX não fornece calorias medidas no contrato atual.
+  const calories = 0;
+  warnings.push('Calorias não disponíveis no GPX; nenhuma estimativa foi calculada.');
   const dateKey = getLocalDateKey(startDt);
   const firstPt = points[0];
   const lastPt = points[points.length - 1];
@@ -344,10 +342,15 @@ export async function parseAppleHealthXmlFile(
 
         const rawType = extractAttr(trimmed, 'workoutActivityType') || 'Workout';
         const sportType = mapAppleWorkoutType(rawType);
-        const durationMin = Math.max(
-          1,
-          Math.round(Number(extractAttr(trimmed, 'duration') || '0'))
-        );
+        const rawDuration = Number(extractAttr(trimmed, 'duration') || '0');
+        const durationUnit = (extractAttr(trimmed, 'durationUnit') || 'min').toLowerCase();
+        const unitFactor = durationUnit === 'min' ? 1 : durationUnit === 'h' || durationUnit === 'hr' ? 60 : durationUnit === 's' ? 1 / 60 : 0;
+        const endRaw = extractAttr(trimmed, 'endDate');
+        const endDt = endRaw ? parseIsoOrAppleDate(endRaw) : null;
+        const durationMin = rawDuration > 0 && Number.isFinite(rawDuration) && unitFactor > 0
+          ? Math.round(rawDuration * unitFactor * 60) / 60
+          : endDt && endDt > startDt ? Math.round((endDt.getTime() - startDt.getTime()) / 1000) / 60 : 0;
+        if (durationMin <= 0) { warnings.push('Treino Apple Health ignorado: duração não disponível.'); continue; }
         const distRaw = Number(extractAttr(trimmed, 'totalDistance') || '0');
         const distUnit = (extractAttr(trimmed, 'totalDistanceUnit') || 'km').toLowerCase();
         const distanceKm = Number(
@@ -380,7 +383,7 @@ export async function parseAppleHealthXmlFile(
           elevationGainM: 0,
           avgHeartRate: null,
           maxHeartRate: null,
-          zoneMinutes: [0, Math.round(durationMin * 0.6), Math.round(durationMin * 0.4), 0, 0],
+          zoneMinutes: [0, 0, 0, 0, 0],
           hrSamplePoints: [],
           xpAwarded: calculateActivityXp(durationMin, Number.isNaN(distanceKm) ? 0 : distanceKm, sportType),
           createdAt: new Date().toISOString(),
@@ -643,7 +646,7 @@ export function parseCsvHealthContent(
         elevationGainM: 0,
         avgHeartRate: avgHr && avgHr >= 30 && avgHr <= 240 ? avgHr : null,
         maxHeartRate: maxHrAct && maxHrAct >= 30 && maxHrAct <= 250 ? maxHrAct : null,
-        zoneMinutes: estimateZoneMinutesFromAvgHr(avgHr, dur, maxHr),
+        zoneMinutes: [0, 0, 0, 0, 0],
         hrSamplePoints: [],
         xpAwarded: calculateActivityXp(dur, distanceKm, sportType),
         createdAt: new Date().toISOString(),
@@ -892,13 +895,12 @@ export async function parseSamsungHealthFiles(
             );
             if (!startDt) continue;
             const rawDur = Number(rec.duration ?? 0);
-            const durationMin = Math.max(
-              1,
-              Math.round(rawDur > 1000 ? rawDur / 60000 : rawDur || 20)
-            );
+            const endDt = parseSamsungTimestamp(rec.end_time as string | number | undefined);
+            const durationMin = Math.max(0, rawDur > 1000 ? rawDur / 60000 : rawDur > 0 ? rawDur :
+              endDt && endDt > startDt ? (endDt.getTime() - startDt.getTime()) / 60000 : 0);
             const rawDist = Number(rec.distance ?? 0);
             const distanceKm = Number((rawDist > 100 ? rawDist / 1000 : rawDist).toFixed(2));
-            const calories = Math.max(0, Math.round(Number(rec.calorie ?? rec.calories ?? durationMin * 7)));
+            const calories = Math.max(0, Math.round(Number(rec.calorie ?? rec.calories ?? 0)));
             const avgHrRaw = Number(rec.mean_heart_rate ?? rec.avg_heart_rate ?? rec.heart_rate ?? 0);
             const maxHrRaw = Number(rec.max_heart_rate ?? 0);
             const avgHeartRate = avgHrRaw >= 30 && avgHrRaw <= 240 ? Math.round(avgHrRaw) : null;
@@ -933,7 +935,7 @@ export async function parseSamsungHealthFiles(
               elevationGainM: Math.min(20000, Math.max(0, Math.round(Number(rec.altitude_gain ?? 0)))),
               avgHeartRate,
               maxHeartRate,
-              zoneMinutes: estimateZoneMinutesFromAvgHr(avgHeartRate, durationMin, maxHr),
+              zoneMinutes: [0, 0, 0, 0, 0],
               hrSamplePoints: [],
               xpAwarded: calculateActivityXp(durationMin, distanceKm, mappedType.sportType),
               createdAt: new Date().toISOString(),
@@ -1088,8 +1090,8 @@ export async function parseSamsungHealthFiles(
               ? Math.round(rawDur)
               : endDt && endDt.getTime() > startDt.getTime()
               ? Math.round((endDt.getTime() - startDt.getTime()) / 60000)
-              : 20;
-          durationMin = Math.min(1440, Math.max(1, durationMin));
+              : 0;
+          durationMin = Math.min(1440, Math.max(0, durationMin));
 
           const rawDist = colDistance >= 0 ? Number(cols[colDistance]) || 0 : 0;
           const distanceHeader = colDistance >= 0 ? headers[colDistance] : '';
@@ -1104,7 +1106,7 @@ export async function parseSamsungHealthFiles(
           );
 
           const rawCal = colCalorie >= 0 ? Number(cols[colCalorie]) || 0 : 0;
-          const calories = Math.min(20000, Math.max(0, Math.round(rawCal || durationMin * 7)));
+          const calories = Math.min(20000, Math.max(0, Math.round(rawCal)));
           const avgHrRaw = colAvgHr >= 0 ? Number(cols[colAvgHr]) : NaN;
           const maxHrRaw = colMaxHr >= 0 ? Number(cols[colMaxHr]) : NaN;
           const avgHeartRate =
@@ -1137,7 +1139,7 @@ export async function parseSamsungHealthFiles(
           const zoneMinutes =
             matchedJsonHr.length > 0
               ? computeZoneMinutesFromHrStream(matchedJsonHr, durationMin, maxHr)
-              : estimateZoneMinutesFromAvgHr(avgHeartRate, durationMin, maxHr);
+              : [0, 0, 0, 0, 0] as [number, number, number, number, number];
 
           const safeDistKm = Math.min(1000, Math.max(0, distanceKm));
           const externalId = rawUuid

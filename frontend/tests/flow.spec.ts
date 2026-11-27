@@ -197,6 +197,12 @@ test('peso, importações, Android, Strava e consentimento no Oráculo', async (
   await page.getByLabel('Arquivos de saúde').setInputFiles(file)
   await importButton.click()
   await expect(page.getByText(/0 atividades novas, 1 duplicadas/)).toBeVisible()
+  const undated = { name: 'sem-data.gpx', mimeType: 'application/gpx+xml', buffer: Buffer.from('<gpx><trk><trkseg><trkpt lat="-23.5" lon="-46.6"/><trkpt lat="-23.51" lon="-46.61"/></trkseg></trk></gpx>') }
+  await page.getByRole('combobox', { name: 'Formato do arquivo' }).click()
+  await page.getByRole('option', { name: 'GPX', exact: true }).click()
+  await page.getByLabel('Arquivos de saúde').setInputFiles(undated)
+  await importButton.click()
+  await expect(page.getByRole('alert').filter({ hasText: 'GPX sem horários válidos' })).toBeVisible()
   const archives = [
     ['Apple Health', 'export.xml', `<HealthData>
 <Workout workoutActivityType="HKWorkoutActivityTypeRunning" duration="30" durationUnit="min" startDate="${today} 10:00:00 +0000" endDate="${today} 10:30:00 +0000" totalDistance="4" totalDistanceUnit="km" />
