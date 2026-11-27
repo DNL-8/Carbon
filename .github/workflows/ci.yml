@@ -44,15 +44,17 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
       - run: node ../scripts/check-fastapi-catalog.mjs
       - run: node ../scripts/check-fastapi-progression.mjs > "$MURIM_PROGRESSION_ORACLE"
       - run: node ../scripts/check-fastapi-equipment.mjs > "$MURIM_EQUIPMENT_ORACLE"
       - run: node ../scripts/check-fastapi-rewards.mjs > "$MURIM_REWARDS_ORACLE"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - run: python -m pip install uv
@@ -94,7 +96,7 @@ jobs:
           bun run test
       - name: Guardar relatórios de falha do Playwright
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: murim-playwright-failures
           path: frontend/test-results/
@@ -106,13 +108,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
-      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools platforms;android-35 build-tools;34.0.0 build-tools;35.0.0"
           log-accepted-android-sdk-licenses: 'false'
