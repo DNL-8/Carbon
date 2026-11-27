@@ -136,8 +136,7 @@ test('treinos personalizados, progressão e arsenal usam os contratos reais', as
   await page.getByRole('dialog', { name: 'Registrar falha' }).getByRole('button', { name: 'Confirmar falha' }).click()
   await expect(vow).toContainText('Quebrado hoje')
   await expect(page.locator('.status-totals')).toContainText('85')
-  await vow.getByRole('button', { name: 'Remover voto' }).click()
-  await expect(vow).toHaveCount(0)
+  await expect(vow.getByRole('button', { name: 'Remover voto' })).toBeDisabled()
   await validateViewport(page)
 
   await go('Arsenal')

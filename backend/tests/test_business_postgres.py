@@ -146,6 +146,26 @@ def test_completion_and_vow_serialize_and_rollback(database):
             change_vow(conn, user, ChangeVow(action="complete", id=vow), TODAY)
         assert exc.value.status_code == 409
 
+def test_cross_provider_exact_duplicate_and_vow_removal(database):
+    engine, (user, other) = database
+    original = fixture_activity()
+    duplicate = original.model_copy(update={"source": "strava", "externalId": "strava_1",
+                                            "startedAt": TODAY + "T15:00:00Z"})
+    with engine.begin() as conn:
+        persist_import(conn, user, "health_connect", [original], [])
+        assert persist_import(conn, user, "strava", [duplicate], [])["xp"] == 0
+        assert persist_import(conn, other, "strava", [duplicate], [])["xp"] == 150
+        assert read_totals(conn, user)["xp"] == 150
+        vow = str(uuid4())
+        change_vow(conn, user, CreateVow(action="create", id=vow, title="Voto"), TODAY)
+        change_vow(conn, user, ChangeVow(action="complete", id=vow), TODAY)
+        with pytest.raises(HTTPException) as exc:
+            change_vow(conn, user, ChangeVow(action="delete", id=vow), TODAY)
+        assert exc.value.status_code == 409
+        assert read_totals(conn, user)["xp"] == 165
+        change_vow(conn, user, ChangeVow(action="delete", id=vow), "2026-11-27")
+
+
 def test_concurrent_arsenal_purchase(database):
     engine, (user, other) = database
     with engine.begin() as conn:

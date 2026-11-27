@@ -62,7 +62,7 @@ export function Missions() {
         <div className="row">
           {!vow.outcome && <><Button color="success" variant="outlined" disabled={action.isPending} onClick={() => run({ action: 'complete', id: vow.id })}>Cumpri o voto</Button>
             <Button color="error" variant="outlined" disabled={action.isPending} onClick={() => setConfirm(vow)}>Quebrei o voto</Button></>}
-          <Button variant="outlined" disabled={action.isPending} onClick={() => run({ action: 'delete', id: vow.id })}>Remover voto</Button>
+          <Button variant="outlined" disabled={action.isPending || !!vow.outcome} onClick={() => run({ action: 'delete', id: vow.id })}>Remover voto</Button>{vow.outcome && <small>Remoção disponível amanhã.</small>}
         </div>
       </article>)}
     </section>

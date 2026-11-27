@@ -34,6 +34,9 @@ def provider(request):
             "access_token": "test-access", "refresh_token": "test-refresh",
             "expires_at": int(time.time()) + 3600, "athlete": {"id": 5},
         })
+    if request.url.host == "www.strava.com" and request.url.path == "/oauth/revoke":
+        assert request.headers["authorization"].startswith("Basic ")
+        return httpx.Response(200)
     if request.url.host == "www.strava.com" and request.url.path == "/api/v3/athlete/activities":
         assert request.headers["authorization"] == "Bearer test-access"
         return httpx.Response(200, json=[{

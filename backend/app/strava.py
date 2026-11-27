@@ -242,8 +242,18 @@ def callback(request: Request, user: User, settings: Config):
 
 
 @router.post("/disconnect")
-def disconnect(response: Response, user: Writer, settings: Config):
+def disconnect(request: Request, response: Response, user: Writer, settings: Config):
     configured(settings)
+    session = read_session(request, user, settings)
+    if session is not None:
+        try:
+            with httpx.Client(timeout=8, trust_env=False) as client:
+                result = client.post("https://www.strava.com/oauth/revoke",
+                                     auth=(settings.strava_client_id.strip(), settings.strava_client_secret.strip()),
+                                     data={"token": session.refresh, "token_type_hint": "refresh_token"})
+                result.raise_for_status()
+        except httpx.HTTPError:
+            raise HTTPException(502, "Nao foi possivel revogar o Strava; tente novamente") from None
     response.delete_cookie(SESSION, **COOKIE)
     response.delete_cookie(STATE, **COOKIE)
     return {"disconnected": True}

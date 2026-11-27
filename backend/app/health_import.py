@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends
@@ -11,6 +11,7 @@ from pydantic import (
     BeforeValidator,
     Field,
     StringConstraints,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -48,6 +49,24 @@ class Activity(BaseModel):
     zoneMinutes: tuple[Number, Number, Number, Number, Number]
     hrSamplePoints: Annotated[list[Number], Field(max_length=40)]
 
+    @field_validator("durationMinutes", "distanceKm", "calories", "elevationGainM",
+                     "avgHeartRate", "maxHeartRate")
+    @classmethod
+    def bounded_activity(cls, value: float | None, info: ValidationInfo):
+        limits = {"durationMinutes": 10080, "distanceKm": 2000, "calories": 100000,
+                  "elevationGainM": 50000, "avgHeartRate": 300, "maxHeartRate": 300}
+        if value is not None and value > limits[info.field_name]:
+            raise ValueError("Medicao fora do limite de importacao")
+        return value
+
+    @model_validator(mode="after")
+    def consistent_activity(self):
+        if self.avgHeartRate is not None and self.maxHeartRate is not None and self.avgHeartRate > self.maxHeartRate:
+            raise ValueError("Frequencia cardiaca inconsistente")
+        if any(value > 300 for value in self.hrSamplePoints) or sum(self.zoneMinutes) > self.durationMinutes + 5:
+            raise ValueError("Amostras ou zonas invalidas")
+        return self
+
     @field_validator("externalId", "title", "sportType")
     @classmethod
     def valid_label(cls, value: str) -> str:
@@ -64,6 +83,14 @@ class Activity(BaseModel):
         return value
 
 
+def validate_daily_limits(data: dict) -> None:
+    limits = {"steps": 250000, "activeCalories": 30000, "sleepHours": 24,
+              "restingHeartRate": 300, "hrvMs": 1000, "trainingLoadScore": 100000,
+              "recoveryScore": 100}
+    if any(data.get(key) is not None and data[key] > maximum for key, maximum in limits.items()):
+        raise ValueError("Medicao diaria fora do limite de importacao")
+
+
 class Metric(BaseModel):
     dateKey: Day
     steps: Number
@@ -73,6 +100,11 @@ class Metric(BaseModel):
     hrvMs: Number | None
     trainingLoadScore: Number
     recoveryScore: Number
+
+    @model_validator(mode="after")
+    def bounded_metrics(self):
+        validate_daily_limits(self.model_dump())
+        return self
 
 
 class PartialMetric(BaseModel):
@@ -87,6 +119,7 @@ class PartialMetric(BaseModel):
 
     @model_validator(mode="after")
     def has_measurement(self):
+        validate_daily_limits(self.model_dump())
         if not any(value is not None for value in self.model_dump(exclude={"dateKey"}).values()):
             raise ValueError("Medicoes ausentes")
         return self
@@ -120,6 +153,8 @@ class ConnectImport(BaseModel):
 
 
 def activity_xp(duration: float, distance: float, sport: str) -> int:
+    if duration <= 0:
+        return 0
     name = sport.lower()
     if "run" in name or "corrida" in name:
         multiplier = 1.25
@@ -133,6 +168,31 @@ def activity_xp(duration: float, distance: float, sport: str) -> int:
     return max(15, js_round(min(500, score)))
 
 
+def duplicate_provider_activity(db: Connection, user: str, item: Activity) -> bool:
+    # Match exact start and duration only across the two device providers.
+    if item.source not in {"health_connect", "strava"} or item.durationMinutes <= 0:
+        return False
+    day = datetime.fromisoformat(item.dateKey)
+    existing = db.execute(text("""
+        SELECT data FROM fitness_health_activity
+        WHERE user_id = :uid AND source = :other
+        AND (data->>'dateKey') BETWEEN :first AND :last
+    """), {"uid": user, "other": "strava" if item.source == "health_connect" else "health_connect",
+             "first": (day - timedelta(days=1)).date().isoformat(),
+             "last": (day + timedelta(days=1)).date().isoformat()}).scalars()
+    for data in existing:
+        try:
+            same_start = datetime.fromisoformat(data["startedAt"]) == datetime.fromisoformat(item.startedAt)
+            same_duration = abs(float(data["durationMinutes"]) - item.durationMinutes) < 1 / 60
+            distance = float(data.get("distanceKm") or 0)
+            compatible_distance = not distance or not item.distanceKm or abs(distance - item.distanceKm) <= 0.05
+            if same_start and same_duration and compatible_distance:
+                return True
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+    return False
+
+
 def persist_import(db: Connection, user: str, source: Source, activities: list[Activity],
                    metrics: list[Metric] | list[PartialMetric]) -> dict:
     params = {"uid": user, "source": source}
@@ -140,6 +200,11 @@ def persist_import(db: Connection, user: str, source: Source, activities: list[A
     if activities:
         balance = read_totals(db, user, lock=True)
         for item in sorted(activities, key=lambda item: item.externalId):
+            if duplicate_provider_activity(db, user, item) and not db.execute(text("""
+                SELECT 1 FROM fitness_health_activity
+                WHERE user_id = :uid AND source = :source AND external_id = :id
+            """), {**params, "id": item.externalId}).scalar_one_or_none():
+                continue
             reward = activity_xp(item.durationMinutes, item.distanceKm, item.sportType)
             inserted = db.execute(text("""
                 INSERT INTO fitness_health_activity (user_id, source, external_id, data, xp)
@@ -147,7 +212,7 @@ def persist_import(db: Connection, user: str, source: Source, activities: list[A
                 ON CONFLICT (user_id, source, external_id) DO NOTHING RETURNING xp
             """), {**params, "id": item.externalId, "data": item.model_dump_json(), "reward": reward}).scalar_one_or_none()
             if inserted is None:
-                if source == "health_connect":
+                if source in {"health_connect", "strava"}:
                     # Preserve the original reward and measurements omitted by older Android clients.
                     data = item.model_dump(mode="json")
                     for key in ("distanceKm", "calories", "elevationGainM"):
@@ -168,6 +233,8 @@ def persist_import(db: Connection, user: str, source: Source, activities: list[A
                 continue
             imported += 1
             xp += inserted
+            if not inserted:
+                continue
             db.execute(text("""
                 INSERT INTO fitness_progress_ledger (user_id, kind, title, xp_delta, coin_delta, total_xp, gold_coins)
                 VALUES (:uid, 'health_activity', :title, :delta, 0, :xp, :coins)

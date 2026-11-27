@@ -89,7 +89,7 @@ def gemini_reply(key: str, model: str, question: str, context: dict) -> str:
                 json={
                     "systemInstruction": {"parts": [{"text": SYSTEM}]},
                     "contents": [{"role": "user", "parts": [{"text": json.dumps({"question": question, "context": context}, ensure_ascii=False)}]}],
-                    "generationConfig": {"maxOutputTokens": 1200, "thinkingConfig": {"thinkingLevel": "LOW"}},
+                    "generationConfig": {"maxOutputTokens": 1200},
                 },
             )
         response.raise_for_status()
@@ -127,4 +127,5 @@ def ask(body: Question, user: Annotated[str, Depends(require_write_user)],
         context["recovery"] = {"periodDays": 28, "acwr": result["acwr"],
                                "readiness": (result["recovery"] or {}).get("score")}
     db.rollback()
+    db.close()  # Return the pooled connection before the external HTTP call.
     return {"reply": gemini_reply(key, model, body.question, context)}

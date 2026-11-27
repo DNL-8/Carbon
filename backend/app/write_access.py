@@ -18,4 +18,7 @@ def require_write_user(
     origin = web_origin(settings.app_origin)
     if not origin or request.headers.get("origin") != origin:
         raise HTTPException(403, "Origem invalida")
+    expected_owner = request.headers.get("x-murim-owner")
+    if expected_owner is not None and expected_owner != user:
+        raise HTTPException(409, "Conta alterada; recarregue a pagina")
     return user

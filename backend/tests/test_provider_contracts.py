@@ -54,6 +54,16 @@ def test_strava_oauth_ownership_redirect_and_disconnect(client, monkeypatch):
     app.dependency_overrides[current_user] = lambda: {"id": "another", "emailVerified": True}
     assert client.get("/api/strava/status").json()["connected"] is False
     app.dependency_overrides[current_user] = lambda: {"id": "owner", "emailVerified": True}
+    import httpx
+
+    def revoke(request):
+        assert str(request.url) == "https://www.strava.com/oauth/revoke"
+        assert request.headers["authorization"].startswith("Basic ")
+        assert parse_qs(request.content.decode())["token"] == ["fixture-refresh"]
+        return httpx.Response(200)
+
+    real = httpx.Client
+    monkeypatch.setattr(httpx, "Client", lambda **kwargs: real(transport=httpx.MockTransport(revoke), **kwargs))
     assert client.post("/api/strava/disconnect", headers={"Origin": ORIGIN}).json() == {"disconnected": True}
     assert client.get("/api/strava/status").json()["connected"] is False
 

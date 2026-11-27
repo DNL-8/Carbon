@@ -90,12 +90,14 @@ def finish_training(db: Connection, user: str, body: FinishInput, today: str) ->
     params = {"uid": user, "id": body.id, "wid": body.workoutId}
     sets = [item.model_dump() for item in body.sets]
     existing = db.execute(text("""
-        SELECT workout_id, sets, xp, coins, boss_defeated FROM fitness_completion
+        SELECT workout_id, sets, xp, coins, boss_defeated, workout_snapshot FROM fitness_completion
         WHERE user_id = :uid AND id = :id
     """), params).mappings().first()
     if existing:
         old = [PerformedSet.model_validate(item).model_dump() for item in existing["sets"]]
-        if existing["workout_id"] != body.workoutId or old != sets:
+        previous_elapsed = (existing["workout_snapshot"] or {}).get("elapsedSeconds")
+        if (existing["workout_id"] != body.workoutId or old != sets
+                or (previous_elapsed is not None and previous_elapsed != body.elapsedSeconds)):
             raise HTTPException(409, "Treino ja registrado com outros dados")
         return {"earnedXp": existing["xp"], "earnedCoins": existing["coins"],
                 "xp": current["xp"], "coins": current["coins"],

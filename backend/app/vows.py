@@ -56,6 +56,8 @@ def change_vow(db: Connection, user: str, body: CreateVow | ChangeVow, today: st
         """), {**params, "title": body.title})
         return result
     if body.action == "delete":
+        if vow and vow["resolved_day"] == today:
+            raise HTTPException(409, "Remova o voto a partir de amanha")
         db.execute(text("DELETE FROM fitness_daily_vow WHERE user_id = :uid AND id = :id"), params)
         return result
     if vow is None:
