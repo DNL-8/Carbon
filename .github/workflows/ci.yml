@@ -52,7 +52,7 @@ jobs:
       - run: node ../scripts/check-fastapi-progression.mjs > "$MURIM_PROGRESSION_ORACLE"
       - run: node ../scripts/check-fastapi-equipment.mjs > "$MURIM_EQUIPMENT_ORACLE"
       - run: node ../scripts/check-fastapi-rewards.mjs > "$MURIM_REWARDS_ORACLE"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - run: python -m pip install uv
