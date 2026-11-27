@@ -88,6 +88,34 @@ def test_concurrent_imports_and_claims(database):
         assert ledger == [("health_activity", 150), ("daily_quest", 175)]
 
 
+def test_health_connect_correction_keeps_original_reward_and_owner(database):
+    engine, (user, other) = database
+    original = fixture_activity()
+    corrected = original.model_copy(update={"durationMinutes": 40, "distanceKm": 0,
+                                            "avgHeartRate": 125, "hrSamplePoints": [120, 130]})
+    with engine.begin() as conn:
+        persist_import(conn, user, "health_connect", [original], [])
+        persist_import(conn, other, "health_connect", [original], [])
+    results = concurrently(engine, lambda conn: persist_import(
+        conn, user, "health_connect", [corrected], [],
+    ))
+    assert all(item == {"imported": 0, "duplicates": 1, "days": 0, "xp": 0} for item in results)
+    with engine.begin() as conn:
+        persist_import(conn, user, "health_connect", [corrected.model_copy(update={
+            "avgHeartRate": None, "hrSamplePoints": [],
+        })], [])
+        data, reward = conn.execute(text("""
+            SELECT data, xp FROM fitness_health_activity WHERE user_id = :uid
+        """), {"uid": user}).one()
+        assert data["durationMinutes"] == 40 and data["distanceKm"] == 5
+        assert data["avgHeartRate"] == 125 and data["hrSamplePoints"] == [120, 130]
+        assert reward == read_totals(conn, user)["xp"] == 150
+        assert conn.execute(text("SELECT count(*) FROM fitness_progress_ledger WHERE user_id = :uid"),
+                            {"uid": user}).scalar_one() == 1
+        assert conn.execute(text("SELECT data FROM fitness_health_activity WHERE user_id = :uid"),
+                            {"uid": other}).scalar_one()["durationMinutes"] == 30
+
+
 def test_completion_and_vow_serialize_and_rollback(database):
     engine, (user, other) = database
     workout = workout_catalog()[0]

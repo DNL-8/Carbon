@@ -147,6 +147,24 @@ def persist_import(db: Connection, user: str, source: Source, activities: list[A
                 ON CONFLICT (user_id, source, external_id) DO NOTHING RETURNING xp
             """), {**params, "id": item.externalId, "data": item.model_dump_json(), "reward": reward}).scalar_one_or_none()
             if inserted is None:
+                if source == "health_connect":
+                    # Preserve the original reward and measurements omitted by older Android clients.
+                    data = item.model_dump(mode="json")
+                    for key in ("distanceKm", "calories", "elevationGainM"):
+                        if data[key] == 0:
+                            del data[key]
+                    if not any(data["zoneMinutes"]):
+                        del data["zoneMinutes"]
+                    for key in ("avgHeartRate", "maxHeartRate"):
+                        if data[key] is None:
+                            del data[key]
+                    if not data["hrSamplePoints"]:
+                        del data["hrSamplePoints"]
+                    db.execute(text("""
+                        UPDATE fitness_health_activity SET data = data || CAST(:data AS jsonb)
+                        WHERE user_id = :uid AND source = :source AND external_id = :id
+                        AND data IS DISTINCT FROM data || CAST(:data AS jsonb)
+                    """), {**params, "id": item.externalId, "data": json.dumps(data)})
                 continue
             imported += 1
             xp += inserted
@@ -161,7 +179,7 @@ def persist_import(db: Connection, user: str, source: Source, activities: list[A
     merge = source == "health_connect"
     by_day: dict[str, dict] = {}
     for metric in metrics:
-        data = metric.model_dump(exclude_unset=True)
+        data = metric.model_dump(exclude_unset=True, exclude_none=merge)
         by_day[metric.dateKey] = {**by_day.get(metric.dateKey, {}), **data} if merge else data
     for day, data in sorted(by_day.items()):
         db.execute(text("""
