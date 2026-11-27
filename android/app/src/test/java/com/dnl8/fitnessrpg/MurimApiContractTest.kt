@@ -9,6 +9,19 @@ class MurimApiContractTest {
     private val origin = "https://murim-ci.example.test"
 
     @Test
+    fun checkpointRequiresSameDayAndNoPendingChanges() {
+        assertEquals("token", checkpointForDay("day1\ntoken", "day1"))
+        assertNull(checkpointForDay("day1\ntoken", "day2"))
+        assertNull(checkpointForDay("day1\n", "day1"))
+        assertNull(checkpointForDay(null, "day1"))
+        assertEquals("next", reusableChangesToken(false, false, false, "next"))
+        assertNull(reusableChangesToken(true, false, false, "next"))
+        assertNull(reusableChangesToken(false, true, false, "next"))
+        assertNull(reusableChangesToken(false, false, true, "next"))
+        assertNull(reusableChangesToken(false, false, false, ""))
+    }
+
+    @Test
     fun missingDailyMeasurementIsNotZero() {
         assertNull(validHealthNumber(null))
         assertNull(validHealthNumber("0"))

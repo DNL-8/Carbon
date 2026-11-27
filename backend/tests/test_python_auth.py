@@ -45,6 +45,7 @@ def test_google_redirect_and_csrf(client):
     assert params["nonce"] and params["state"]
     assert "HttpOnly" in response.headers["set-cookie"]
     assert client.get("/api/auth/callback/google?code=bad&state=bad").status_code == 401
+    assert client.post("/api/auth/sign-out", headers={"Origin": "https://evil.test"}).status_code == 403
 
 
 def test_google_token_signature_and_claims(monkeypatch):
@@ -60,7 +61,10 @@ def test_google_token_signature_and_claims(monkeypatch):
         return jwt.encode({"alg": "RS256", "kid": "test"}, values, key)
     assert python_auth.verify_google(signed(claims), settings(), "nonce")["sub"] == "sub-a"
     for changes in ({"aud": "wrong"}, {"email_verified": False}, {"exp": 1},
-                    {"iss": "https://evil.test"}, {"nonce": "wrong"}):
+                    {"iss": "https://evil.test"}, {"nonce": "wrong"},
+                    {"iat": True}, {"iat": -1}, {"iat": int(time.time()) + 120},
+                    {"exp": "9999999999"}, {"exp": True},
+                    {"iat": int(time.time()) + 30, "exp": int(time.time()) + 15}):
         with pytest.raises(HTTPException) as exc:
             python_auth.verify_google(signed({**claims, **changes}), settings(), "nonce")
         assert exc.value.status_code == 401

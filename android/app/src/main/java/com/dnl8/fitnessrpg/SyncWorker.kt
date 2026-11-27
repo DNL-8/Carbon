@@ -46,6 +46,7 @@ class SyncWorker(
                 val next = healthConnect.freshChangesToken(types)
                 val records = healthConnect.readRecentRecords()
                 check(authRepository.getCurrentUserId() == account && TokenStore.getSessionCookie() == session)
+                check(healthConnect.changeScope() == types)
                 SyncRepository(authRepository).syncRecords(records, session)
                 check(healthConnect.changeScope() == types)
                 TokenStore.saveHealthCheckpoint(account, session, scope, day, next)

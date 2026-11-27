@@ -11,6 +11,14 @@ import kotlinx.coroutines.sync.Mutex
 
 internal val healthSyncMutex = Mutex()
 
+internal fun checkpointForDay(value: String?, day: String): String? {
+    val prefix = "$day\n"
+    return value?.takeIf { it.startsWith(prefix) }?.removePrefix(prefix)?.takeIf { it.isNotBlank() }
+}
+
+internal fun reusableChangesToken(expired: Boolean, hasMore: Boolean, hasChanges: Boolean, next: String): String? =
+    next.takeIf { !expired && !hasMore && !hasChanges && it.isNotBlank() }
+
 internal fun validHealthNumber(value: Any?): Double? =
     (value as? Number)?.toDouble()?.takeIf { it.isFinite() && it >= 0 }
 

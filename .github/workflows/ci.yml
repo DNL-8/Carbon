@@ -76,6 +76,10 @@ jobs:
           uv run python scripts/check_bootstrap.py
       - run: uv run ruff check .
       - run: uv run pytest -q
+      - name: Auditar dependências Python de produção
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project --format requirements-txt --output-file /tmp/murim-python-requirements.txt
+          uvx --from pip-audit==2.9.0 pip-audit --no-deps --disable-pip -r /tmp/murim-python-requirements.txt
       - run: docker build -t murim-fastapi:ci .
       - name: Validar inicialização do contêiner
         run: |

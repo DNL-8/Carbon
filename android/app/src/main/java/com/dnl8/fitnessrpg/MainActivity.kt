@@ -197,6 +197,8 @@ class MainActivity : ComponentActivity() {
                         healthSyncMutex.withLock {
                             val manager = checkNotNull(healthConnect)
                             val session = TokenStore.getSessionCookie() ?: error("Entre novamente.")
+                            val account = authRepository.getCurrentUserId() ?: error("Entre novamente.")
+                            val types = manager.changeScope()
 
                             // Leitura dos dados com timeout de 60 segundos para evitar travamento infinito
                             val records = withTimeoutOrNull(60_000L) {
@@ -213,6 +215,8 @@ class MainActivity : ComponentActivity() {
                                 return@launch
                             }
 
+                            check(authRepository.getCurrentUserId() == account && TokenStore.getSessionCookie() == session)
+                            check(manager.changeScope() == types) { "As permissões foram alteradas durante a coleta." }
                             val syncRepo = SyncRepository(authRepository)
                             val result = withTimeoutOrNull(60_000L) {
                                 syncRepo.syncRecords(records, session) { sent, total ->

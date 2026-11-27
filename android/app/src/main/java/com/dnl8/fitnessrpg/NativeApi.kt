@@ -34,11 +34,11 @@ object NativeApi {
                 }
                 val status = connection.responseCode
                 if (status !in 200..299) {
-                    if (authenticated && status == 401 && TokenStore.getSessionCookie() == cookie) TokenStore.clear()
+                    if (cookie != null && status == 401) TokenStore.clearIfSession(cookie)
                     throw HttpError(status)
                 }
                 val nextCookie = MurimApiContract.sessionCookie(connection.headerFields)
-                if (authenticated && nextCookie != null && TokenStore.getSessionCookie() == cookie) TokenStore.saveSessionCookie(nextCookie)
+                if (cookie != null && nextCookie != null) TokenStore.replaceSessionIfCurrent(cookie, nextCookie)
                 val text = connection.inputStream.bufferedReader().use { it.readText() }
                 Response(if (text.isBlank()) JSONObject() else JSONObject(text), nextCookie)
             } finally { connection.disconnect() }

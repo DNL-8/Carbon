@@ -1,5 +1,6 @@
 """Google-only authentication with explicitly provisioned existing user IDs."""
 import hashlib
+import math
 import secrets
 import time
 from datetime import UTC, datetime, timedelta
@@ -62,17 +63,21 @@ def verify_google(raw, settings, nonce=None):
         claims = jwt.decode(raw, KeySet.import_key_set(response.json()),
                             algorithms=["RS256"]).claims
         now = time.time()
+        issued, expires = claims["iat"], claims["exp"]
+        if (type(issued) not in (int, float) or type(expires) not in (int, float)
+                or not math.isfinite(issued) or not math.isfinite(expires)
+                or not 0 < issued <= now + 60 or not max(now, issued) < expires):
+            raise ValueError("invalid timestamps")
         if (claims["iss"] not in (GOOGLE, "accounts.google.com")
                 or claims["aud"] != settings.google_client_id
                 or claims.get("azp", settings.google_client_id) != settings.google_client_id
-                or not now < claims["exp"] or claims["iat"] > now + 60
                 or claims.get("email_verified") is not True
                 or not isinstance(claims["sub"], str)
                 or not isinstance(claims["email"], str)
                 or (nonce is not None and claims.get("nonce") != nonce)):
             raise ValueError("invalid claims")
         return claims
-    except (httpx.HTTPError, JoseError, ValueError, KeyError, TypeError, AttributeError):
+    except (httpx.HTTPError, JoseError, ValueError, KeyError, TypeError, AttributeError, OverflowError):
         raise HTTPException(401, "Identidade Google invalida") from None
 
 

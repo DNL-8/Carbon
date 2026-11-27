@@ -67,8 +67,8 @@ class HealthConnectManager(context: Context) {
     // A single page is sufficient to decide whether a full aggregate refresh is needed.
     suspend fun unchangedToken(token: String): String? {
         val result = client.getChanges(token)
-        return if (!result.changesTokenExpired && !result.hasMore && result.changes.isEmpty())
-            result.nextChangesToken else null
+        return reusableChangesToken(result.changesTokenExpired, result.hasMore,
+            result.changes.isNotEmpty(), result.nextChangesToken)
     }
 
     suspend fun readRecentRecords(): List<HealthRecord> {
