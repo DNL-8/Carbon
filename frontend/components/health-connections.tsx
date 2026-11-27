@@ -9,7 +9,7 @@ import { errorMessage } from '../lib/auth'
 import { connectResult, formatDay, formatMetric, stravaStatusResult, stravaSyncResult } from '../lib/health-api'
 import { refreshRpg } from '../lib/rpg-api'
 
-const columns = [['steps', 'Passos', ''], ['calories', 'Calorias totais', 'kcal'], ['sleepHours', 'Sono', 'h']] as const
+const columns = [['steps', 'Passos', ''], ['calories', 'Calorias ativas', 'kcal'], ['sleepHours', 'Sono', 'h']] as const
 
 export function HealthConnect() {
   const client = useQueryClient()

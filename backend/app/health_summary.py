@@ -42,6 +42,14 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
         'SELECT external_id AS id, source, data ' + ACTIVITY_FILTER
         + " ORDER BY (data->>'startedAt') DESC, source, external_id LIMIT 20"
     )
+    # Legacy Android sends zero for uncollected activity measurements.
+    for activity in activities:
+        if activity["source"] == "health_connect":
+            for key in ("distanceKm", "calories", "elevationGainM"):
+                if activity["data"].get(key) == 0:
+                    activity["data"][key] = None
+            if activity["data"].get("zoneMinutes") == [0, 0, 0, 0, 0]:
+                activity["data"]["zoneMinutes"] = None
     daily_metrics = rows(
         'SELECT date_key AS date, source, data ' + METRIC_FILTER
         + " ORDER BY date_key DESC, source LIMIT 20"
@@ -50,16 +58,20 @@ def read_health_summary(db: Connection, user: str, period: Period, source: Sourc
         """
         SELECT data->>'dateKey' AS "dateKey",
           sum(CAST(data->>'durationMinutes' AS double precision)) AS "durationMinutes",
-          sum(CAST(data->>'distanceKm' AS double precision)) AS "distanceKm",
-          sum(CAST(data->>'calories' AS double precision)) AS calories
+          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'distanceKm' AS double precision), 0)
+                   ELSE CAST(data->>'distanceKm' AS double precision) END) AS "distanceKm",
+          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
+                   ELSE CAST(data->>'calories' AS double precision) END) AS calories
         """ + ACTIVITY_FILTER + " GROUP BY data->>'dateKey' ORDER BY data->>'dateKey'"
     )
     totals = rows(
         """
         SELECT CAST(count(*) AS integer) AS count,
           coalesce(sum(CAST(data->>'durationMinutes' AS double precision)), 0) AS "durationMinutes",
-          coalesce(sum(CAST(data->>'distanceKm' AS double precision)), 0) AS "distanceKm",
-          coalesce(sum(CAST(data->>'calories' AS double precision)), 0) AS calories,
+          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'distanceKm' AS double precision), 0)
+                   ELSE CAST(data->>'distanceKm' AS double precision) END) AS "distanceKm",
+          sum(CASE WHEN source = 'health_connect' THEN NULLIF(CAST(data->>'calories' AS double precision), 0)
+                   ELSE CAST(data->>'calories' AS double precision) END) AS calories,
           avg(CAST(data->>'avgHeartRate' AS double precision)) AS "avgHeartRate",
           coalesce(sum(CAST(data->'zoneMinutes'->>0 AS double precision)), 0) AS z1,
           coalesce(sum(CAST(data->'zoneMinutes'->>1 AS double precision)), 0) AS z2,

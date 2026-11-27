@@ -4,7 +4,7 @@ O aplicativo Kotlin e Jetpack Compose lê dados autorizados no Health Connect e 
 
 - O aplicativo obtém o client ID OAuth público em `/api/mobile/config` e envia o ID token do Google ao FastAPI. O cookie de sessão fica em armazenamento local criptografado.
 - A sincronização manual consulta os últimos 30 dias. As calorias diárias representam apenas energia ativa, sem metabolismo basal. Após atualizar o APK, conceda a permissão de calorias ativas no Health Connect. Valores históricos importados por versões anteriores podem representar calorias totais; a nova sincronização substitui somente os dias com medições ativas disponíveis, sem apagar os demais registros. O WorkManager pode executar a sincronização a cada seis horas quando há conexão e permissão para ler em segundo plano.
-- A API recebe lotes de até 25 atividades e 25 métricas diárias. Ela deduplica atividades e preserva os valores de métricas omitidas. Amostras de frequência cardíaca complementam sessões de exercício.
+- A API recebe lotes de até 25 atividades e 25 métricas diárias. Ela deduplica atividades e preserva os valores de métricas omitidas. Amostras de frequência cardíaca complementam sessões de exercício. Medições diárias ausentes ou inválidas são omitidas. O contrato legado de atividades ainda envia zeros para distância, calorias, elevação e zonas não coletadas; o relatório web trata esses zeros do Health Connect como indisponíveis, sem reescrever o histórico.
 - Consulte os resultados em **Saúde → Sincronização**. O usuário pode revogar permissões no Health Connect. O backup automático do aplicativo Android está desativado.
 
 ## Compilar

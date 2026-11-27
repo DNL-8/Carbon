@@ -8,10 +8,12 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
 
+internal fun validHealthNumber(value: Any?): Double? =
+    (value as? Number)?.toDouble()?.takeIf { it.isFinite() && it >= 0 }
+
 /** Imports authorized Health Connect readings into the signed-in account. */
 class SyncRepository(private val authRepository: AuthRepository) {
     private fun date(instant: Instant): String = instant.atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
-    private fun number(value: Any?): Double = (value as? Number)?.toDouble()?.takeIf { it.isFinite() } ?: 0.0
     private data class Daily(var steps: Long? = null, var calories: Double? = null, var sleepHours: Double? = null)
     data class SyncResult(val imported: Int, val duplicates: Int, val days: Int)
     private data class Hr(val time: Instant, val bpm: Double)
@@ -25,15 +27,24 @@ class SyncRepository(private val authRepository: AuthRepository) {
         val exercises = mutableListOf<HealthRecord>()
         for (record in records.distinctBy { it.id to it.type }) {
             when (record.type) {
-                "steps" -> daily.getOrPut(date(record.startTime)) { Daily() }.steps = number(record.values["count"]).toLong().coerceIn(0, 200000)
-                "calories" -> daily.getOrPut(date(record.startTime)) { Daily() }.calories = number(record.values["kilocalories"]).coerceIn(0.0, 20000.0)
-                "sleep" -> daily.getOrPut(date(record.endTime)) { Daily() }.let { it.sleepHours = ((it.sleepHours ?: 0.0) + number(record.values["hours"])).coerceIn(0.0, 24.0) }
+                "steps" -> {
+                    val count = validHealthNumber(record.values["count"]) ?: continue
+                    daily.getOrPut(date(record.startTime)) { Daily() }.steps = count.toLong().coerceIn(0, 200000)
+                }
+                "calories" -> {
+                    val calories = validHealthNumber(record.values["kilocalories"]) ?: continue
+                    daily.getOrPut(date(record.startTime)) { Daily() }.calories = calories.coerceIn(0.0, 20000.0)
+                }
+                "sleep" -> {
+                    val hours = validHealthNumber(record.values["hours"]) ?: continue
+                    daily.getOrPut(date(record.endTime)) { Daily() }.let { it.sleepHours = ((it.sleepHours ?: 0.0) + hours).coerceIn(0.0, 24.0) }
+                }
                 "exercise" -> if (record.endTime.isAfter(record.startTime)) exercises.add(record)
                 "heart_rate" -> {
                     val readings = record.values["samples"] as? List<*> ?: continue
                     for (item in readings) {
                         val sample = item as? Map<*, *> ?: continue
-                        val bpm = number(sample["beatsPerMinute"])
+                        val bpm = validHealthNumber(sample["beatsPerMinute"]) ?: continue
                         val time = runCatching { Instant.parse(sample["time"] as? String ?: "") }.getOrNull() ?: continue
                         if (bpm in 30.0..250.0) samples[time] = bpm
                     }
@@ -50,6 +61,7 @@ class SyncRepository(private val authRepository: AuthRepository) {
                 .put("sportType", "exercise_${ex.values["exerciseType"] ?: "unknown"}")
                 .put("dateKey", date(ex.startTime)).put("startedAt", ex.startTime.toString())
                 .put("durationMinutes", Duration.between(ex.startTime, ex.endTime).seconds / 60.0)
+                // Legacy wire contract requires numbers; the report treats unmeasured zeros as unavailable.
                 .put("distanceKm", 0).put("calories", 0).put("elevationGainM", 0)
                 .put("avgHeartRate", if (readings.isEmpty()) JSONObject.NULL else readings.average())
                 .put("maxHeartRate", readings.maxOrNull() ?: JSONObject.NULL)

@@ -40,7 +40,7 @@ export function Health({ overview, profile, onProfile }: {
   const totals = data?.totals
   const recovery = overview?.recovery
   const unit = details[metric][1]
-  const highest = Math.max(1, ...(data?.trend.map(day => day[metric]) ?? []))
+  const highest = Math.max(1, ...(data?.trend.map(day => day[metric] ?? 0) ?? []))
   const totalZoneMinutes = totals ? totals.z1 + totals.z2 + totals.z3 + totals.z4 + totals.z5 : 0
 
   function change(value: Section) {
@@ -72,6 +72,7 @@ export function Health({ overview, profile, onProfile }: {
           ['Tempo de treino', totals.durationMinutes, 'min'], ['Distância', totals.distanceKm, 'km'],
           ['Calorias estimadas', totals.calories, 'kcal'], ['Frequência cardíaca média', totals.avgHeartRate, 'bpm'],
         ] as const).map(([label, value, suffix]) => <article className="surface metric" key={label}><p>{label}</p><strong className="orange mono">{formatMetric(value, suffix)}</strong></article>)}</div>
+        <p>Distância e calorias consideram somente as medições disponíveis.</p>
         <section className="surface overview" aria-labelledby="trend-title">
           <header className="between"><h2 id="trend-title">Tendência de atividade</h2>
             <TextField select label="Métrica do gráfico" value={metric} onChange={event => setMetric(event.target.value as TrendMetric)} size="small">
@@ -80,7 +81,7 @@ export function Health({ overview, profile, onProfile }: {
           {!data.trend.length && <p>Nenhuma atividade importada no período.</p>}
           {!!data.trend.length && <ul className="health-trend">{data.trend.map(day => <li key={day.dateKey}>
             <time dateTime={day.dateKey}>{formatDay(day.dateKey)}</time>
-            <LinearProgress aria-hidden="true" variant="determinate" value={day[metric] / highest * 100} />
+            {day[metric] == null ? <span>Sem medição</span> : <LinearProgress aria-hidden="true" variant="determinate" value={(day[metric] ?? 0) / highest * 100} />}
             <strong>{formatMetric(day[metric], unit)}</strong>
           </li>)}</ul>}
         </section>

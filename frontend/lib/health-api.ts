@@ -9,7 +9,7 @@ export const sources: Record<Source, string> = {
   all: 'Todas as fontes', apple_health: 'Apple Health', samsung_health: 'Samsung Health',
   gpx: 'GPX', csv: 'CSV', strava: 'Strava', health_connect: 'Health Connect',
 }
-const values = z.object({ durationMinutes: z.number(), distanceKm: z.number(), calories: z.number() })
+const values = z.object({ durationMinutes: z.number(), distanceKm: z.number().nullable(), calories: z.number().nullable() })
 const metric = z.object({
   steps: z.number().nullish(), activeCalories: z.number().nullish(), sleepHours: z.number().nullish(),
   restingHeartRate: z.number().nullish(), hrvMs: z.number().nullish(),

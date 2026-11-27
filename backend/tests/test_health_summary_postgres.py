@@ -47,10 +47,10 @@ def db():
         engine.dispose()
 
 
-def activity(db, uid, source, ident, day, minutes=10, hr=None):
+def activity(db, uid, source, ident, day, minutes=10, hr=None, distance=2, calories=50):
     data = {
         "dateKey": day, "startedAt": day + "T12:00:00Z",
-        "durationMinutes": minutes, "distanceKm": 2, "calories": 50,
+        "durationMinutes": minutes, "distanceKm": distance, "calories": calories,
         "avgHeartRate": hr, "zoneMinutes": [1, 2, 3, 4, 5],
     }
     db.execute(text("""
@@ -90,6 +90,20 @@ def test_summary_filters_and_totals(db):
     all_sources = read_health_summary(db, "a", "7", "all", TODAY)
     assert all_sources["totals"]["count"] == 3
     assert all_sources["totals"]["avgHeartRate"] == 130
+
+
+def test_unmeasured_android_activity_metrics(db):
+    activity(db, "a", "health_connect", "android", "2026-11-27", distance=0, calories=0)
+    result = read_health_summary(db, "a", "7", "health_connect", TODAY)
+    assert result["activities"][0]["data"]["distanceKm"] is None
+    assert result["activities"][0]["data"]["calories"] is None
+    assert result["trend"][0]["distanceKm"] is None
+    assert result["totals"]["calories"] is None
+    assert result["totals"]["durationMinutes"] == 10
+    activity(db, "a", "csv", "measured", "2026-11-27", distance=0, calories=0)
+    mixed = read_health_summary(db, "a", "7", "all", TODAY)
+    assert mixed["totals"]["distanceKm"] == mixed["totals"]["calories"] == 0
+    assert next(row for row in mixed["activities"] if row["source"] == "csv")["data"]["distanceKm"] == 0
 
 
 def test_empty_summary_and_recent_limit(db):

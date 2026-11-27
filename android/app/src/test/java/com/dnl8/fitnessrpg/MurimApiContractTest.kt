@@ -9,6 +9,17 @@ class MurimApiContractTest {
     private val origin = "https://murim-ci.example.test"
 
     @Test
+    fun missingDailyMeasurementIsNotZero() {
+        assertNull(validHealthNumber(null))
+        assertNull(validHealthNumber("0"))
+        assertNull(validHealthNumber(Double.NaN))
+        assertNull(validHealthNumber(Double.POSITIVE_INFINITY))
+        assertNull(validHealthNumber(-1))
+        assertEquals(0.0, validHealthNumber(0)!!, 0.0)
+        assertEquals(12.5, validHealthNumber(12.5)!!, 0.0)
+    }
+
+    @Test
     fun healthConnectUsesThePublicGateway() {
         val url = MurimApiContract.target(origin, MurimApiContract.HEALTH_CONNECT_PATH)
         assertEquals("https", url.protocol)
