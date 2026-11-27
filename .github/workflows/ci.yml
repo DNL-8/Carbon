@@ -110,6 +110,7 @@ jobs:
           bun audit --production --audit-level high
           bun run generate:api
           git diff --exit-code -- lib/api.generated.ts
+          bun run lint
           bun run typecheck
           bun run build
           bunx playwright install --with-deps chromium

@@ -5,3 +5,6 @@ Dois jobs em paralelo:
 - Android: testes unitários Kotlin e compilação APK.
 
 A rotina de backup PostgreSQL criptografado continua independente, condicionada às variáveis já existentes. Não altere a proteção da main. Testes nunca usam produção.
+
+
+O job de aplicação executa também `bun run lint` (Biome 2.2.6 via bunx) antes do typecheck e build do frontend, com foco em regras React. O arquivo OpenAPI gerado não é lintado.

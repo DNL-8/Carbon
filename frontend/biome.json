@@ -1,0 +1,23 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "files": {
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "!**/api.generated.ts",
+      "!**/.next/**",
+      "!**/node_modules/**"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "correctness": {
+        "useHookAtTopLevel": "error",
+        "useExhaustiveDependencies": "error",
+        "useJsxKeyInIterable": "error"
+      }
+    }
+  }
+}
