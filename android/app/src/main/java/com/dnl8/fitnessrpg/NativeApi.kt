@@ -11,10 +11,14 @@ object NativeApi {
     data class Response(val body: JSONObject, val sessionCookie: String?)
     class HttpError(val status: Int) : IllegalStateException("Servidor retornou HTTP $status.")
 
-    suspend fun request(path: String, method: String = "GET", body: JSONObject? = null, authenticated: Boolean = true): Response =
+    suspend fun request(
+        path: String, method: String = "GET", body: JSONObject? = null, authenticated: Boolean = true,
+        expectedSession: String? = null,
+    ): Response =
         withContext(Dispatchers.IO) {
-            val connection = MurimApiContract.target(origin, path).openConnection() as HttpURLConnection
             val cookie = if (authenticated) TokenStore.getSessionCookie() ?: error("Entre novamente na sua conta.") else null
+            check(expectedSession == null || cookie == expectedSession) { "A conta foi alterada durante a sincronização." }
+            val connection = MurimApiContract.target(origin, path).openConnection() as HttpURLConnection
             try {
                 connection.instanceFollowRedirects = false
                 connection.requestMethod = method

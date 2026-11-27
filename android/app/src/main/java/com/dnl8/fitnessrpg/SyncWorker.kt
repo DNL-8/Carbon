@@ -17,15 +17,15 @@ class SyncWorker(
         return try {
             TokenStore.initialize(applicationContext)
 
-            // Verifica sessão Better Auth antes de ler dados.
             val authRepository = AuthRepository(applicationContext)
             if (!authRepository.isSignedIn()) return Result.success()
+            val session = TokenStore.getSessionCookie() ?: return Result.success()
 
             val healthConnect = HealthConnectManager(applicationContext)
             if (!healthConnect.canReadInBackground()) return Result.success()
 
             val syncRepository = SyncRepository(authRepository)
-            syncRepository.sync(healthConnect)
+            syncRepository.syncRecords(healthConnect.readRecentRecords(), session)
             Result.success()
         } catch (error: CancellationException) {
             throw error

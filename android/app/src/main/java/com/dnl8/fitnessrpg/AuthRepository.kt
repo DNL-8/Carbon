@@ -4,7 +4,7 @@ import android.content.Context
 import org.json.JSONObject
 import java.util.Date
 
-/** Native Google ID token is verified by the same Better Auth instance as the website. */
+/** Native Google ID tokens are verified by the FastAPI authentication service. */
 class AuthRepository(private val context: Context) {
     suspend fun googleClientId(): String {
         val id = NativeApi.request("/api/mobile/config", authenticated = false).body.getString("googleClientId")
@@ -22,9 +22,8 @@ class AuthRepository(private val context: Context) {
             TokenStore.saveAuthData(
                 uid = user.getString("id"), email = user.optString("email"),
                 displayName = user.optString("name"), photoUrl = user.optString("image"),
-                isSignedIn = true, lastSignIn = Date()
+                sessionCookie = cookie, isSignedIn = true, lastSignIn = Date()
             )
-            TokenStore.saveSessionCookie(cookie)
             AuthResult(true, "Login concluído no Murim.")
         } catch (_: Exception) {
             TokenStore.clear()

@@ -10,8 +10,8 @@ import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 
-export function Training({ workout, bonus, guest, onFinish, onCancel }: {
-  workout: WorkoutTemplate; bonus: number; guest?: boolean; onFinish: (reward: Reward | null) => void; onCancel: () => void
+export function Training({ workout, bonus, onFinish, onCancel }: {
+  workout: WorkoutTemplate; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
   const [sets, setSets] = useState(() => initialFocusSets(workout))
   const [index, setIndex] = useState(0)
@@ -55,7 +55,6 @@ export function Training({ workout, bonus, guest, onFinish, onCancel }: {
 
   async function finish() {
     setDialog(null); setError('')
-    if (guest) { onFinish(null); return }
     if (!payload.current) {
       const duration = Math.min(28800, Math.floor((carried.current + (paused ? 0 : Date.now() - started.current)) / 1000))
       payload.current = { id: crypto.randomUUID(), workoutId: workout.id, elapsedSeconds: duration, sets: completed }

@@ -76,6 +76,19 @@ def test_fail_closed_and_private_only(client, monkeypatch):
     assert response.status_code == 403
 
 
+@pytest.mark.parametrize("users", [
+    {},
+    {"sub-a": "existing-a"},
+    {"sub-a": "existing-a", "sub-b": "existing-b", "sub-c": "existing-c"},
+    {"sub-a": "existing-a", "sub-b": "existing-a"},
+    {"sub-a": "existing-a", " ": "existing-b"},
+])
+def test_requires_two_distinct_provisioned_identities(users):
+    with pytest.raises(HTTPException) as exc:
+        python_auth.config(settings().model_copy(update={"google_users": users}))
+    assert exc.value.status_code == 503
+
+
 def test_session_lifecycle_postgres(client, monkeypatch):
     import os
     import secrets
@@ -91,7 +104,7 @@ def test_session_lifecycle_postgres(client, monkeypatch):
     db = create_engine(url.set(drivername="postgresql+psycopg"))
     uid = "python-auth-test-" + secrets.token_hex(8)
     email = uid + "@example.test"
-    configured = settings().model_copy(update={"google_users": {"sub-a": uid}})
+    configured = settings().model_copy(update={"google_users": {"sub-a": uid, "sub-b": "existing-b"}})
     app.dependency_overrides[get_settings] = lambda: configured
     monkeypatch.setattr(python_auth, "engine", lambda: db)
     monkeypatch.setattr("app.python_auth_routes.engine", lambda: db)

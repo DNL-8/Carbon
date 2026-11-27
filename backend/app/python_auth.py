@@ -24,9 +24,10 @@ def config(settings):
     if (not origin
             or not (origin.startswith(("https://", "http://127.0.0.1:")))
             or not settings.google_client_id or not settings.google_client_secret
-            or len(settings.python_auth_secret) < 32 or not 1 <= len(users) <= 2
-            or len(set(users.values())) != len(users) or not all(users)
-            or not all(users.values())):
+            or len(settings.python_auth_secret) < 32 or len(users) != 2
+            or len(set(users.values())) != 2
+            or any(not sub or sub != sub.strip() or not uid or uid != uid.strip()
+                   for sub, uid in users.items())):
         raise HTTPException(503, "Autenticacao Google indisponivel")
     return origin, users
 

@@ -194,6 +194,7 @@ class MainActivity : ComponentActivity() {
                 scope.launch(syncExceptionHandler) {
                     try {
                         val manager = checkNotNull(healthConnect)
+                        val session = TokenStore.getSessionCookie() ?: error("Entre novamente.")
 
                         // Leitura dos dados com timeout de 60 segundos para evitar travamento infinito
                         val records = withTimeoutOrNull(60_000L) {
@@ -212,7 +213,7 @@ class MainActivity : ComponentActivity() {
 
                         val syncRepo = SyncRepository(authRepository)
                         val result = withTimeoutOrNull(60_000L) {
-                            syncRepo.syncRecords(records) { sent, total ->
+                            syncRepo.syncRecords(records, session) { sent, total ->
                                 message = "Sincronizando $sent de $total lotes..."
                             }
                         } ?: run {

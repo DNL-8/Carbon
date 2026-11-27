@@ -10,16 +10,15 @@ import kotlin.math.ceil
 
 /** Imports authorized Health Connect readings into the signed-in account. */
 class SyncRepository(private val authRepository: AuthRepository) {
-    suspend fun sync(healthConnect: HealthConnectManager, onProgress: (Int, Int) -> Unit = { _, _ -> }): SyncResult =
-        syncRecords(healthConnect.readRecentRecords(), onProgress)
-
     private fun date(instant: Instant): String = instant.atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
     private fun number(value: Any?): Double = (value as? Number)?.toDouble()?.takeIf { it.isFinite() } ?: 0.0
     private data class Daily(var steps: Long? = null, var calories: Double? = null, var sleepHours: Double? = null)
     data class SyncResult(val imported: Int, val duplicates: Int, val days: Int)
     private data class Hr(val time: Instant, val bpm: Double)
 
-    suspend fun syncRecords(records: List<HealthRecord>, onProgress: (Int, Int) -> Unit = { _, _ -> }): SyncResult {
+    suspend fun syncRecords(
+        records: List<HealthRecord>, session: String, onProgress: (Int, Int) -> Unit = { _, _ -> },
+    ): SyncResult {
         val account = authRepository.getCurrentUserId() ?: error("Entre novamente.")
         val daily = sortedMapOf<String, Daily>()
         val samples = mutableMapOf<Instant, Double>()
@@ -75,7 +74,9 @@ class SyncRepository(private val authRepository: AuthRepository) {
             val body = JSONObject().put("source", "health_connect")
                 .put("activities", JSONArray(activities.drop(offset).take(batchSize)))
                 .put("dailyMetrics", JSONArray(metrics.drop(offset).take(batchSize)))
-            val response = NativeApi.request(MurimApiContract.HEALTH_CONNECT_PATH, "POST", body).body
+            val response = NativeApi.request(
+                MurimApiContract.HEALTH_CONNECT_PATH, "POST", body, expectedSession = session,
+            ).body
             imported += response.getInt("imported")
             duplicates += response.getInt("duplicates")
             days += response.getInt("days")

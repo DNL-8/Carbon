@@ -1,4 +1,4 @@
-"""Strava OAuth with cookies interoperable with the existing Nitro implementation."""
+"""Strava OAuth with encrypted cookies bound to the signed-in Murim account."""
 
 import base64
 import binascii

@@ -29,22 +29,22 @@ type View = (typeof navigation)[number][0]
 
 const totals = (xp: number, coins: number) => <>{number.format(xp)} XP <span aria-hidden="true">·</span> {number.format(coins)} moedas</>
 
-export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeaveGuest?: () => void }) {
+export function Murim() {
   const client = useQueryClient()
-  const [view, setView] = useState<View>(guest ? 'treinar' : 'inicio')
+  const [view, setView] = useState<View>('inicio')
   const [active, setActive] = useState<WorkoutTemplate>()
-  const [receipt, setReceipt] = useState<{ name: string; reward: Reward | null }>()
+  const [receipt, setReceipt] = useState<{ name: string; reward: Reward }>()
   const [error, setError] = useState('')
   const [signingOut, setSigningOut] = useState(false)
   const main = useRef<HTMLElement>(null)
   const receiptHeading = useRef<HTMLHeadingElement>(null)
   const trigger = useRef<HTMLElement>(null)
-  const profile = useQuery({ queryKey: ['hero'], enabled: !guest, queryFn: async () => read(await api.GET('/api/heroi'), profileResult) })
+  const profile = useQuery({ queryKey: ['hero'], queryFn: async () => read(await api.GET('/api/heroi'), profileResult) })
   const ready = Boolean(profile.data?.profile)
   const progress = useQuery({ queryKey: ['progress'], enabled: ready, queryFn: async () => read(await api.GET('/api/progresso'), progressResult) })
   const dashboard = useQuery({ queryKey: ['dashboard'], enabled: ready, queryFn: async () => read(await api.GET('/api/painel'), dashboardResult) })
-  const catalog = useQuery({ queryKey: ['catalog'], queryFn: async () => read(await api.GET('/api/catalogo'), workouts) })
-  const custom = useQuery({ queryKey: ['custom'], enabled: ready, queryFn: async () => read(await api.GET('/api/treinos/personalizados'), workouts) })
+  const catalog = useQuery({ queryKey: ['catalog'], enabled: ready && ['inicio', 'painel', 'treinar'].includes(view), queryFn: async () => read(await api.GET('/api/catalogo'), workouts) })
+  const custom = useQuery({ queryKey: ['custom'], enabled: ready && view === 'treinar', queryFn: async () => read(await api.GET('/api/treinos/personalizados'), workouts) })
   const history = useQuery({ queryKey: ['history'], enabled: ready && (view === 'inicio' || view === 'painel'),
     queryFn: async () => read(await api.GET('/api/treinos/historico'), historyResult) })
   const ledger = useInfiniteQuery({
@@ -63,15 +63,14 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
     const fromQuery = () => {
       const tab = new URLSearchParams(window.location.search).get('tab')
       if (navigation.some(([value]) => value === tab)) setView(tab as View)
-      else if (!guest) setView('inicio')
+      else setView('inicio')
     }
     fromQuery()
     window.addEventListener('popstate', fromQuery)
     return () => window.removeEventListener('popstate', fromQuery)
-  }, [guest])
+  }, [])
 
   async function signOut() {
-    if (guest) { onLeaveGuest?.(); return }
     setSigningOut(true); setError('')
     try {
       await authRequest('sign-out', {})
@@ -98,17 +97,15 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
     window.scrollTo(0, 0)
   }
 
-  function finish(reward: Reward | null) {
+  function finish(reward: Reward) {
     if (!active) return
     setReceipt({ name: active.name, reward }); setActive(undefined)
-    if (reward) {
-      client.setQueryData(['progress'], metrics ? { ...metrics, xp: reward.xp, coins: reward.coins } : undefined)
-      void refreshRpg(client, 'history', 'missions', 'achievements', 'arsenal')
-    }
+    client.setQueryData(['progress'], metrics ? { ...metrics, xp: reward.xp, coins: reward.coins } : undefined)
+    void refreshRpg(client, 'history', 'missions', 'achievements', 'arsenal')
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training workout={active} bonus={metrics?.bossDamageBonus ?? 0} guest={guest} onFinish={finish} onCancel={() => {
+  if (active) return <Training workout={active} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
     setActive(undefined)
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
@@ -122,7 +119,7 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
     <Button variant="contained" onClick={() => {client.clear(); window.location.replace('/')}}>Voltar ao login</Button>
   </section></main>
 
-  if (!guest && !ready) return <main className="profile-page">
+  if (!ready) return <main className="profile-page">
     {error && <Alert severity="error">{error}</Alert>}
     {profile.isPending ? <p role="status">Carregando ficha…</p> : profile.isError ?
       <section className="surface profile-card"><h1>Ficha de personagem</h1><Alert severity="error">Não foi possível carregar sua ficha.</Alert>
@@ -130,7 +127,7 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
       <Profile onSave={value => client.setQueryData(['hero'], { profile: value })} onSignOut={signOut} />}
   </main>
 
-  const choices = [...(guest ? [] : custom.data ?? []), ...(catalog.data ?? [])]
+  const choices = [...(custom.data ?? []), ...(catalog.data ?? [])]
   const menus = navigation.map(([id, label, icon]) => <Button href={id === 'inicio' ? '/' : '/?tab=' + id}
     key={id} className="menu-item" aria-current={view === id ? 'page' : undefined}
     onClick={event => {
@@ -138,9 +135,9 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
       event.preventDefault(); navigate(id)
     }}><span aria-hidden="true">{icon}</span>{label}</Button>)
 
-  return <div className={guest ? 'guest-shell' : 'shell'}>
+  return <div className="shell">
     <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
-    {!guest && <aside className="sidebar">
+    <aside className="sidebar">
       <div className="brand"><span><Glyph name="bolt" /></span>Fitness RPG</div>
       <div className="surface sidebar-progress">
         <div className="character">
@@ -153,25 +150,25 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
         </>}
       </div>
       <nav aria-label="Menu principal">{menus}</nav>
-    </aside>}
+    </aside>
     <div className="shell-content">
-      <header className="topbar"><strong>Fitness RPG &amp; Saúde</strong>{guest ? <Button onClick={signOut}>Voltar ao login</Button> : signOutButton}</header>
+      <header className="topbar"><strong>Fitness RPG &amp; Saúde</strong>{signOutButton}</header>
       <main id="main-content" ref={main} tabIndex={-1} className="content">
         {error && <Alert severity="error">{error}</Alert>}
         {receipt && <section className="surface receipt" aria-labelledby="receipt-title">
-          <div className="between"><div><h2 id="receipt-title" ref={receiptHeading} tabIndex={-1}>{receipt.reward ? 'Treino salvo' : 'Treino concluído como visitante'}</h2><p>{receipt.name}</p></div>
+          <div className="between"><div><h2 id="receipt-title" ref={receiptHeading} tabIndex={-1}>Treino salvo</h2><p>{receipt.name}</p></div>
             <Button onClick={() => {setReceipt(undefined); main.current?.focus()}}>Fechar resumo</Button></div>
-          {receipt.reward && <><p>{receipt.reward.bossDefeated ? 'Chefe derrotado' : 'Chefe permaneceu ativo'}</p>
+          <p>{receipt.reward.bossDefeated ? 'Chefe derrotado' : 'Chefe permaneceu ativo'}</p>
             <div className="stats-grid"><div className="surface inset"><p>Experiência</p><strong className="orange">+{number.format(receipt.reward.earnedXp)} XP</strong></div>
-            <div className="surface inset"><p>Moedas</p><strong className="orange">+{number.format(receipt.reward.earnedCoins)}</strong></div></div></>}
+            <div className="surface inset"><p>Moedas</p><strong className="orange">+{number.format(receipt.reward.earnedCoins)}</strong></div></div>
         </section>}
-        {(guest || view === 'treinar') && <>
+        {view === 'treinar' && <>
           {(catalog.isError || custom.isError) && <Alert severity="error" action={<Button onClick={() => {void catalog.refetch(); if (ready) void custom.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todos os treinos.</Alert>}
           {catalog.isPending && <p role="status">Carregando treinos…</p>}
-          {!guest && custom.data && <CustomWorkouts workouts={custom.data} />}
+          {custom.data && <CustomWorkouts workouts={custom.data} />}
           {!catalog.isPending && <Catalog workouts={choices} onStart={start} />}
         </>}
-        {!guest && (view === 'inicio' || view === 'painel') && <section className="view">
+        {(view === 'inicio' || view === 'painel') && <section className="view">
           <header className="view-heading"><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
             <p>{profile.data?.profile?.name} <span aria-hidden="true">·</span> {profile.data?.profile?.heroClass} {metrics && <>· <span className="green">{metrics.realm}</span></>}</p>
           </header>
@@ -199,10 +196,10 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
               <ul className="list">{history.data.history.map(item => <li key={item.id}><div><strong>{item.name}</strong><time dateTime={item.createdAt}>{date.format(new Date(item.createdAt))}</time></div><span className="orange">{totals(item.xp, item.coins)}</span></li>)}</ul>}</>}
           </section>
         </section>}
-        {!guest && view === 'progresso' && <Health overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
-        {!guest && view === 'coach' && <Oracle progress={metrics} overview={overview} />}
-        {!guest && view === 'arsenal' && <Arsenal coins={metrics?.coins} />}
-        {!guest && view === 'extrato' && <section className="view"><header className="view-heading"><h1>Extrato de recompensas</h1><p>Movimentações de XP e moedas do seu personagem.</p></header>
+        {view === 'progresso' && <Health overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
+        {view === 'coach' && <Oracle progress={metrics} overview={overview} />}
+        {view === 'arsenal' && <Arsenal coins={metrics?.coins} />}
+        {view === 'extrato' && <section className="view"><header className="view-heading"><h1>Extrato de recompensas</h1><p>Movimentações de XP e moedas do seu personagem.</p></header>
           <section className="surface overview" aria-label="Lançamentos do extrato">
             {ledger.isPending && <p role="status">Carregando extrato…</p>}
             {ledger.isError && <Alert severity="error" action={<Button onClick={() => ledger.refetch()}>Tentar novamente</Button>}>Não foi possível carregar o extrato.</Alert>}
@@ -215,11 +212,11 @@ export function Murim({ guest = false, onLeaveGuest }: { guest?: boolean; onLeav
             {ledger.hasNextPage && <Button disabled={ledger.isFetchingNextPage} onClick={() => ledger.fetchNextPage()}>Carregar mais</Button>}
           </section>
         </section>}
-        {!guest && view === 'perfil' && profile.data?.profile && <Profile profile={profile.data.profile} onSave={value => {
+        {view === 'perfil' && profile.data?.profile && <Profile profile={profile.data.profile} onSave={value => {
           client.setQueryData(['hero'], { profile: value }); void client.invalidateQueries({ queryKey: ['dashboard'] }); navigate('inicio')
         }} onSignOut={signOut} />}
       </main>
     </div>
-    {!guest && <nav className="bottom-menu" aria-label="Menu principal móvel">{menus}</nav>}
+    <nav className="bottom-menu" aria-label="Menu principal móvel">{menus}</nav>
   </div>
 }

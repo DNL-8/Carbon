@@ -87,7 +87,7 @@ def callback(request: Request, code: str, state: str,
         claims = verify_google(token["id_token"], settings, nonce)
     except (HTTPException, httpx.HTTPError, OAuth2Error, InvalidToken, ValueError, KeyError, TypeError):
         raise HTTPException(401, "Login Google invalido") from None
-    response = RedirectResponse(origin + "/", status_code=303)
+    response = RedirectResponse(origin + "/", status_code=303, headers={"Referrer-Policy": "no-referrer"})
     issue(claims, settings, response)
     response.delete_cookie(STATE, path=CALLBACK, secure=origin.startswith("https://"),
                            httponly=True, samesite="lax")

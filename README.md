@@ -19,6 +19,6 @@ Use Node 24, Bun 1.4.5, Python 3.13, uv e PostgreSQL isolado. Backend e frontend
 3. Inicie o FastAPI em loopback e o [Next.js](frontend/README.md).
 4. Para Android, configure a origem HTTPS em fitnessApiOrigin.
 
-O [CI](docs/ci.md) executa dois checks: aplicação e Android. Testes externos usam dados sintéticos; Google e Gemini reais, Strava e Health Connect em dispositivo físico ainda requerem homologação.
+O [CI](docs/ci.md) executa os checks Aplicação e Android. Os testes de integração usam PostgreSQL descartável e simulam Google, Gemini e Strava. A homologação com os provedores reais e com Health Connect em aparelho físico requer configuração privada.
 
-As tabelas e IDs existentes foram preservados. Não versione credenciais.
+Antes de conectar um banco existente, confira o [guia de compatibilidade PostgreSQL e Neon](docs/neon-postgresql.md). Guarde credenciais e o mapeamento das contas fora do Git.

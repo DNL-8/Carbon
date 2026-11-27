@@ -36,13 +36,14 @@ object TokenStore {
     }
 
     /**
-     * Salva os dados de autenticação do Firebase
+     * Salva os dados da conta autenticada no Murim.
      */
     fun saveAuthData(
         uid: String,
         email: String,
         displayName: String,
         photoUrl: String,
+        sessionCookie: String,
         isSignedIn: Boolean,
         lastSignIn: Date
     ) {
@@ -51,6 +52,7 @@ object TokenStore {
             ?.putString(KEY_EMAIL, email)
             ?.putString(KEY_DISPLAY_NAME, displayName)
             ?.putString(KEY_PHOTO_URL, photoUrl)
+            ?.putString(KEY_SESSION_COOKIE, sessionCookie)
             ?.putBoolean(KEY_IS_SIGNED_IN, isSignedIn)
             ?.putLong(KEY_LAST_SIGN_IN, lastSignIn.time)
             ?.apply()

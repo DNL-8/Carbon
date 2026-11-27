@@ -1,59 +1,29 @@
 # Murim para Android
 
-<<<<<<< HEAD
-Aplicativo Kotlin/Jetpack Compose para ler dados autorizados do Health Connect e sincronizá-los com FastAPI/PostgreSQL (Neon).
+O aplicativo Kotlin e Jetpack Compose lê dados autorizados no Health Connect e os sincroniza com a API FastAPI. O PostgreSQL guarda os registros por conta.
 
-## Fluxo
-
-- `AuthRepository`: obtém o client ID público em /api/mobile/config e envia o Google ID token ao Better Auth do site.
-- `TokenStore`: mantém a sessão em armazenamento local criptografado; o usuário antigo Firebase precisa entrar novamente.
-- `HealthConnectManager`: lê passos, calorias, sono, sessões de exercício e FC conforme permissões.
-- `SyncRepository` e `NativeApi`: enviam lotes de até 25 atividades/métricas para /api/saude/health-connect usando HTTPS e a sessão autenticada. FC isolada não se torna treino.
-- `SyncWorker`: sincronização periódica a cada seis horas quando há autorização de leitura em segundo plano e conexão.
-- Acompanhe o status em Relatórios → Sincronização no site. Registros anteriores do Firebase não são migrados nem excluídos automaticamente.
+- O aplicativo obtém o client ID OAuth público em `/api/mobile/config` e envia o ID token do Google ao FastAPI. O cookie de sessão fica em armazenamento local criptografado.
+- A sincronização manual consulta os últimos 30 dias. O WorkManager pode executar a sincronização a cada seis horas quando há conexão e permissão para ler em segundo plano.
+- A API recebe lotes de até 25 atividades e 25 métricas diárias. Ela deduplica atividades e preserva os valores de métricas omitidas. Amostras de frequência cardíaca complementam sessões de exercício.
+- Consulte os resultados em **Saúde → Sincronização**. O usuário pode revogar permissões no Health Connect. O backup automático do aplicativo Android está desativado.
 
 ## Compilar
 
-Requisitos: JDK 17, Android SDK 35, Gradle wrapper do projeto. O pacote de release é `com.dnl8.fitnessrpg`. O APK de debug usa `com.dnl8.fitnessrpg.debug`.
+Use JDK 17, Android SDK 35 e o Gradle wrapper do projeto. O pacote de release é `com.dnl8.fitnessrpg`. O pacote de debug termina em `.debug`.
 
 No Windows, dentro de android:
-=======
-O aplicativo usa Kotlin e Jetpack Compose. Ele lê dados do Health Connect e sincroniza métricas e atividades com a API FastAPI do App-fitness, que persiste os dados no Postgres.
-
-- O Android busca o identificador OAuth em `/api/mobile/config`. O Google Sign-In fornece um ID token ao Better Auth, e o cookie de sessão é guardado em armazenamento local criptografado.
-- A sincronização manual consulta os últimos 30 dias, conforme as permissões concedidas. O WorkManager agenda uma execução a cada seis horas quando há permissão de leitura em segundo plano e conexão de rede.
-- O Android envia métricas e atividades à rota autenticada `POST /api/saude/health-connect`. A API preserva as métricas omitidas e deduplica atividades já importadas. Amostras de frequência cardíaca complementam sessões de exercício.
-
-## Compilar e executar
-
-Requisitos: Android SDK 35 e JDK 17 ou superior. O projeto usa Gradle 9.6.0, Android Gradle Plugin 9.5.2 e Kotlin 2.2.10.
-
-No Windows, na pasta `android/`:
->>>>>>> 7aaa789 (quase pronto)
 
 ```powershell
-.\gradlew.bat :app:assembleDebug
-.\gradlew.bat :app:installDebug
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
 ```
 
-No Linux/macOS: `./gradlew :app:assembleDebug`. APK em `app/build/outputs/apk/debug/app-debug.apk`.
+No Linux ou macOS, use `./gradlew :app:testDebugUnitTest :app:assembleDebug`. O APK é gerado em `app/build/outputs/apk/debug/app-debug.apk`. Configure `JAVA_HOME` e `ANDROID_HOME` se necessário.
 
-Configure JAVA_HOME e ANDROID_HOME (ou sdk.dir) quando necessário.
+## Homologar em aparelho físico
 
-## OAuth e teste real
+1. Registre no projeto Google Cloud o package e o SHA-1 da assinatura do APK instalado. Use o client web do mesmo projeto no FastAPI.
+2. Compile com `-PfitnessApiOrigin=https://seu-app.example` ou configure `FITNESS_API_ORIGIN` para a origem HTTPS usada também em `APP_ORIGIN`.
+3. Entre com cada conta autorizada. Importe dados com permissões integrais e parciais e confira os resultados em **Saúde**. Repita a importação e confirme a deduplicação.
+4. Valide a sincronização em segundo plano, a revogação de permissões e a troca de conta durante a coleta.
 
-Registre o package e SHA-1 do certificado de assinatura no projeto Google OAuth correspondente ao client web do Murim. O APK aponta para https://murim-iota.vercel.app por padrão. Para usar outro ambiente, defina `FITNESS_API_ORIGIN` ou passe `-PfitnessApiOrigin=https://seu-app.example` ao Gradle. Entre com a mesma conta Google que usa no site; conceda as permissões Health Connect e execute a sincronização. Confirme o resultado no site e a ausência de duplicidades. A compilação CI não garante autenticação nem sincronização real no dispositivo.
-
-<<<<<<< HEAD
-O usuário pode revogar permissões no Health Connect; backup automático Android está desativado. O Android sincroniza com a API FastAPI usando a sessão do Better Auth.
-
-[Autenticação](../docs/python-auth-cutover.md)
-=======
-A compilação usa `https://murim-iota.vercel.app` por padrão. Para apontar o APK para outra instância, configure `FITNESS_API_ORIGIN` no ambiente ou passe `-PfitnessApiOrigin=https://seu-app.example` ao Gradle. Use uma origem HTTPS compatível com a configuração de autenticação do servidor.
-
-## Health Connect e privacidade
-
-O aplicativo solicita permissões para passos, calorias, treinos, sono e frequência cardíaca; o usuário controla quais tipos autoriza. A leitura em segundo plano requer suporte do provedor e autorização adicional. O usuário pode revogar as permissões nas configurações do Health Connect.
-
-Consulte **Privacidade do Health Connect** no aplicativo para obter os detalhes da coleta e sincronização. O backup automático do Android permanece desativado para evitar cópias não intencionais dos dados locais de saúde.
->>>>>>> 7aaa789 (quase pronto)
+O build e os testes unitários verificam o APK e o contrato HTTP. A homologação acima requer um dispositivo físico. [Configuração OAuth](../docs/python-auth-cutover.md)

@@ -5,6 +5,7 @@ const url = new URL(database)
 if (url.protocol !== 'postgresql:' || url.hostname !== '127.0.0.1' || url.pathname !== '/murim_fastapi_test' || url.search || url.hash) throw new Error('Disposable loopback PostgreSQL required')
 const origin = 'http://127.0.0.1:38200'
 const backend = 'http://127.0.0.1:38212'
+const python = process.platform === 'win32' ? '../backend/.venv/Scripts/python.exe' : '../backend/.venv/bin/python'
 export default defineConfig({
   testDir: './tests',
   workers: 1,
@@ -16,7 +17,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: '../backend/.venv/bin/python tests/provider.py', url: backend + '/api/ready',
+      command: `"${python}" tests/provider.py`, url: backend + '/api/ready',
       env: {
         PYTHONPATH: '../backend', DATABASE_URL: database, APP_ORIGIN: origin,
         ENABLE_WRITES: 'true', GOOGLE_CLIENT_ID: 'browser-fixture',
