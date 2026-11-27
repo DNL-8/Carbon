@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Alert, Button, LinearProgress, MenuItem, Tab, Tabs, TextField } from '@mui/material'
+import { Alert, Button, MenuItem, Tab, Tabs, TextField } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
+import { BarChart } from '@mui/x-charts/BarChart'
 import { z } from 'zod'
 import type { ProfileInput } from '../shared/training'
 import { api, dashboardResult, read } from '../lib/api'
@@ -40,7 +41,7 @@ export function Health({ overview, profile, onProfile }: {
   const totals = data?.totals
   const recovery = overview?.recovery
   const unit = details[metric][1]
-  const highest = Math.max(1, ...(data?.trend.map(day => day[metric] ?? 0) ?? []))
+  const hasTrendMeasurements = data?.trend.some(day => day[metric] != null)
   const totalZoneMinutes = totals ? totals.z1 + totals.z2 + totals.z3 + totals.z4 + totals.z5 : 0
 
   function change(value: Section) {
@@ -79,11 +80,20 @@ export function Health({ overview, profile, onProfile }: {
               {Object.entries(details).map(([key, [label]]) => <MenuItem key={key} value={key}>{label}</MenuItem>)}
             </TextField></header>
           {!data.trend.length && <p>Nenhuma atividade importada no período.</p>}
-          {!!data.trend.length && <ul className="health-trend">{data.trend.map(day => <li key={day.dateKey}>
-            <time dateTime={day.dateKey}>{formatDay(day.dateKey)}</time>
-            {day[metric] == null ? <span>Sem medição</span> : <LinearProgress aria-hidden="true" variant="determinate" value={(day[metric] ?? 0) / highest * 100} />}
-            <strong>{formatMetric(day[metric], unit)}</strong>
-          </li>)}</ul>}
+          {!!data.trend.length && <>
+            {hasTrendMeasurements ? <div className="health-chart" role="group" aria-label="Gráfico de tendência de atividade">
+              <BarChart height={240} skipAnimation hideLegend
+                xAxis={[{ scaleType: 'band', data: data.trend.map(day => day.dateKey), valueFormatter: formatDay }]}
+                series={[{ data: data.trend.map(day => day[metric]), label: details[metric][0], color: '#fb923c', valueFormatter: value => formatMetric(value, unit) }]}
+              />
+            </div> : <p>Sem medições para a métrica selecionada.</p>}
+            <details><summary>Valores da tendência por dia</summary>
+              <ul className="list">{data.trend.map(day => <li key={day.dateKey}>
+                <time dateTime={day.dateKey}>{formatDay(day.dateKey)}</time>
+                <strong>{day[metric] == null ? 'Sem medição' : formatMetric(day[metric], unit)}</strong>
+              </li>)}</ul>
+            </details>
+          </>}
         </section>
         <section className="surface overview" aria-labelledby="heart-zones">
           <h2 id="heart-zones">Zonas cardíacas</h2>

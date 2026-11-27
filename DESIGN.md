@@ -47,7 +47,7 @@ Os valores acima são existentes, não uma certificação de contraste de todas 
 - Unidade explícita: kg, km, min, kcal, bpm, h; números no formato pt-BR e datas sem deslocamento por fuso.
 - Valor ausente: travessão ou “Sem medição”, não zero inventado. Não ligar lacunas como medições reais. Diferenciar calorias ativas e estimadas; totais parciais devem ser identificados.
 - Evolução do peso: linha temporal com pontos observados; evitar suavização que invente valores. Tendência de atividade: barras por dia e métrica selecionada; preservar filtros. Zonas cardíacas: rótulos e duração, não apenas cores.
-- MUI X Charts Community é a opção para novas visualizações, quando instalado com lockfile atualizado. Usar cores do tema, altura responsiva, animação desativada ou respeitando movimento reduzido. Manter alternativa textual/tabela com valores exatos, incluindo lacunas. Não exigir tooltip ou mouse para acessar dados.
+- MUI X Charts Community é utilizado nas visualizações de peso e tendência de atividade. Preserve o lockfile e reutilize essa biblioteca para novos gráficos. Usar cores do tema, altura responsiva, animação desativada ou respeitando movimento reduzido. Manter alternativa textual/tabela com valores exatos, incluindo lacunas. Não exigir tooltip ou mouse para acessar dados.
 - Sono, frequência cardíaca, carga e recuperação são métricas informativas, não diagnóstico nem autorização automática para treino intenso.
 
 ## Android

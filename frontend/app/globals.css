@@ -190,9 +190,7 @@ summary { cursor: pointer; color: #d4d4d8; }
 .health-dl { margin: 0; }
 .health-dl dd { margin: 3px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .health-dl dt, .health-dl time { color: var(--muted); font-size: 12px; }
-.health-trend { margin: 0; padding: 0; display: grid; gap: 8px; list-style: none; }
-.health-trend li { display: grid; grid-template-columns: 84px minmax(30px, 1fr) minmax(65px, auto); align-items: center; gap: 8px; font-size: 12px; }
-.health-trend li strong { text-align: right; }
+.health-chart { width: 100%; min-width: 0; }
 .table-scroll { overflow-x: auto; }
 .table-scroll table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .table-scroll :is(th, td) { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; white-space: nowrap; }
@@ -204,5 +202,4 @@ summary { cursor: pointer; color: #d4d4d8; }
 .oracle-user p { color: inherit; }
 .bottom-menu { grid-template-columns: repeat(8, minmax(0, 1fr)); padding-inline: 2px; gap: 0; }
 @media (max-width: 400px) { .bottom-menu .menu-item { font-size: 9px; padding-inline: 1px; } }
-.weight-curve { display: block; width: 100%; max-height: 128px; }
 .table-scroll:focus-visible { outline: 2px solid #fdba74; outline-offset: 2px; }

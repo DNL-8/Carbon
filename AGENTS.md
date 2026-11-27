@@ -17,7 +17,7 @@ Aplicativo privado de saúde, atividades físicas e progressão RPG inspirado em
 | Área | Caminho e tecnologia |
 | --- | --- |
 | Web | `frontend/`: Next.js App Router, React, TypeScript, Material UI e Emotion. |
-| Gráficos | MUI X Charts é a opção definida para novas necessidades de gráficos; verifique sua disponibilidade antes de usar e não instale nesta revisão documental. |
+| Gráficos | MUI X Charts Community, utilizado nas visualizações de peso e atividade; preserve o lockfile e o tema existente. |
 | API | `backend/`: Python, FastAPI, Pydantic e Authlib. |
 | Persistência | PostgreSQL/Neon, SQLAlchemy e Alembic em `backend/`. |
 | Android | `android/`: Kotlin, Jetpack Compose, Health Connect e Gradle wrapper. |
