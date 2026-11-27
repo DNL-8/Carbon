@@ -21,7 +21,7 @@ export function Login() {
 
   return <main className="auth-page"><div className="auth-card">
     <section aria-labelledby="auth-title" className="auth-intro">
-      <div className="brand"><span><Glyph name="bolt" /></span>Fitness RPG</div>
+      <div className="brand"><span><Glyph name="bolt" /></span>Carbon · Murim</div>
       <div className="auth-copy">
         <h1 id="auth-title">Seu treino.<br /><strong>Sua evolução.</strong></h1>
         <p>Registre seus treinos, acompanhe a saúde pelo Health Connect e evolua seu personagem no Murim.</p>

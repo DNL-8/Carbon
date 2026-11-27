@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LineChart } from '@mui/x-charts/LineChart'
+import { tokens } from '../lib/theme-tokens'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -78,7 +79,7 @@ export function Weight({ stats, profile, onProfile }: { stats: z.infer<typeof da
           <LineChart height={200} skipAnimation hideLegend
             xAxis={[{ scaleType: 'utc', data: days.map(day => new Date(day.dateKey + 'T12:00:00Z')), valueFormatter: value => formatDay(value.toISOString().slice(0, 10)) }]}
             yAxis={[{ min: Math.max(0, min - padding), max: max + padding }]}
-            series={[{ data: days.map(day => day.kg), label: 'Peso (kg)', color: '#fb923c', curve: 'linear', showMark: true, valueFormatter: value => formatMetric(value, 'kg') }]}
+            series={[{ data: days.map(day => day.kg), label: 'Peso (kg)', color: tokens.orange, curve: 'linear', showMark: true, valueFormatter: value => formatMetric(value, 'kg') }]}
           />
         </div>}
         <h3>Histórico de pesagens</h3>

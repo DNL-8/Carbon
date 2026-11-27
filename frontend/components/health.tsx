@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, MenuItem, Tab, Tabs, TextField } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart } from '@mui/x-charts/BarChart'
+import { tokens } from '../lib/theme-tokens'
 import { z } from 'zod'
 import type { ProfileInput } from '../shared/training'
 import { api, dashboardResult, read } from '../lib/api'
@@ -74,10 +75,10 @@ export function Health({ owner, overview, profile, onProfile }: {
     </section>}
     <div id="health-visao-geral" role="tabpanel" aria-labelledby="health-tab-visao-geral" className="view" hidden={section !== 'visao-geral'}>
       {totals && <>
-        <div className="rpg-grid">{([
+        <div className="health-metrics">{([
           ['Tempo de treino', totals.durationMinutes, 'min'], ['Distância', totals.distanceKm, 'km'],
           ['Calorias registradas', totals.calories, 'kcal'], ['Frequência cardíaca média', totals.avgHeartRate, 'bpm'],
-        ] as const).map(([label, value, suffix]) => <article className="surface metric" key={label}><p>{label}</p><strong className="orange mono">{formatMetric(value, suffix)}</strong></article>)}</div>
+        ] as const).map(([label, value, suffix]) => <article className="surface metric" key={label}><p>{label}</p><strong className="mono">{formatMetric(value, suffix)}</strong></article>)}</div>
         <p>Distância e calorias consideram os registros disponíveis. Calorias estimadas anteriormente pelo importador GPX não entram no relatório.</p>
         <section className="surface overview" aria-labelledby="trend-title">
           <header className="between"><h2 id="trend-title">Tendência de atividade</h2>
@@ -89,7 +90,7 @@ export function Health({ owner, overview, profile, onProfile }: {
             {hasTrendMeasurements ? <div className="health-chart" role="group" aria-label="Gráfico de tendência de atividade">
               <BarChart height={240} skipAnimation hideLegend
                 xAxis={[{ scaleType: 'band', data: trend.map(day => day.dateKey), valueFormatter: formatDay }]}
-                series={[{ data: trend.map(day => day.value), label: details[metric][0], color: '#fb923c', valueFormatter: value => formatMetric(value, unit) }]}
+                series={[{ data: trend.map(day => day.value), label: details[metric][0], color: tokens.orange, valueFormatter: value => formatMetric(value, unit) }]}
               />
             </div> : <p>Sem medições para a métrica selecionada.</p>}
             <details><summary>Valores da tendência por dia</summary>

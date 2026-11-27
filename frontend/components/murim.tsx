@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Alert, Button, LinearProgress } from '@mui/material'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { WorkoutTemplate } from '../../src/types/fitness'
@@ -12,9 +13,6 @@ import {
 import { authRequest, errorMessage, notifySessionChange } from '../lib/auth'
 import { Catalog } from './catalog'
 import { Glyph } from './glyph'
-import { Arsenal } from './arsenal'
-import { Health } from './health'
-import { Oracle } from './oracle'
 import { CustomWorkouts } from './custom-workouts'
 import { Achievements, Missions } from './missions'
 import { refreshRpg } from '../lib/rpg-api'
@@ -22,6 +20,11 @@ import { Profile } from './profile'
 import { Training } from './training'
 import { PendingWorkouts } from './pending-workouts'
 import { loadDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
+
+const loadingModule = () => <p role="status">Carregando módulo…</p>
+const Health = dynamic(() => import('./health').then(module => module.Health), { loading: loadingModule })
+const Arsenal = dynamic(() => import('./arsenal').then(module => module.Arsenal), { loading: loadingModule })
+const Oracle = dynamic(() => import('./oracle').then(module => module.Oracle), { loading: loadingModule })
 
 const navigation = [
   ['inicio', 'Início', '⌂'], ['painel', 'Painel', '▤'], ['treinar', 'Treinar', '⚔'],
@@ -151,7 +154,7 @@ export function Murim({ owner }: { owner: string }) {
   return <div className="shell">
     <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
     <aside className="sidebar">
-      <div className="brand"><span><Glyph name="bolt" /></span>Fitness RPG</div>
+      <div className="brand"><span><Glyph name="bolt" /></span>Carbon · Murim</div>
       <div className="surface sidebar-progress">
         <div className="character">
           <img src="/assets/mascote-murim.svg" width="54" height="54" alt="" />
@@ -165,7 +168,7 @@ export function Murim({ owner }: { owner: string }) {
       <nav aria-label="Menu principal">{menus}</nav>
     </aside>
     <div className="shell-content">
-      <header className="topbar"><strong>Fitness RPG &amp; Saúde</strong>{signOutButton}</header>
+      <header className="topbar"><strong>Carbon · Fitness RPG &amp; Saúde</strong>{signOutButton}</header>
       <main id="main-content" ref={main} tabIndex={-1} className="content">
         {error && <Alert severity="error">{error}</Alert>}
         {draft && <section className="surface overview" aria-label="Treino em andamento">
@@ -203,20 +206,20 @@ export function Murim({ owner }: { owner: string }) {
           </header>
           {(progress.isError || dashboard.isError) && <Alert severity="error" action={<Button onClick={() => {void progress.refetch(); void dashboard.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o progresso.</Alert>}
           {progress.isPending && <p role="status">Carregando progresso…</p>}
+          {!draft && <section className="surface recommended">
+            <div><h2>Treino em destaque</h2><p>{catalog.data?.[0]?.name ?? 'Abra o catálogo para escolher um treino.'}</p></div>
+            <Button variant="contained" onClick={() => catalog.data?.[0] ? start(catalog.data[0]) : navigate('treinar')}>{catalog.data?.[0] ? 'Iniciar treino' : 'Abrir catálogo'}</Button>
+          </section>}
           {metrics && <div className="stats-grid status-totals">
             {[[number.format(metrics.xp) + ' XP', 'Experiência'], [number.format(metrics.coins), 'Moedas'], [String(metrics.hp), 'Pontos de vida']].map(([value, label]) =>
               <article className="surface metric" key={label}><p>{label}</p><strong className="orange mono">{value}</strong></article>)}
           </div>}
-          <section className="surface recommended">
-            <div><h2>Treino recomendado</h2><p>{catalog.data?.[0]?.name ?? 'Abra o catálogo para escolher um treino.'}</p></div>
-            <Button variant="contained" onClick={() => catalog.data?.[0] ? start(catalog.data[0]) : navigate('treinar')}>{catalog.data?.[0] ? 'Iniciar treino' : 'Abrir catálogo'}</Button>
-          </section>
-          <Missions />
           {overview && <section className="surface overview"><h2>Atividade dos últimos 7 dias</h2>
             <ul className="week">{overview.days.map(day => <li key={day.dateKey}>
               <time dateTime={day.dateKey}>{day.dateKey.slice(-2)}/{day.dateKey.slice(5, 7)}</time><strong className={day.count ? 'orange' : 'muted'}>{day.count}</strong></li>)}</ul>
             <p>{overview.totalWorkouts} treinos · {overview.bossesDefeated} chefes derrotados · recorde de {overview.longestStreak} dias</p>
           </section>}
+          <Missions />
           <Achievements />
           <section className="surface overview"><h2>Histórico de treinos</h2>
             {history.isPending && <p role="status">Carregando histórico…</p>}

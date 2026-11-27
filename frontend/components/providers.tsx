@@ -2,15 +2,16 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
-import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
+import { createTheme, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { sessionChangeKey } from '../lib/auth'
+import { tokens } from '../lib/theme-tokens'
 
 const theme = createTheme({
   palette: {
-    mode: 'dark', primary: { main: '#fb923c', contrastText: '#09090b' },
-    success: { main: '#34d399' }, background: { default: '#09090b', paper: '#18181b' },
-    text: { primary: '#fafafa', secondary: '#a1a1aa' }, divider: '#27272a',
+    mode: 'dark', primary: { main: tokens.orange, contrastText: tokens.base },
+    success: { main: tokens.green }, background: { default: tokens.base, paper: tokens.surface },
+    text: { primary: tokens.text, secondary: tokens.muted }, divider: tokens.border,
   },
   typography: {
     fontFamily: '"Plus Jakarta Sans Variable", system-ui, sans-serif',
@@ -37,7 +38,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
     window.addEventListener('storage', syncSession)
     return () => window.removeEventListener('storage', syncSession)
   }, [queryClient])
-  return <AppRouterCacheProvider options={{enableCssLayer: true, nonce}}><ThemeProvider theme={theme}><CssBaseline />
+  return <AppRouterCacheProvider options={{enableCssLayer: true, nonce}}><ThemeProvider theme={theme}><CssBaseline /><GlobalStyles styles={{ ':root': Object.fromEntries(Object.entries(tokens).map(([key, value]) => ['--' + key, value])) }} />
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   </ThemeProvider></AppRouterCacheProvider>
 }

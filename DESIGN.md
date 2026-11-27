@@ -24,7 +24,7 @@ Referência visual do Carbon. Documenta a implementação atual de `frontend/app
 | Foco visível | `#fdba74` |
 | Texto sobre ação laranja | `#09090b` |
 
-Os valores acima são existentes, não uma certificação de contraste de todas as combinações. Bordas decorativas não substituem contraste de controles; valide estados interativos e erros pelo tema MUI.
+Os tokens web são centralizados em `frontend/lib/theme-tokens.ts` e expostos ao CSS por `GlobalStyles` no tema MUI. Os valores acima são existentes, não uma certificação de contraste de todas as combinações. Bordas decorativas não substituem contraste de controles; valide estados interativos e erros pelo tema MUI.
 
 ## Tipografia, composição e componentes
 
@@ -32,12 +32,12 @@ Os valores acima são existentes, não uma certificação de contraste de todas 
 - Título de tela: 24–30 px; seção: cerca de 17 px; corpo: 14 px; rótulos: 12 px. Preserve escalonamento responsivo e espaçamento entre linhas.
 - Usar a escala de espaçamento existente (4, 8, 12, 16, 20, 24 px) e superfícies consistentes. Raios: tema MUI 6 px, cards 8 px; login 28 px e cronômetro circular são exceções atuais.
 - Shippori Mincho, Chakra Petch e bordas retas são referências de direção futura, não fontes ou raios implementados. Não trocá-los sem aprovação.
-- Reutilize Button, TextField, Tabs, Dialog, Alert, LinearProgress e as classes surface, inset, metric, view e overview. Botões MUI têm alvo de 44 px por padrão; exceções compactas devem ser verificadas.
+- Reutilize Button, TextField, Tabs, Dialog, Alert, LinearProgress e as classes surface, inset, metric, view e overview. Botões MUI têm alvo de 44 px por padrão; filtros têm mínimo de 44 px e exceções compactas devem ser verificadas.
 - Mantenha ações de exclusão separadas e confirmação explícita; preserve estados de carregamento, erro, vazio e sucesso e feedback acessível.
 
 ## Layout responsivo
 
-- Mobile primeiro: navegação inferior fixa, safe areas e conteúdo sem transbordamento horizontal; cards de treino e métricas se adaptam ao espaço.
+- Mobile primeiro: navegação inferior fixa com quatro colunas em duas linhas abaixo de 640 px, oito colunas em tablets, rótulos de 12 px e alvos de 48 px, safe areas e conteúdo sem transbordamento horizontal; cards de treino e métricas se adaptam ao espaço.
 - A partir de 640 px: ampliar espaçamentos; a partir de 1024 px: sidebar de 288 px, login em duas colunas. Conteúdo principal até 1280 px; sessão de treino até 672 px.
 - Tabelas podem rolar dentro de região nomeada com foco. Não criar rolagem horizontal na página.
 - Validar pelo menos 360/390 px e desktop 1280 px, textos longos e zoom. Não depender de hover no mobile.

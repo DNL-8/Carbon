@@ -109,7 +109,7 @@ export function Arsenal({ coins }: { coins?: number }) {
       {items.isPending && <p role="status">Carregando arsenal…</p>}
       {filtered?.length === 0 && <p role="status">Nenhum equipamento nesta seleção.</p>}
       <div className="workout-grid">{filtered?.map(item => <article className={'surface workout-card' + (item.equipped ? ' fulfilled' : '')} aria-label={item.name} key={item.id}>
-        <small className="orange mono">{slots[item.slot]} · {item.rarity}</small><h2>{item.name}</h2>
+        <small className="gear-rarity mono">{slots[item.slot]} · {item.rarity}</small><h2>{item.name}</h2>
         <p>{item.description}</p><p className="orange">{item.powerBonusLabel}</p>
         {!item.owned && !item.unlock.met && <p>{item.unlock.progressText}</p>}
         <div className="row">
