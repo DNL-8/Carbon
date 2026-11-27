@@ -10,7 +10,7 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -51,7 +51,7 @@ class HealthConnectManager(context: Context) {
             HealthPermission.getReadPermission(ExerciseSessionRecord::class),
             HealthPermission.getReadPermission(StepsRecord::class),
             HealthPermission.getReadPermission(HeartRateRecord::class),
-            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+            HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
             HealthPermission.getReadPermission(SleepSessionRecord::class),
         )
     }
@@ -145,8 +145,8 @@ class HealthConnectManager(context: Context) {
         if (HealthPermission.getReadPermission(StepsRecord::class) in grantedPermissions) {
             metrics += StepsRecord.COUNT_TOTAL
         }
-        if (HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class) in grantedPermissions) {
-            metrics += TotalCaloriesBurnedRecord.ENERGY_TOTAL
+        if (HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in grantedPermissions) {
+            metrics += ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL
         }
         if (metrics.isEmpty()) return emptyList()
 
@@ -169,8 +169,8 @@ class HealthConnectManager(context: Context) {
                     if (steps != null) add(HealthRecord("hc_daily_${day}_steps", "steps", from, to,
                         mapOf("count" to steps.coerceIn(0L, 200000L))))
                 }
-                if (TotalCaloriesBurnedRecord.ENERGY_TOTAL in metrics) {
-                    val calories = group.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
+                if (ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL in metrics) {
+                    val calories = group.result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
                     if (calories != null) add(HealthRecord("hc_daily_${day}_calories", "calories", from, to,
                         mapOf("kilocalories" to calories.coerceIn(0.0, 20000.0))))
                 }
