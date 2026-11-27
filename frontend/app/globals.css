@@ -188,3 +188,30 @@ summary { cursor: pointer; color: #d4d4d8; }
 .gear-rarity { color: var(--muted); }
 .set-grid .MuiInputBase-root { min-height: 44px; }
 .timer-label { color: var(--text); font-weight: 700; }
+
+/* Avatar: short motion bursts, explicit pause and reduced-motion support. */
+.warrior-avatar { position: relative; display: inline-grid; justify-items: center; flex: 0 0 auto; }
+.warrior-avatar-trigger, .warrior-motion { color: var(--text); border: 0; padding: 0; background: transparent; cursor: pointer; }
+.warrior-avatar-trigger { display: block; border-radius: 14px; line-height: 0; }
+.warrior-avatar-trigger svg { display: block; max-width: 100%; }
+.warrior-motion { min-width: 44px; min-height: 44px; font-size: 14px; line-height: 1; }
+.warrior-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.warrior-body { transform-origin: 128px 228px; animation: warrior-breathe 2s ease-in-out 2; }
+.warrior-eyes { transform-box: fill-box; transform-origin: center; animation: warrior-blink 4s ease-in-out 1; }
+.warrior-qi { transform-origin: 50px 165px; animation: warrior-qi 1.2s ease-in-out 3; }
+.warrior-aura { opacity: 0; }
+.warrior-aura-active { transform-origin: 128px 122px; animation: warrior-aura .85s ease-out 3; }
+.warrior-sword { transform-origin: 190px 182px; }
+.warrior-strike { animation: warrior-strike .45s ease-in-out 1; }
+.warrior-avatar[data-resting=true] .warrior-body { opacity: .9; animation-duration: 2.4s; }
+.warrior-avatar[data-hp=low] .warrior-qi { opacity: .5; }
+.warrior-avatar[data-victory=true] .warrior-avatar-trigger { box-shadow: 0 0 0 2px var(--green); }
+.warrior-avatar[data-paused=true] svg * { animation: none !important; }
+.mobile-warrior { display: inline-flex; margin-bottom: 6px; }
+@media (min-width: 1024px) { .mobile-warrior { display: none; } }
+@keyframes warrior-breathe { 50% { transform: translateY(-3px) scale(1.015); } }
+@keyframes warrior-blink { 46%, 54% { transform: scaleY(1); } 50% { transform: scaleY(.1); } }
+@keyframes warrior-qi { 50% { transform: scale(1.15); opacity: .72; } }
+@keyframes warrior-aura { from { opacity: .9; transform: scale(.92); } to { opacity: 0; transform: scale(1.05); } }
+@keyframes warrior-strike { 25% { transform: rotate(-24deg); } 65% { transform: rotate(32deg); } }
+@media (prefers-reduced-motion: reduce) { .warrior-avatar svg * { animation: none !important; } }

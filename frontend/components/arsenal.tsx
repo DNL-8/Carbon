@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { EQUIPMENT_SETS } from '../../src/utils/rpgLogic'
 import { api, number, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
+import { WarriorAvatar } from './warrior-avatar'
 import { idResult, itemsResult, loadoutsResult, refreshRpg, slots, type ArmoryInput } from '../lib/rpg-api'
 
 const preset = z.object({ name: z.string().trim().min(1, 'Informe o nome do conjunto.').max(60) })
@@ -63,7 +64,7 @@ export function Arsenal({ coins }: { coins?: number }) {
     <section className="surface overview" aria-labelledby="arsenal-equipped">
       <h2 id="arsenal-equipped">Equipamento ativo</h2>
       <div className="active-gear">
-        <img src="/assets/mascote-murim.svg" width="88" height="88" alt="" />
+        <WarriorAvatar size={88} gear={items.data} />
         <dl className="gear-slots">{Object.entries(slots).map(([id, label]) => <div className="surface inset" key={id}>
           <dt>{label}</dt><dd>{items.data?.find(i => i.slot === id && i.equipped)?.name ?? '—'}</dd>
         </div>)}</dl>

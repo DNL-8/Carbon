@@ -9,13 +9,15 @@ import { completedFocusSets, initialFocusSets } from '../shared/focus'
 import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
+import { WarriorAvatar, type AvatarGear } from './warrior-avatar'
 import { savePendingWorkout, removePendingWorkout } from '../lib/pending-workouts'
 import { saveDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
-export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
-  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
+export function Training({ owner, workout, draft, bonus, level, hp, gear, onFinish, onCancel }: {
+  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; level?: number; hp?: number; gear?: AvatarGear[]; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
   const [sets, setSets] = useState(() => draft?.sets ?? initialFocusSets(workout))
+  const [attack, setAttack] = useState(0)
   const [index, setIndex] = useState(draft?.index ?? 0)
   const [dialog, setDialog] = useState<'finish' | 'exit' | null>(null)
   const [elapsed, setElapsed] = useState(draft?.elapsedSeconds ?? 0)
@@ -87,7 +89,7 @@ export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
   }
 
   function toggle(position: number) {
-    if (!sets[position].completed) { setNow(Date.now()); setRestEnd(Date.now() + exercise.restSeconds * 1000) }
+    if (!sets[position].completed) { setAttack(value => value + 1); setNow(Date.now()); setRestEnd(Date.now() + exercise.restSeconds * 1000) }
     setSets(items => items.map((item, i) => i === position ? { ...item, completed: !item.completed } : item))
   }
 
@@ -124,6 +126,7 @@ export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
         {exercise.executionTip && <details><summary>Dicas técnicas de execução</summary><p>{exercise.executionTip}</p></details>}
       </section>
       <section aria-label="Combate e tempo da sessão" className="surface combat-card">
+        <WarriorAvatar size={112} level={level} hp={hp} gear={gear} attack={attack} victory={combat.state.bossDefeated} resting={paused || rest > 0} />
         <div className="timer mono"><small className="timer-label">{remaining > 0 ? 'Tempo restante' : 'Tempo decorrido'}</small><strong>{formatSecondsMMSS(remaining || elapsed)}</strong><span>Decorrido: {formatSecondsMMSS(elapsed)}</span></div>
         <Button variant="outlined" disabled={busy || locked} onClick={pause}>{paused ? 'Continuar' : 'Pausar'}</Button>
         <div className="surface inset boss">
