@@ -37,6 +37,15 @@ test('autentica, conclui uma vez após falha e preserva a recompensa após recar
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await expect(page.getByRole('heading', { name: 'Seu herói' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Iniciar treino', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Treino em destaque' })).toBeVisible()
+  const mobileMenu = page.getByRole('navigation', { name: 'Menu principal móvel' })
+  if (await mobileMenu.isVisible()) {
+    await expect(mobileMenu.getByRole('link')).toHaveCount(8)
+    for (const link of await mobileMenu.getByRole('link').all()) {
+      expect(await link.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44)
+      expect(await link.evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(12)
+    }
+  }
   await validateViewport(page)
   await validateAccessibility(page)
   await page.getByRole('link', { name: 'Treinar', exact: true }).filter({ visible: true }).click()
@@ -184,6 +193,8 @@ test('peso, importações, Android, Strava e consentimento no Oráculo', async (
   await validateViewport(page)
   await validateAccessibility(page)
   await page.getByRole('tab', { name: 'Evolução' }).click()
+  await expect(page.locator('#health-visao-geral')).toBeHidden()
+  await expect(page.locator('#health-evolucao')).toBeVisible()
   await page.getByRole('spinbutton', { name: 'Peso (kg)' }).fill('74.5')
   await page.getByRole('button', { name: 'Registrar peso' }).click()
   const weight = page.getByRole('region', { name: 'Peso corporal e evolução física' })

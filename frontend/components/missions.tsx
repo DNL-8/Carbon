@@ -91,7 +91,7 @@ function QuestCard({ quest, pending, claim }: { quest: Quest; pending: boolean; 
     <div><h3>{quest.title}</h3><p>{quest.subtitle}</p></div>
     <LinearProgress variant="determinate" color={quest.isFulfilled ? 'success' : 'primary'} value={quest.progressPercent} aria-label={'Progresso: ' + quest.title} />
     <div className="between mono"><p>{quest.progressText}</p><strong className="orange">+{quest.xpReward} XP · +{quest.coinsReward} moedas</strong></div>
-    {quest.claimed ? <strong className="green">Resgatada</strong> : quest.isFulfilled && <Button variant="outlined" disabled={pending} onClick={claim}>Resgatar {quest.title}</Button>}
+    {quest.claimed ? <strong className="green quest-state">Resgatada</strong> : quest.isFulfilled ? <Button variant="contained" disabled={pending} onClick={claim}>Resgatar {quest.title}</Button> : <span className="muted quest-state">Em andamento</span>}
   </article>
 }
 

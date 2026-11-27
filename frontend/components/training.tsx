@@ -32,6 +32,7 @@ export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
   const payload = useRef<FinishInput>(null)
   const completed = completedFocusSets(sets)
   const exercise = workout.exercises[index]
+  const isTimed = parseExercisePrescription(exercise.prescription).isTimeBased
   const rows = sets.map((set, position) => ({ ...set, position })).filter(set => set.exerciseId === exercise.id)
   const count = new Set(completed.map(row => row.exerciseId)).size
   const combat = getWorkoutCombat(workout, completed, elapsed, bonus)
@@ -105,13 +106,13 @@ export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
         </div>
         <div><h2 id="exercise-title">{exercise.name}</h2><p className="orange">{exercise.prescription} <span className="muted">· {exercise.muscleGroups.join(', ')}</span></p></div>
         {!!rest && <div className="surface inset between"><span>Descanso <strong className="mono">{formatSecondsMMSS(rest)}</strong></span><Button onClick={() => setRestEnd(0)}>Pular</Button></div>}
-        <div className="set-grid muted" aria-hidden="true"><span>Série</span><span>Carga (kg)</span><span>{parseExercisePrescription(exercise.prescription).isTimeBased ? 'Tempo (s)' : 'Repetições'}</span><span>Feita</span></div>
+        <div className="set-grid muted" aria-hidden="true"><span>Série</span><span>Carga (kg)</span><span>{isTimed ? 'Tempo (s)' : 'Repetições'}</span><span>Feita</span></div>
         {rows.map(({ position, reps, weightKg, completed }, n) => <div className="set-grid" key={position}>
           <span className="mono">{n + 1}</span>
           <TextField size="small" type="number" value={weightKg} disabled={busy || locked} onChange={event => update(position, 'weightKg', event.target.value)}
             slotProps={{ htmlInput: { 'aria-label': 'Carga (kg) série ' + (n + 1), min: 0, max: 2000, step: 0.01 } }} />
           <TextField size="small" type="number" value={reps || ''} disabled={busy || locked} onChange={event => update(position, 'reps', event.target.value)}
-            slotProps={{ htmlInput: { 'aria-label': 'Repetições série ' + (n + 1), min: 1, max: 500 } }} />
+            slotProps={{ htmlInput: { 'aria-label': (isTimed ? 'Tempo (s) série ' : 'Repetições série ') + (n + 1), min: 1, max: 500 } }} />
           <Button variant={completed ? 'contained' : 'outlined'} color={completed ? 'success' : 'primary'} aria-label={'Concluir série ' + (n + 1)}
             aria-pressed={completed} onClick={() => toggle(position)} disabled={busy || locked || !Number.isInteger(reps) || reps < 1 || reps > 500 || weightKg < 0 || weightKg > 2000}>{completed ? '✓' : '○'}</Button>
         </div>)}
@@ -123,7 +124,7 @@ export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
         {exercise.executionTip && <details><summary>Dicas técnicas de execução</summary><p>{exercise.executionTip}</p></details>}
       </section>
       <section aria-label="Combate e tempo da sessão" className="surface combat-card">
-        <div className="timer mono"><small>RANK {workout.rank}</small><strong>{formatSecondsMMSS(remaining || elapsed)}</strong><span>Decorrido: {formatSecondsMMSS(elapsed)}</span></div>
+        <div className="timer mono"><small className="timer-label">{remaining > 0 ? 'Tempo restante' : 'Tempo decorrido'}</small><strong>{formatSecondsMMSS(remaining || elapsed)}</strong><span>Decorrido: {formatSecondsMMSS(elapsed)}</span></div>
         <Button variant="outlined" disabled={busy || locked} onClick={pause}>{paused ? 'Continuar' : 'Pausar'}</Button>
         <div className="surface inset boss">
           <div className="between"><strong>{combat.boss.name}</strong><span className={combat.state.bossDefeated ? 'green' : 'orange'}>{combat.state.bossDefeated ? 'DERROTADO' : combat.state.currentHp + ' / ' + combat.boss.maxHp + ' HP'}</span></div>
