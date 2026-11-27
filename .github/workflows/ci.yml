@@ -127,7 +127,7 @@ jobs:
   android:
     name: Android · testes e APK
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -143,3 +143,36 @@ jobs:
           log-accepted-android-sdk-licenses: 'false'
       - run: chmod +x gradlew && ./gradlew :app:testDebugUnitTest :app:assembleDebug --no-daemon -PfitnessApiOrigin=https://murim-ci.example.test
         working-directory: android
+      - name: Habilitar KVM para emulador
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Testar interface Health Connect no emulador Android 35
+        uses: reactivecircus/android-emulator-runner@v2.35.0
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash android/scripts/test-ui.sh
+      - name: Disponibilizar APK de teste (API fictícia)
+        uses: actions/upload-artifact@v4
+        with:
+          name: murim-android-debug-ci
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Capturas e relatórios Android
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: murim-android-ui-report
+          path: |
+            android/app/build/reports/androidTests/
+            android/app/build/outputs/androidTest-results/
+            android/build/ui-captures/
+          if-no-files-found: warn
+          retention-days: 7

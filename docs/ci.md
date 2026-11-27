@@ -8,3 +8,5 @@ A rotina de backup PostgreSQL criptografado continua independente, condicionada 
 
 
 O job de aplicação executa também `bun run lint` (Biome 2.2.6 via bunx) antes do typecheck e build do frontend, com foco em regras React. O arquivo OpenAPI gerado não é lintado.
+
+O job Android mantém testes unitários e build debug, além de testes Compose instrumentados em emulador API 35 e artefatos de capturas sintéticas e APK de CI (origem fictícia). Não há acesso a credenciais ou ao banco real.

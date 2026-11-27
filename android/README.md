@@ -35,3 +35,7 @@ No Linux ou macOS, use `./gradlew :app:testDebugUnitTest :app:assembleDebug`. O 
 4. Valide a sincronização em segundo plano, a revogação de permissões e a troca de conta durante a coleta.
 
 O build e os testes unitários verificam o APK e o contrato HTTP. A homologação acima requer um dispositivo físico. [Configuração OAuth](../docs/python-auth-cutover.md)
+
+## Testes instrumentados
+
+O job Android executa os testes de interface Compose em emulador API 35 com dados sintéticos e publica capturas e relatórios, além do APK debug de CI. O APK de CI aponta para `https://murim-ci.example.test` e serve somente para testes de interface; para login/sincronização compile com a origem HTTPS real autorizada. O teste não concede permissões reais nem simula uma homologação completa do Health Connect. Em um emulador local iniciado, execute `./gradlew :app:connectedDebugAndroidTest` (Windows: `.\\gradlew.bat :app:connectedDebugAndroidTest`).
