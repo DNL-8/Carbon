@@ -1,6 +1,6 @@
 # Backend FastAPI do Murim
 
-O FastAPI implementa as 36 combinações de método e rota de negócio do Nitro. O Nuxt continua servindo a interface, o Better Auth e as sondas públicas do gateway. O Android usa a mesma origem HTTPS e os mesmos cookies. O Nitro continua disponível para reversão. A [matriz de paridade](PARIDADE.md) indica as evidências por rota e as verificações de homologação.
+O FastAPI implementa as 36 combinações de método e rota de negócio do Nitro. Next.js e Authlib estão em homologação; Nuxt e Better Auth permanecem como opção de reversão. O Android usa a mesma origem HTTPS e os mesmos cookies. O Nitro continua disponível para reversão. A [matriz de paridade](PARIDADE.md) indica as evidências por rota e as verificações de homologação.
 
 ## Desenvolvimento isolado
 
@@ -14,7 +14,7 @@ O gateway encaminha métodos e caminhos de negócio explicitamente listados. Ele
 
 ## Schema, adoção e teste
 
-`app/schema.py` mapeia as 17 tabelas existentes, incluindo identidade, chaves, defaults e índices. Alembic adota o estado Drizzle 0007 após comparar metadados com PostgreSQL. A revisão `0001_drizzle_baseline` altera somente o marcador próprio `murim_alembic_version`. Para um banco novo, aplique primeiro as migrações Drizzle, que contêm os backfills do legado. Use uma conexão direta exclusiva em `MURIM_MIGRATION_DATABASE_URL`.
+`app/schema.py` mapeia as 17 tabelas existentes, incluindo identidade, chaves, defaults e índices. Alembic adota o estado Drizzle 0007 após comparar metadados com PostgreSQL. A revisão `0001_drizzle_baseline` altera somente o marcador próprio `murim_alembic_version`. Em banco existente, adote o schema Drizzle 0007 completo. Em banco novo e vazio, use `MURIM_BOOTSTRAP_EMPTY=1 uv run --locked alembic upgrade head`, com a URL direta configurada. O baseline congelado cria as 17 tabelas sem Node ou Drizzle; schemas parciais são recusados. Não use a flag em bancos existentes. As próximas revisões devem usar Alembic. Use uma conexão direta exclusiva em `MURIM_MIGRATION_DATABASE_URL`.
 
 Em `backend/`, com as duas URLs de teste apontando para o banco local descartável:
 
@@ -28,7 +28,7 @@ uv run --locked alembic upgrade head
 docker build -t murim-fastapi:test .
 ```
 
-Os oráculos TypeScript são gerados pelos scripts `check-fastapi-*.mjs` e consumidos pelo Pytest via `MURIM_PROGRESSION_ORACLE`, `MURIM_EQUIPMENT_ORACLE` e `MURIM_REWARDS_ORACLE`. Siga o [workflow FastAPI](../.github/workflows/fastapi.yml) para reproduzir o conjunto completo. O roteiro abaixo compara respostas HTTP dos dois backends em contas sintéticas e testa o painel com o proxy ativo, após instalar o Chromium de Playwright ou definir `CHROME_BIN`.
+Os oráculos TypeScript são gerados pelos scripts `check-fastapi-*.mjs` e consumidos pelo Pytest via `MURIM_PROGRESSION_ORACLE`, `MURIM_EQUIPMENT_ORACLE` e `MURIM_REWARDS_ORACLE`. Siga o [Murim CI](../.github/workflows/ci.yml) para reproduzir o conjunto completo. O roteiro abaixo compara respostas HTTP dos dois backends em contas sintéticas e testa o painel com o proxy ativo, após instalar o Chromium de Playwright ou definir `CHROME_BIN`.
 
 ```sh
 bun install --frozen-lockfile

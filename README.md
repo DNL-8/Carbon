@@ -2,9 +2,9 @@
 
 Aplicativo de treinos e saúde com progressão RPG de Caçadores (XP) e Murim (Qi).
 
-**Arquitetura ativa:** Nuxt 4 / Vue 3 / Nitro / Pinia / Better Auth / Drizzle / PostgreSQL (Neon). A configuração de deploy em `vercel.json` publica o Nuxt. O código Next.js/React anterior permanece como referência e ainda é exercitado pela CI; não é o alvo do deploy atual.
+**Stack alvo (em homologação):** Next.js / React / Material UI, FastAPI / Python, Authlib / Google OAuth, PostgreSQL / Neon, SQLAlchemy, Alembic e Kotlin / Health Connect. Aplicação privada para duas pessoas. O modo Authlib foi testado sem Nitro com contas simuladas; Google real e Android físico ainda precisam de homologação. Nuxt e Better Auth permanecem temporariamente para reversão. Não há publicação ou alteração de hospedagem nesta migração.
 
-**Site:** https://murim-iota.vercel.app — confirme a revisão publicada na Vercel; um merge no GitHub não comprova publicação.
+Consulte [a configuração da autenticação](docs/python-auth-cutover.md) e [o CI centralizado](docs/ci.md).
 
 ## Funcionalidades
 
@@ -24,7 +24,9 @@ A adaptação dos componentes originais está na main; a equivalência visual in
 ## Organização
 
 ```text
-web/app/            Interface Vue, componentes, páginas, stores Pinia
+frontend/           Next.js, React, Material UI e Playwright
+backend/            FastAPI, SQLAlchemy, Authlib, Alembic e pytest
+web/app/            Interface Vue legada para reversão
 web/server/api/     Rotas Nitro autenticadas e públicas
 web/server/utils/   Autenticação, banco, missões, integrações
 web/server/db/      Schema Drizzle
@@ -34,13 +36,17 @@ web/tests/          Testes Nuxt
 src/utils/          Regras RPG, geometria anatômica e parsers reutilizados
 src/server/gemini.ts Cliente Gemini compartilhado
 src/components/     Componentes React originais (referência)
-app/                Aplicação Next.js anterior (CI legada)
+app/                Aplicação Next.js anterior (verificação manual)
 android/            Kotlin, Compose e Health Connect
 scripts/            Validação, instalação, build e backup
 .github/workflows/  CI e backup criptografado
 ```
 
-## Desenvolvimento local
+## Desenvolvimento local — stack alvo
+
+Prepare um PostgreSQL isolado e configure o FastAPI conforme [backend/README.md](backend/README.md) e [Authlib](docs/python-auth-cutover.md). Para um banco novo, execute o bootstrap Alembic descrito no backend. Inicie FastAPI em loopback e, em `frontend/`, execute `bun install --frozen-lockfile` e `bun run dev --port 38200` com `MURIM_AUTH_PROVIDER=authlib` e `MURIM_FASTAPI_ORIGIN` apontando ao FastAPI. Não use credenciais reais nos testes automatizados.
+
+## Desenvolvimento local — fallback legado
 
 Requisitos: Node.js 24, Bun 1.4.5 e PostgreSQL de desenvolvimento. Na raiz:
 
@@ -83,8 +89,9 @@ bun run test:nuxt --browser
 
 Para iniciar o artefato Node: `bun run start:nuxt`. O teste integrado usa PGlite descartável, socket PostgreSQL e e-mail simulado. Não depende do Neon produtivo.
 
-- `nuxt.yml`: tipagem, lint, Vitest, builds Node e Vercel, navegador, Docker e backup/restore em PostgreSQL 18.
-- `ci.yml`: ainda verifica Next.js/React, testes compartilhados e build Android. Os scripts sem sufixo `:nuxt` ainda pertencem ao fluxo legado.
+- `nuxt.yml`: verificação manual do legado, inclusive backup/restore em PostgreSQL 18.
+- `ci.yml`: dois checks automáticos: Aplicação (FastAPI + Next.js, incluindo Authlib) e Android.
+- `legacy-app.yml`: verificação manual do frontend anterior.
 - `nuxt-backup.yml`: backup criptografado age, semanal ou manual, retenção de 30 dias.
 
 Depois do deploy, execute manualmente **Verificar revisão publicada do Murim** no GitHub Actions com o SHA completo que deve estar no ar.
