@@ -1,0 +1,22 @@
+node_modules/
+build/
+android/.gradle/
+android/.kotlin/
+android/local.properties
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+.next*/
+next-env.d.ts
+*.tsbuildinfo
+.data/
+.nuxt/
+.output/
+.vercel/
+
+# Checkout separado do workspace
+/.murim-web-experience/

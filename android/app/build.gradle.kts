@@ -1,0 +1,72 @@
+import java.net.URI
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
+val fitnessApiOrigin = providers.gradleProperty("fitnessApiOrigin")
+    .orElse(providers.environmentVariable("FITNESS_API_ORIGIN"))
+    .getOrElse("https://murim-iota.vercel.app")
+    .trimEnd('/')
+val fitnessApiUri = URI(fitnessApiOrigin)
+require(fitnessApiUri.scheme == "https" && fitnessApiUri.host != null &&
+    fitnessApiUri.userInfo == null && fitnessApiUri.rawPath.isEmpty() &&
+    fitnessApiUri.rawQuery == null && fitnessApiUri.rawFragment == null) {
+    "Configure fitnessApiOrigin com uma origem HTTPS, sem caminho, parâmetros ou credenciais."
+}
+
+android {
+    namespace = "com.dnl8.fitnessrpg"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.dnl8.fitnessrpg"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+        buildConfigField("String", "FITNESS_API_ORIGIN", "\"$fitnessApiOrigin\"")
+
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    implementation("androidx.activity:activity-compose:1.10.0")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Google Material 3 theme for Theme.Material3.DayNight
+    implementation("com.google.android.material:material:1.12.0")
+
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha12")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+}

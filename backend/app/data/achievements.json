@@ -1,0 +1,101 @@
+[
+  {
+    "id": "first_blood",
+    "title": "Primeiro Sangue",
+    "description": "Complete o seu primeiro treino na jornada.",
+    "icon": "🩸",
+    "bonusXp": 25,
+    "targetValue": 1,
+    "metricLabel": "treinos totais"
+  },
+  {
+    "id": "week_warrior",
+    "title": "Guerreiro da Semana",
+    "description": "Mantenha um streak de 7 dias seguidos treinando.",
+    "icon": "🔥",
+    "bonusXp": 50,
+    "targetValue": 7,
+    "metricLabel": "dias seguidos"
+  },
+  {
+    "id": "month_master",
+    "title": "Mestre do Mês",
+    "description": "Alcance um streak lendário de 30 dias seguidos.",
+    "icon": "👑",
+    "bonusXp": 150,
+    "targetValue": 30,
+    "metricLabel": "dias seguidos"
+  },
+  {
+    "id": "fat_burner",
+    "title": "Queimador de Gordura",
+    "description": "Conclua 10 missões de treino do tipo Cardio.",
+    "icon": "💨",
+    "bonusXp": 75,
+    "targetValue": 10,
+    "metricLabel": "treinos de cardio"
+  },
+  {
+    "id": "iron_will",
+    "title": "Vontade de Ferro",
+    "description": "Conclua 10 missões de treino do tipo Força.",
+    "icon": "⚒️",
+    "bonusXp": 75,
+    "targetValue": 10,
+    "metricLabel": "treinos de força"
+  },
+  {
+    "id": "veteran",
+    "title": "Veterano",
+    "description": "Acumule 10 treinos concluídos no total.",
+    "icon": "🛡️",
+    "bonusXp": 60,
+    "targetValue": 10,
+    "metricLabel": "treinos totais"
+  },
+  {
+    "id": "elite",
+    "title": "Elite",
+    "description": "Conquiste a marca de 50 treinos concluídos.",
+    "icon": "⚔️",
+    "bonusXp": 200,
+    "targetValue": 50,
+    "metricLabel": "treinos totais"
+  },
+  {
+    "id": "legendary",
+    "title": "Lendário",
+    "description": "Alcance o Nível 5 e conquiste o título de Mestre.",
+    "icon": "🌟",
+    "bonusXp": 0,
+    "targetValue": 5,
+    "metricLabel": "nível alcançado"
+  },
+  {
+    "id": "first_pr",
+    "title": "Quebra de Limite",
+    "description": "Registre o primeiro Recorde Pessoal (PR) em um exercício.",
+    "icon": "🏅",
+    "bonusXp": 40,
+    "targetValue": 1,
+    "metricLabel": "recordes pessoais"
+  },
+  {
+    "id": "pr_collector_10",
+    "title": "Mestre da Sobrecarga",
+    "description": "Acumule 10 exercícios com Recorde Pessoal registrado.",
+    "icon": "🏆",
+    "bonusXp": 120,
+    "targetValue": 10,
+    "metricLabel": "exercícios com PR"
+  },
+  {
+    "id": "weekly_raid_clear",
+    "title": "Caçador de Raid",
+    "description": "Derrote o Chefe da Raid Semanal acumulando treinos e volume.",
+    "icon": "💀",
+    "bonusXp": 100,
+    "targetValue": 1,
+    "metricLabel": "raids vencidas"
+  }
+]

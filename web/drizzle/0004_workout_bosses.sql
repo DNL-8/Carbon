@@ -1,0 +1,1 @@
+ALTER TABLE "fitness_completion" ADD COLUMN "boss_defeated" boolean DEFAULT false NOT NULL;

@@ -1,0 +1,627 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1 / Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------------------------------
+    // Global Hardened Primitives
+    // ------------------------------------------------------------------------
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedOwner(userId) {
+      return isSignedIn() &&
+        request.auth.uid == userId &&
+        request.auth.token.email_verified == true;
+    }
+
+    function hasUserParent(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function hasUserParentOrBatch(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) ||
+        existsAfter(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function isDateKey(value) {
+      return value is string && value.size() == 10 && value.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isNullableDateKey(value) {
+      return value == null || isDateKey(value);
+    }
+
+    function isNonEmptyString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    function isStringList(value, maxLen) {
+      return value is list &&
+        value.size() <= maxLen &&
+        (value.size() == 0 || (value[0] is string && value[0].size() <= 128));
+    }
+
+    // ------------------------------------------------------------------------
+    // Entity Validation Blueprints (Anti-Update-Gap)
+    // ------------------------------------------------------------------------
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['userId', 'displayName', 'provider', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'email', 'displayName', 'provider', 'createdAt', 'updatedAt']) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isValidId(data.userId) &&
+        (!('email' in data) || data.email == null || isNonEmptyString(data.email, 3, 254)) &&
+        isNonEmptyString(data.displayName, 1, 100) &&
+        data.provider in ['google', 'password'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidHeroProfile(data, userId) {
+      return data.keys().hasAll(['userId', 'name', 'avatar', 'heroClass', 'objective', 'experience', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'userId', 'name', 'avatar', 'heroClass', 'objective', 'experience',
+          'heightCm', 'weightKg', 'restingHrBaseline', 'maxHrEstimated',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isNonEmptyString(data.name, 2, 24) &&
+        isNonEmptyString(data.avatar, 1, 16) &&
+        data.heroClass in ['Guerreiro', 'Arqueiro', 'Mago'] &&
+        data.objective in ['Emagrecer', 'Condicionamento', 'Ambos'] &&
+        data.experience in ['Iniciante', 'Intermediário', 'Avançado'] &&
+        (!('heightCm' in data) || data.heightCm == null || (data.heightCm is number && data.heightCm >= 100 && data.heightCm <= 250)) &&
+        (!('weightKg' in data) || data.weightKg == null || (data.weightKg is number && data.weightKg >= 25 && data.weightKg <= 350)) &&
+        (!('restingHrBaseline' in data) || data.restingHrBaseline == null || (data.restingHrBaseline is int && data.restingHrBaseline >= 30 && data.restingHrBaseline <= 120)) &&
+        (!('maxHrEstimated' in data) || data.maxHrEstimated == null || (data.maxHrEstimated is int && data.maxHrEstimated >= 120 && data.maxHrEstimated <= 230)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidEquippedGear(gear) {
+      return gear is map &&
+        gear.keys().hasAll(['elmo', 'armadura', 'capa', 'arma']) &&
+        gear.keys().hasOnly(['elmo', 'armadura', 'capa', 'arma']) &&
+        (gear.elmo == null || isNonEmptyString(gear.elmo, 1, 64)) &&
+        (gear.armadura == null || isNonEmptyString(gear.armadura, 1, 64)) &&
+        (gear.capa == null || isNonEmptyString(gear.capa, 1, 64)) &&
+        (gear.arma == null || isNonEmptyString(gear.arma, 1, 64));
+    }
+
+    function isValidGameStats(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'totalXp', 'level', 'hunterHp', 'goldCoins', 'totalCoinsEarned',
+          'bossesDefeated', 'ownedEquipmentIds', 'equippedGear', 'gearLoadouts',
+          'claimedAutoQuestKeys', 'currentStreak', 'longestStreak', 'lastWorkoutDate',
+          'totalWorkouts', 'totalMinutes', 'cardioWorkouts', 'forcaWorkouts',
+          'hiitWorkouts', 'coreWorkouts', 'mobilidadeWorkouts', 'corpoInteiroWorkouts',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'totalXp', 'level', 'hunterHp', 'goldCoins', 'totalCoinsEarned',
+          'bossesDefeated', 'ownedEquipmentIds', 'equippedGear', 'gearLoadouts',
+          'claimedAutoQuestKeys', 'currentStreak', 'longestStreak', 'lastWorkoutDate',
+          'totalWorkouts', 'totalMinutes', 'cardioWorkouts', 'forcaWorkouts',
+          'hiitWorkouts', 'coreWorkouts', 'mobilidadeWorkouts', 'corpoInteiroWorkouts',
+          'updatedAt'
+        ]) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.totalXp is int && data.totalXp >= 0 && data.totalXp <= 10000000 &&
+        data.level is int && data.level >= 1 && data.level <= 50 &&
+        data.hunterHp is int && data.hunterHp >= 0 && data.hunterHp <= 100 &&
+        data.goldCoins is int && data.goldCoins >= 0 && data.goldCoins <= 10000000 &&
+        data.totalCoinsEarned is int && data.totalCoinsEarned >= 0 && data.totalCoinsEarned <= 100000000 &&
+        data.bossesDefeated is int && data.bossesDefeated >= 0 && data.bossesDefeated <= 100000 &&
+        isStringList(data.ownedEquipmentIds, 200) &&
+        isValidEquippedGear(data.equippedGear) &&
+        data.gearLoadouts is list && data.gearLoadouts.size() <= 12 &&
+        (data.gearLoadouts.size() == 0 || data.gearLoadouts[0] is map) &&
+        isStringList(data.claimedAutoQuestKeys, 250) &&
+        data.currentStreak is int && data.currentStreak >= 0 && data.currentStreak <= 5000 &&
+        data.longestStreak is int && data.longestStreak >= 0 && data.longestStreak <= 5000 &&
+        isNullableDateKey(data.lastWorkoutDate) &&
+        data.totalWorkouts is int && data.totalWorkouts >= 0 &&
+        data.totalMinutes is int && data.totalMinutes >= 0 &&
+        data.cardioWorkouts is int && data.cardioWorkouts >= 0 &&
+        data.forcaWorkouts is int && data.forcaWorkouts >= 0 &&
+        data.hiitWorkouts is int && data.hiitWorkouts >= 0 &&
+        data.coreWorkouts is int && data.coreWorkouts >= 0 &&
+        data.mobilidadeWorkouts is int && data.mobilidadeWorkouts >= 0 &&
+        data.corpoInteiroWorkouts is int && data.corpoInteiroWorkouts >= 0 &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidWorkoutTemplate(data, userId, workoutId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'name', 'description', 'type', 'difficulty',
+          'durationMinutes', 'baseXp', 'rank', 'exercises', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'name', 'description', 'type', 'difficulty',
+          'durationMinutes', 'baseXp', 'rank', 'exercises', 'updatedAt'
+        ]) &&
+        data.id == workoutId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isNonEmptyString(data.name, 2, 100) &&
+        data.description is string && data.description.size() <= 500 &&
+        data.type in ['cardio', 'forca', 'hiit', 'core', 'mobilidade', 'corpo_inteiro'] &&
+        data.difficulty in ['Iniciante', 'Intermediário', 'Avançado'] &&
+        data.durationMinutes is int && data.durationMinutes >= 1 && data.durationMinutes <= 600 &&
+        data.baseXp is int && data.baseXp >= 10 && data.baseXp <= 5000 &&
+        isNonEmptyString(data.rank, 1, 8) &&
+        data.exercises is list && data.exercises.size() >= 1 && data.exercises.size() <= 20 &&
+        data.exercises[0] is map &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidWorkoutLog(data, userId, logId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'workoutId', 'workoutName', 'workoutType', 'difficulty',
+          'completedExercises', 'totalExercises', 'durationMinutes', 'xpEarned',
+          'bonusXpEarned', 'dateKey', 'completedAt', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'workoutId', 'workoutName', 'workoutType', 'difficulty',
+          'completedExercises', 'totalExercises', 'durationMinutes', 'xpEarned',
+          'bonusXpEarned', 'performedExercises', 'totalVolumeKg', 'prCount',
+          'dateKey', 'completedAt', 'createdAt'
+        ]) &&
+        data.id == logId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isValidId(data.workoutId) &&
+        isNonEmptyString(data.workoutName, 1, 100) &&
+        data.workoutType in ['cardio', 'forca', 'hiit', 'core', 'mobilidade', 'corpo_inteiro'] &&
+        data.difficulty in ['Iniciante', 'Intermediário', 'Avançado'] &&
+        data.completedExercises is int && data.completedExercises >= 0 && data.completedExercises <= 30 &&
+        data.totalExercises is int && data.totalExercises >= 1 && data.totalExercises <= 30 &&
+        data.durationMinutes is int && data.durationMinutes >= 0 && data.durationMinutes <= 600 &&
+        data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 25000 &&
+        data.bonusXpEarned is int && data.bonusXpEarned >= 0 && data.bonusXpEarned <= 25000 &&
+        (!('performedExercises' in data) || (data.performedExercises is list && data.performedExercises.size() <= 25 && (data.performedExercises.size() == 0 || data.performedExercises[0] is map))) &&
+        (!('totalVolumeKg' in data) || (data.totalVolumeKg is number && data.totalVolumeKg >= 0 && data.totalVolumeKg <= 500000)) &&
+        (!('prCount' in data) || (data.prCount is int && data.prCount >= 0 && data.prCount <= 50)) &&
+        isDateKey(data.dateKey) &&
+        isNonEmptyString(data.completedAt, 8, 64) &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidExercisePrRecord(data, userId, exerciseId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'exerciseId', 'exerciseName', 'bestWeightKg',
+          'bestReps', 'bestVolumeKg', 'estimated1RmKg', 'workoutLogId', 'dateKey', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'exerciseId', 'exerciseName', 'bestWeightKg',
+          'bestReps', 'bestVolumeKg', 'estimated1RmKg', 'workoutLogId', 'dateKey', 'updatedAt'
+        ]) &&
+        data.id == exerciseId &&
+        data.exerciseId == exerciseId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isNonEmptyString(data.exerciseName, 1, 120) &&
+        data.bestWeightKg is number && data.bestWeightKg >= 0 && data.bestWeightKg <= 1000 &&
+        data.bestReps is int && data.bestReps >= 1 && data.bestReps <= 500 &&
+        data.bestVolumeKg is number && data.bestVolumeKg >= 0 && data.bestVolumeKg <= 200000 &&
+        data.estimated1RmKg is number && data.estimated1RmKg >= 0 && data.estimated1RmKg <= 2000 &&
+        isValidId(data.workoutLogId) &&
+        isDateKey(data.dateKey) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidDailyVow(data, userId, vowId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'title', 'xpReward', 'penaltyXp',
+          'completedDateKey', 'violatedDateKey', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'title', 'xpReward', 'penaltyXp',
+          'completedDateKey', 'violatedDateKey', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id == vowId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isNonEmptyString(data.title, 3, 80) &&
+        data.xpReward is int && data.xpReward >= 5 && data.xpReward <= 100 &&
+        data.penaltyXp is int && data.penaltyXp >= 5 && data.penaltyXp <= 100 &&
+        isNullableDateKey(data.completedDateKey) &&
+        isNullableDateKey(data.violatedDateKey) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidHealthActivity(data, userId, activityId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'externalId', 'source', 'title', 'sportType', 'dateKey',
+          'startedAt', 'durationMinutes', 'distanceKm', 'calories', 'elevationGainM',
+          'avgHeartRate', 'maxHeartRate', 'zoneMinutes', 'hrSamplePoints', 'xpAwarded', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'externalId', 'source', 'title', 'sportType', 'dateKey',
+          'startedAt', 'durationMinutes', 'distanceKm', 'calories', 'elevationGainM',
+          'avgHeartRate', 'maxHeartRate', 'zoneMinutes', 'hrSamplePoints', 'xpAwarded', 'createdAt'
+        ]) &&
+        data.id == activityId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        isNonEmptyString(data.externalId, 1, 128) &&
+        data.source in ['strava', 'apple_health', 'samsung_health', 'gpx', 'csv', 'health_connect'] &&
+        isNonEmptyString(data.title, 1, 140) &&
+        isNonEmptyString(data.sportType, 1, 64) &&
+        isDateKey(data.dateKey) &&
+        isNonEmptyString(data.startedAt, 8, 64) &&
+        data.durationMinutes is int && data.durationMinutes >= 0 && data.durationMinutes <= 1440 &&
+        data.distanceKm is number && data.distanceKm >= 0 && data.distanceKm <= 1000 &&
+        data.calories is int && data.calories >= 0 && data.calories <= 30000 &&
+        data.elevationGainM is number && data.elevationGainM >= 0 && data.elevationGainM <= 20000 &&
+        (data.avgHeartRate == null || (data.avgHeartRate is int && data.avgHeartRate >= 25 && data.avgHeartRate <= 240)) &&
+        (data.maxHeartRate == null || (data.maxHeartRate is int && data.maxHeartRate >= 25 && data.maxHeartRate <= 250)) &&
+        data.zoneMinutes is list && data.zoneMinutes.size() == 5 && data.zoneMinutes[0] is number &&
+        data.hrSamplePoints is list && data.hrSamplePoints.size() <= 240 &&
+        (data.hrSamplePoints.size() == 0 || data.hrSamplePoints[0] is number) &&
+        data.xpAwarded is int && data.xpAwarded >= 0 && data.xpAwarded <= 5000 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidDailyHealthMetric(data, userId, dateKey) {
+      return data.keys().hasAll([
+          'id', 'userId', 'dateKey', 'steps', 'activeCalories', 'sleepHours',
+          'restingHeartRate', 'hrvMs', 'trainingLoadScore', 'recoveryScore', 'sources', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'dateKey', 'steps', 'activeCalories', 'sleepHours',
+          'restingHeartRate', 'hrvMs', 'trainingLoadScore', 'recoveryScore', 'sources', 'updatedAt'
+        ]) &&
+        data.id == dateKey &&
+        data.dateKey == dateKey &&
+        isDateKey(data.dateKey) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.steps is int && data.steps >= 0 && data.steps <= 200000 &&
+        data.activeCalories is int && data.activeCalories >= 0 && data.activeCalories <= 25000 &&
+        data.sleepHours is number && data.sleepHours >= 0 && data.sleepHours <= 24 &&
+        (data.restingHeartRate == null || (data.restingHeartRate is int && data.restingHeartRate >= 25 && data.restingHeartRate <= 200)) &&
+        (data.hrvMs == null || (data.hrvMs is number && data.hrvMs >= 0 && data.hrvMs <= 500)) &&
+        data.trainingLoadScore is number && data.trainingLoadScore >= 0 && data.trainingLoadScore <= 2000 &&
+        data.recoveryScore is int && data.recoveryScore >= 0 && data.recoveryScore <= 100 &&
+        isStringList(data.sources, 10) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidWeightLog(data, userId, dateKey) {
+      return data.keys().hasAll(['id', 'userId', 'weightKg', 'dateKey', 'recordedAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'weightKg', 'dateKey', 'note', 'recordedAt', 'updatedAt']) &&
+        data.id == dateKey &&
+        data.dateKey == dateKey &&
+        isDateKey(data.dateKey) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.weightKg is number && data.weightKg >= 25 && data.weightKg <= 350 &&
+        (!('note' in data) || data.note == null || (data.note is string && data.note.size() <= 140)) &&
+        isNonEmptyString(data.recordedAt, 8, 64) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidUserAchievement(data, userId, achievementId) {
+      return data.keys().hasAll(['id', 'userId', 'unlocked', 'unlockedAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'unlocked', 'unlockedAt', 'updatedAt']) &&
+        data.id == achievementId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.unlocked is bool &&
+        (data.unlockedAt == null || isNonEmptyString(data.unlockedAt, 8, 64)) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidChatMessage(data, userId, messageId) {
+      return data.keys().hasAll(['id', 'userId', 'role', 'content', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'role', 'content', 'createdAt']) &&
+        data.id == messageId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.role in ['user', 'oracle'] &&
+        isNonEmptyString(data.content, 1, 4000) &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidProgressLedgerEntry(data, userId, entryId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'kind', 'title', 'createdAt', 'xpDelta', 'coinDelta', 'totalXp', 'goldCoins'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'kind', 'title', 'createdAt', 'xpDelta', 'coinDelta', 'totalXp', 'goldCoins'
+        ]) &&
+        data.id == entryId &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.kind in [
+          'workout', 'health_activity', 'armory_purchase',
+          'daily_quest', 'vow_completed', 'vow_broken', 'adjustment'
+        ] &&
+        isNonEmptyString(data.title, 1, 140) &&
+        data.createdAt is timestamp &&
+        data.xpDelta is int && data.xpDelta >= -100000 && data.xpDelta <= 100000 &&
+        data.coinDelta is int && data.coinDelta >= -100000 && data.coinDelta <= 100000 &&
+        data.totalXp is int && data.totalXp >= 0 && data.totalXp <= 10000000 &&
+        data.goldCoins is int && data.goldCoins >= 0 && data.goldCoins <= 10000000;
+    }
+
+    // ------------------------------------------------------------------------
+    // User Root & Subcollections
+    // ------------------------------------------------------------------------
+    match /users/{userId} {
+      allow get: if isVerifiedOwner(userId) && isValidId(userId);
+      allow list: if false;
+      allow create: if isVerifiedOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'provider', 'updatedAt']);
+      allow delete: if false;
+
+      match /heroProfiles/{profileId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(profileId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          profileId == 'main' &&
+          hasUserParentOrBatch(userId) &&
+          isValidHeroProfile(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          profileId == 'main' &&
+          isValidHeroProfile(incoming(), userId) &&
+          hasUserParent(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name', 'avatar', 'heroClass', 'objective', 'experience',
+              'heightCm', 'weightKg', 'restingHrBaseline', 'maxHrEstimated', 'updatedAt'
+            ]) ||
+            incoming().diff(existing()).affectedKeys().hasOnly(['weightKg', 'updatedAt'])
+          );
+        allow delete: if false;
+      }
+
+      match /gameStats/{statsId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(statsId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          statsId == 'main' &&
+          hasUserParentOrBatch(userId) &&
+          isValidGameStats(incoming(), userId) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          statsId == 'main' &&
+          isValidGameStats(incoming(), userId) &&
+          hasUserParent(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().updatedAt == request.time &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['equippedGear', 'updatedAt']) ||
+            incoming().diff(existing()).affectedKeys().hasOnly(['gearLoadouts', 'updatedAt']) ||
+            incoming().diff(existing()).affectedKeys().hasOnly(['goldCoins', 'ownedEquipmentIds', 'equippedGear', 'updatedAt']) ||
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'totalXp', 'level', 'hunterHp', 'goldCoins', 'totalCoinsEarned',
+              'claimedAutoQuestKeys', 'updatedAt'
+            ]) ||
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'totalXp', 'level', 'hunterHp', 'goldCoins', 'totalCoinsEarned',
+              'bossesDefeated', 'ownedEquipmentIds', 'equippedGear', 'gearLoadouts',
+              'claimedAutoQuestKeys', 'currentStreak', 'longestStreak', 'lastWorkoutDate',
+              'totalWorkouts', 'totalMinutes', 'cardioWorkouts', 'forcaWorkouts',
+              'hiitWorkouts', 'coreWorkouts', 'mobilidadeWorkouts', 'corpoInteiroWorkouts',
+              'updatedAt'
+            ])
+          );
+        allow delete: if false;
+      }
+
+      match /workouts/{workoutId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(workoutId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(workoutId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidWorkoutTemplate(incoming(), userId, workoutId) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isValidId(workoutId) &&
+          isValidWorkoutTemplate(incoming(), userId, workoutId) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'description', 'type', 'difficulty',
+            'durationMinutes', 'baseXp', 'rank', 'exercises', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedOwner(userId) && isValidId(workoutId) && hasUserParent(userId);
+      }
+
+      match /workoutLogs/{logId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(logId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(logId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidWorkoutLog(incoming(), userId, logId) &&
+          incoming().createdAt == request.time;
+        allow update: if false;
+        allow delete: if isVerifiedOwner(userId) && isValidId(logId) && hasUserParent(userId);
+      }
+
+      match /exercisePrs/{exerciseId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(exerciseId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(exerciseId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidExercisePrRecord(incoming(), userId, exerciseId) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isValidId(exerciseId) &&
+          isValidExercisePrRecord(incoming(), userId, exerciseId) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().exerciseId == existing().exerciseId &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'exerciseName', 'bestWeightKg', 'bestReps', 'bestVolumeKg',
+            'estimated1RmKg', 'workoutLogId', 'dateKey', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedOwner(userId) && isValidId(exerciseId) && hasUserParent(userId);
+      }
+
+      match /dailyVows/{vowId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(vowId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(vowId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidDailyVow(incoming(), userId, vowId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isValidId(vowId) &&
+          isValidDailyVow(incoming(), userId, vowId) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['completedDateKey', 'violatedDateKey', 'updatedAt']);
+        allow delete: if isVerifiedOwner(userId) && isValidId(vowId) && hasUserParent(userId);
+      }
+
+      match /healthActivities/{activityId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(activityId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(activityId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidHealthActivity(incoming(), userId, activityId) &&
+          incoming().createdAt == request.time;
+        allow update: if false;
+        allow delete: if isVerifiedOwner(userId) && isValidId(activityId) && hasUserParent(userId);
+      }
+
+      match /dailyHealthMetrics/{dateKey} {
+        allow get: if isVerifiedOwner(userId) && isDateKey(dateKey) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isDateKey(dateKey) &&
+          hasUserParentOrBatch(userId) &&
+          isValidDailyHealthMetric(incoming(), userId, dateKey) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isDateKey(dateKey) &&
+          isValidDailyHealthMetric(incoming(), userId, dateKey) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().dateKey == existing().dateKey &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'steps', 'activeCalories', 'sleepHours', 'restingHeartRate',
+            'hrvMs', 'trainingLoadScore', 'recoveryScore', 'sources', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedOwner(userId) && isDateKey(dateKey) && hasUserParent(userId);
+      }
+
+      match /weightLogs/{dateKey} {
+        allow get: if isVerifiedOwner(userId) && isDateKey(dateKey) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isDateKey(dateKey) &&
+          hasUserParentOrBatch(userId) &&
+          isValidWeightLog(incoming(), userId, dateKey) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isDateKey(dateKey) &&
+          isValidWeightLog(incoming(), userId, dateKey) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().dateKey == existing().dateKey &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['weightKg', 'note', 'recordedAt', 'updatedAt']);
+        allow delete: if isVerifiedOwner(userId) && isDateKey(dateKey) && hasUserParent(userId);
+      }
+
+      match /achievements/{achievementId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(achievementId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(achievementId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidUserAchievement(incoming(), userId, achievementId) &&
+          incoming().updatedAt == request.time;
+        allow update: if isVerifiedOwner(userId) &&
+          isValidId(achievementId) &&
+          isValidUserAchievement(incoming(), userId, achievementId) &&
+          hasUserParent(userId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['unlocked', 'unlockedAt', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      match /chatMessages/{messageId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(messageId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(messageId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidChatMessage(incoming(), userId, messageId) &&
+          incoming().createdAt == request.time;
+        allow update: if false;
+        allow delete: if isVerifiedOwner(userId) && isValidId(messageId) && hasUserParent(userId);
+      }
+
+      match /progressLedger/{entryId} {
+        allow get: if isVerifiedOwner(userId) && isValidId(entryId) && hasUserParent(userId);
+        allow list: if isVerifiedOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isVerifiedOwner(userId) &&
+          isValidId(entryId) &&
+          hasUserParentOrBatch(userId) &&
+          isValidProgressLedgerEntry(incoming(), userId, entryId) &&
+          incoming().createdAt == request.time;
+        allow update: if false;
+        allow delete: if isVerifiedOwner(userId) && isValidId(entryId) && hasUserParent(userId);
+      }
+    }
+  }
+}

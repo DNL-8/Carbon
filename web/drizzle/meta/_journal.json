@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795698971688,
+      "tag": "0000_wild_shinobi_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795699255578,
+      "tag": "0001_workout_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795699351682,
+      "tag": "0002_health_import",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795700352270,
+      "tag": "0003_hero_workouts_and_arsenal",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795700767006,
+      "tag": "0004_workout_bosses",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795700957900,
+      "tag": "0005_daily_weekly_missions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795701114303,
+      "tag": "0006_vows_and_achievements",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795701355454,
+      "tag": "0007_reward_ledger_and_loadouts",
+      "breakpoints": true
+    }
+  ]
+}

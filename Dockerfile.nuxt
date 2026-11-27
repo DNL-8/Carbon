@@ -1,0 +1,18 @@
+FROM node:24-bookworm-slim AS node-runtime
+FROM oven/bun:1.4.5 AS build
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY web ./web
+COPY src ./src
+ENV NITRO_PRESET=node-server
+RUN bun run build:nuxt
+
+FROM node-runtime
+WORKDIR /app
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=3000
+COPY --from=build --chown=node:node /app/web/.output ./
+USER node
+EXPOSE 3000
+CMD ["node", "server/index.mjs"]

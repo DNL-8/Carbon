@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/jetbrains-mono";
+@source "../../../../src/utils/rpgLogic.ts";
+
+:root {
+  color-scheme: dark;
+}

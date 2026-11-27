@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary palette -->
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="color_on_primary">#FFFFFFFF</color>
+
+    <!-- Secondary palette -->
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="color_on_secondary">#FF000000</color>
+
+    <!-- Tertiary palette -->
+    <color name="amber_200">#FFFFBB33</color>
+    <color name="amber_700">#FFFF9800</color>
+    <color name="color_on_tertiary">#FF000000</color>
+
+    <!-- Error colors -->
+    <color name="red_200">#FFCF6679</color>
+    <color name="red_800">#FFB00020</color>
+    <color name="color_on_error">#FFFFFFFF</color>
+
+    <!-- Background and surface colors -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="gray_300">#FFE0E0E0</color>
+    <color name="color_background">#FFFFFFFF</color>
+    <color name="color_background_variant">#FFEEEEEE</color>
+    <color name="color_surface">#FFFFFFFF</color>
+    <color name="color_surface_variant">#FFEEEEEE</color>
+
+    <!-- Status colors -->
+    <color name="success">#FF4CAF50</color>
+    <color name="warning">#FFFF9800</color>
+    <color name="info">#FF2196F3</color>
+</resources>

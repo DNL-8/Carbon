@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FitnessRpg" parent="Theme.Material3.DayNight">
+        <!-- Primary color scheme -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorOnPrimary">@color/color_on_primary</item>
+
+        <!-- Secondary color scheme -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/color_on_secondary</item>
+
+        <!-- Error color -->
+        <item name="colorError">@color/red_200</item>
+        <item name="colorOnError">@color/color_on_error</item>
+
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/color_surface</item>
+
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/color_background</item>
+    </style>
+</resources>
