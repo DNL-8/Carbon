@@ -15,7 +15,8 @@ import { Catalog } from './catalog'
 import { Glyph } from './glyph'
 import { CustomWorkouts } from './custom-workouts'
 import { Achievements, Missions } from './missions'
-import { refreshRpg } from '../lib/rpg-api'
+import { itemsResult, refreshRpg } from '../lib/rpg-api'
+import { WarriorAvatar } from './warrior-avatar'
 import { Profile } from './profile'
 import { Training } from './training'
 import { PendingWorkouts } from './pending-workouts'
@@ -61,6 +62,7 @@ export function Murim({ owner }: { owner: string }) {
   })
   const userQueries = [profile, progress, dashboard, custom, history, ledger]
   const sessionError = userQueries.some(query => query.error instanceof ApiError && [401, 403].includes(query.error.status))
+  const gear = useQuery({ queryKey: ['arsenal'], enabled: ready, queryFn: async () => read(await api.GET('/api/arsenal'), itemsResult) })
   const metrics = progress.data
   const overview = dashboard.data
   const level = metrics ? getLevelProgress(metrics.xp) : undefined
@@ -121,7 +123,7 @@ export function Murim({ owner }: { owner: string }) {
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training owner={owner} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
+  if (active) return <Training owner={owner} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} level={metrics?.level} hp={metrics?.hp} gear={gear.data} onFinish={finish} onCancel={() => {
     setActive(undefined); setResume(null); setDraft(loadDraft(owner))
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
@@ -157,7 +159,7 @@ export function Murim({ owner }: { owner: string }) {
       <div className="brand"><span><Glyph name="bolt" /></span>Carbon · Murim</div>
       <div className="surface sidebar-progress">
         <div className="character">
-          <img src="/assets/mascote-murim.svg" width="54" height="54" alt="" />
+          <WarriorAvatar size={54} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} resting={Boolean(draft)} />
           <div><strong>{profile.data?.profile?.name}</strong><p className="orange">Rank {metrics?.rank ?? '—'} · Nv. {metrics?.level ?? '—'}</p></div>
         </div>
         {metrics && <><p className="mono">{totals(metrics.xp, metrics.coins)}</p>
@@ -201,7 +203,7 @@ export function Murim({ owner }: { owner: string }) {
           {!catalog.isPending && <Catalog workouts={choices} onStart={start} />}
         </>}
         {(view === 'inicio' || view === 'painel') && <section className="view">
-          <header className="view-heading"><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
+          <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
             <p>{profile.data?.profile?.name} <span aria-hidden="true">·</span> {profile.data?.profile?.heroClass} {metrics && <>· <span className="green">{metrics.realm}</span></>}</p>
           </header>
           {(progress.isError || dashboard.isError) && <Alert severity="error" action={<Button onClick={() => {void progress.refetch(); void dashboard.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o progresso.</Alert>}
