@@ -22,6 +22,23 @@ object TokenStore {
 
     private var prefs: SharedPreferences? = null
 
+    // Checkpoint stays in the encrypted preferences and is removed on logout.
+    fun healthCheckpoint(account: String, scope: String, day: String): String? {
+        if (getUserId() != account) return null
+        val key = "hc_checkpoint:$account:$scope"
+        val value = prefs?.getString(key, null) ?: return null
+        val prefix = "$day\n"
+        return value.takeIf { it.startsWith(prefix) }?.removePrefix(prefix)?.takeIf { it.isNotBlank() }
+    }
+
+    fun saveHealthCheckpoint(account: String, session: String, scope: String, day: String, token: String) {
+        check(getUserId() == account && getSessionCookie() == session) { "A conta foi alterada durante a sincronização." }
+        val storage = checkNotNull(prefs)
+        check(storage.edit().putString("hc_checkpoint:$account:$scope", "$day\n$token").commit()) {
+            "Não foi possível guardar o checkpoint do Health Connect."
+        }
+    }
+
     fun initialize(context: Context) {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)

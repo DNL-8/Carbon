@@ -7,6 +7,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
+import kotlinx.coroutines.sync.Mutex
+
+internal val healthSyncMutex = Mutex()
 
 internal fun validHealthNumber(value: Any?): Double? =
     (value as? Number)?.toDouble()?.takeIf { it.isFinite() && it >= 0 }

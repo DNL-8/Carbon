@@ -51,6 +51,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -193,47 +194,49 @@ class MainActivity : ComponentActivity() {
                 message = "Lendo dados do Health Connect..."
                 scope.launch(syncExceptionHandler) {
                     try {
-                        val manager = checkNotNull(healthConnect)
-                        val session = TokenStore.getSessionCookie() ?: error("Entre novamente.")
+                        healthSyncMutex.withLock {
+                            val manager = checkNotNull(healthConnect)
+                            val session = TokenStore.getSessionCookie() ?: error("Entre novamente.")
 
-                        // Leitura dos dados com timeout de 60 segundos para evitar travamento infinito
-                        val records = withTimeoutOrNull(60_000L) {
-                            manager.readRecentRecords()
-                        } ?: run {
-                            message = "Tempo esgotado ao ler dados do Health Connect. Tente novamente."
-                            isSyncing = false
-                            return@launch
-                        }
-
-                        if (records.isEmpty()) {
-                            message = "Nenhum registro encontrado no Health Connect nos últimos 30 dias."
-                            isSyncing = false
-                            return@launch
-                        }
-
-                        val syncRepo = SyncRepository(authRepository)
-                        val result = withTimeoutOrNull(60_000L) {
-                            syncRepo.syncRecords(records, session) { sent, total ->
-                                message = "Sincronizando $sent de $total lotes..."
+                            // Leitura dos dados com timeout de 60 segundos para evitar travamento infinito
+                            val records = withTimeoutOrNull(60_000L) {
+                                manager.readRecentRecords()
+                            } ?: run {
+                                message = "Tempo esgotado ao ler dados do Health Connect. Tente novamente."
+                                isSyncing = false
+                                return@launch
                             }
-                        } ?: run {
-                            message = "Tempo esgotado durante a sincronização. Tente novamente."
-                            isSyncing = false
-                            return@launch
-                        }
 
-                        if (manager.canReadInBackground()) {
-                            scheduleBackgroundSync()
-                        } else {
-                            WorkManager.getInstance(this@MainActivity)
-                                .cancelUniqueWork("health-connect-sync")
-                        }
+                            if (records.isEmpty()) {
+                                message = "Nenhum registro encontrado no Health Connect nos últimos 30 dias."
+                                isSyncing = false
+                                return@launch
+                            }
 
-                        message = if (result.imported + result.duplicates + result.days == 0) {
-                            "Nenhum exercício ou métrica diária disponível para sincronizar."
-                        } else {
-                            "Sincronização concluída: ${result.imported} novas atividades, " +
-                                "${result.duplicates} já importadas e ${result.days} dias de métricas processados."
+                            val syncRepo = SyncRepository(authRepository)
+                            val result = withTimeoutOrNull(60_000L) {
+                                syncRepo.syncRecords(records, session) { sent, total ->
+                                    message = "Sincronizando $sent de $total lotes..."
+                                }
+                            } ?: run {
+                                message = "Tempo esgotado durante a sincronização. Tente novamente."
+                                isSyncing = false
+                                return@launch
+                            }
+
+                            if (manager.canReadInBackground()) {
+                                scheduleBackgroundSync()
+                            } else {
+                                WorkManager.getInstance(this@MainActivity)
+                                    .cancelUniqueWork("health-connect-sync")
+                            }
+
+                            message = if (result.imported + result.duplicates + result.days == 0) {
+                                "Nenhum exercício ou métrica diária disponível para sincronizar."
+                            } else {
+                                "Sincronização concluída: ${result.imported} novas atividades, " +
+                                    "${result.duplicates} já importadas e ${result.days} dias de métricas processados."
+                            }
                         }
                     } catch (error: Throwable) {
                         isLoggedIn = authRepository.isSignedIn()

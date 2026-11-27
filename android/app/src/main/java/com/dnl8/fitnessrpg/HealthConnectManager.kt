@@ -11,6 +11,7 @@ import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -19,6 +20,7 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import kotlin.reflect.KClass
 
 data class HealthRecord(
     val id: String,
@@ -47,13 +49,26 @@ class HealthConnectManager(context: Context) {
     companion object {
         val backgroundPermission = HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND
 
-        val permissions = setOf(
-            HealthPermission.getReadPermission(ExerciseSessionRecord::class),
-            HealthPermission.getReadPermission(StepsRecord::class),
-            HealthPermission.getReadPermission(HeartRateRecord::class),
-            HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-            HealthPermission.getReadPermission(SleepSessionRecord::class),
+        private val recordTypes: Set<KClass<out Record>> = setOf(
+            ExerciseSessionRecord::class, StepsRecord::class, HeartRateRecord::class,
+            ActiveCaloriesBurnedRecord::class, SleepSessionRecord::class,
         )
+        val permissions = recordTypes.map { HealthPermission.getReadPermission(it) }.toSet()
+    }
+
+    suspend fun changeScope(): Set<KClass<out Record>> {
+        val granted = client.permissionController.getGrantedPermissions()
+        return recordTypes.filter { HealthPermission.getReadPermission(it) in granted }.toSet()
+    }
+
+    suspend fun freshChangesToken(types: Set<KClass<out Record>>): String =
+        client.getChangesToken(ChangesTokenRequest(recordTypes = types))
+
+    // A single page is sufficient to decide whether a full aggregate refresh is needed.
+    suspend fun unchangedToken(token: String): String? {
+        val result = client.getChanges(token)
+        return if (!result.changesTokenExpired && !result.hasMore && result.changes.isEmpty())
+            result.nextChangesToken else null
     }
 
     suspend fun readRecentRecords(): List<HealthRecord> {
@@ -192,18 +207,14 @@ class HealthConnectManager(context: Context) {
         
         do {
             // Proteção contra loop infinito: número máximo de iterações
-            if (iterations >= maxIterations) {
-                break
-            }
+            check(iterations < maxIterations) { "Paginação do Health Connect incompleta." }
             iterations++
             
             val page = client.readRecords(ReadRecordsRequest(T::class, range, pageToken = pageToken))
             val newPageToken = page.pageToken
             
             // Se pageToken não mudou após leitura, interrompe para evitar loop
-            if (newPageToken != null && newPageToken == pageToken) {
-                break
-            }
+            check(newPageToken == null || newPageToken != pageToken) { "Paginação do Health Connect repetida." }
             
             records += page.records
             pageToken = newPageToken
