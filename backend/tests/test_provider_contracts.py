@@ -92,9 +92,8 @@ def test_oracle_redacts_identifiers_and_bounds_output(monkeypatch):
 
 
 def test_strava_sync_reuses_import_and_refreshes_cookie(client, monkeypatch):
-    from unittest.mock import MagicMock
-
     from contextlib import nullcontext
+    from unittest.mock import MagicMock
 
     from app.db import get_db_factory
 
