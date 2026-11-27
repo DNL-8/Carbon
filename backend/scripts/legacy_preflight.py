@@ -9,6 +9,7 @@ import sys
 
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.schema import metadata
 
@@ -70,7 +71,7 @@ def main() -> int:
             report = inventory(conn)
         print(json.dumps(report, indent=2, sort_keys=True))
         return 0
-    except Exception:
+    except (KeyError, ValueError, SQLAlchemyError, OSError):
         print("Preflight failed: check the explicitly selected database, access and schema.", file=sys.stderr)
         return 1
     finally:
