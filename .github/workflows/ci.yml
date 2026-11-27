@@ -149,7 +149,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Testar interface Health Connect no emulador Android 35
-        uses: reactivecircus/android-emulator-runner@v2.35.0
+        uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: 35
           arch: x86_64
