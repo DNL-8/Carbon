@@ -11,7 +11,7 @@ import { refreshRpg } from '../lib/rpg-api'
 
 const formats: Record<ManualSource, string> = { apple_health: '.xml', samsung_health: '.csv,.json', csv: '.csv', gpx: '.gpx' }
 
-export function HealthImport() {
+export function HealthImport({ owner }: { owner: string }) {
   const client = useQueryClient()
   const files = useRef<HTMLInputElement>(null)
   const [source, setSource] = useState<ManualSource>('csv')
@@ -24,6 +24,10 @@ export function HealthImport() {
   async function importFiles() {
     const input = Array.from(files.current?.files ?? [])
     if (!input.length || busy) return
+    const byteLimit = source === 'apple_health' ? 512 * 1024 ** 2 : 32 * 1024 ** 2
+    if (input.length > 50 || input.reduce((total, file) => total + file.size, 0) > byteLimit) {
+      setError('Arquivos muito grandes. Limite: 50 arquivos, 32 MB no total (512 MB para Apple Health).'); return
+    }
     setBusy(true); setError(''); setMessage(''); setWarnings([])
     const totals = { imported: 0, duplicates: 0, days: 0, xp: 0 }
     try {
@@ -42,7 +46,7 @@ export function HealthImport() {
           activities: parsed.activities.slice(offset, offset + 25),
           dailyMetrics: parsed.dailyMetrics.slice(offset, offset + 25),
         })
-        const result = read(await api.POST('/api/saude/importar', { body: { ...body, source } }), importResult)
+        const result = read(await api.POST('/api/saude/importar', { body: { ...body, source }, headers: { 'x-murim-owner': owner } }), importResult)
         totals.imported += result.imported
         totals.duplicates += result.duplicates
         totals.days += result.days

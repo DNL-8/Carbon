@@ -32,6 +32,7 @@ export function HealthConnect() {
           const recent = data.dailyMetrics.find(day => day[key] !== null)
           return <div className="surface inset metric" key={key}><dt>{label}</dt><dd>{formatMetric(recent?.[key], unit)}</dd>{recent && <dd><time dateTime={recent.dateKey}>{formatDay(recent.dateKey)}</time></dd>}</div>
         })}</dl>
+        <p className="muted">Registros antigos podem conter calorias totais, em vez de apenas calorias ativas.</p>
         <details><summary>Histórico de métricas sincronizadas</summary>
           <div className="table-scroll" role="region" aria-label="Histórico do Health Connect" tabIndex={0}><table><caption>Métricas recentes do Health Connect</caption>
             <thead><tr><th scope="col">Dia</th>{columns.map(([key, label]) => <th key={key} scope="col">{label}</th>)}</tr></thead>

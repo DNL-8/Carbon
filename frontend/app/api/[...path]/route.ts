@@ -35,7 +35,7 @@ async function proxy(request: NextRequest, context: RouteContext<'/api/[...path]
     url.pathname = '/api/' + route
     url.search = request.nextUrl.search
     const headers = new Headers()
-    for (const name of ['accept', 'content-type', 'cookie', 'origin', 'referer']) {
+    for (const name of ['accept', 'content-type', 'cookie', 'origin', 'referer', 'x-murim-owner']) {
       const value = request.headers.get(name)
       if (value) headers.set(name, value)
     }

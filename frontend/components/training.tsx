@@ -9,9 +9,10 @@ import { completedFocusSets, initialFocusSets } from '../shared/focus'
 import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
+import { savePendingWorkout, removePendingWorkout } from '../lib/pending-workouts'
 
-export function Training({ workout, bonus, onFinish, onCancel }: {
-  workout: WorkoutTemplate; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
+export function Training({ owner, workout, bonus, onFinish, onCancel }: {
+  owner: string; workout: WorkoutTemplate; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
   const [sets, setSets] = useState(() => initialFocusSets(workout))
   const [index, setIndex] = useState(0)
@@ -34,7 +35,7 @@ export function Training({ workout, bonus, onFinish, onCancel }: {
   const remaining = Math.max(0, workout.durationMinutes * 60 - elapsed)
   const rest = Math.max(0, Math.ceil((restEnd - now) / 1000))
   const mutation = useMutation({ mutationFn: async (body: FinishInput) => read(
-    await api.POST('/api/treinos/concluir', { body }), rewardResult,
+    await api.POST('/api/treinos/concluir', { body, headers: { 'x-murim-owner': owner } }), rewardResult,
   ) })
   const busy = mutation.isPending
   useEffect(() => { heading.current?.focus() }, [])
@@ -60,7 +61,15 @@ export function Training({ workout, bonus, onFinish, onCancel }: {
       payload.current = { id: crypto.randomUUID(), workoutId: workout.id, elapsedSeconds: duration, sets: completed }
     }
     setLocked(true)
-    try { onFinish(await mutation.mutateAsync(payload.current)) } catch (cause) { setError(errorMessage(cause)) }
+    const body = payload.current
+    const persisted = savePendingWorkout(owner, workout.name, body)
+    try {
+      const reward = await mutation.mutateAsync(body)
+      removePendingWorkout(owner, body.id)
+      onFinish(reward)
+    } catch (cause) {
+      setError(errorMessage(cause) + (persisted ? ' Treino pendente salvo neste navegador.' : ' Armazenamento local indisponível: não feche a página antes de reenviar.'))
+    }
   }
 
   function update(position: number, field: 'weightKg' | 'reps', value: string) {

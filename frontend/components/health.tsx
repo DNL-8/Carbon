@@ -17,8 +17,8 @@ const sections = [['visao-geral', 'Visão geral'], ['atividades', 'Atividades'],
 type TrendMetric = 'durationMinutes' | 'distanceKm' | 'calories'
 const details = { durationMinutes: ['Duração', 'min'], distanceKm: ['Distância', 'km'], calories: ['Calorias estimadas', 'kcal'] } as const
 
-export function Health({ overview, profile, onProfile }: {
-  overview?: z.infer<typeof dashboardResult>; profile?: ProfileInput | null; onProfile: () => void
+export function Health({ owner, overview, profile, onProfile }: {
+  owner: string; overview?: z.infer<typeof dashboardResult>; profile?: ProfileInput | null; onProfile: () => void
 }) {
   const [section, setSection] = useState<Section>('visao-geral')
   const [callback, setCallback] = useState<'connected' | 'error'>()
@@ -42,6 +42,11 @@ export function Health({ overview, profile, onProfile }: {
   const recovery = overview?.recovery
   const unit = details[metric][1]
   const hasTrendMeasurements = data?.trend.some(day => day[metric] != null)
+  const observed = new Map(data?.trend.map(day => [day.dateKey, day[metric]]) ?? [])
+  const trend = data ? Array.from({ length: Number(period) }, (_, i) => {
+    const dateKey = new Date(Date.parse(data.since + 'T00:00:00Z') + i * 86_400_000).toISOString().slice(0, 10)
+    return { dateKey, value: observed.get(dateKey) ?? null }
+  }) : []
   const totalZoneMinutes = totals ? totals.z1 + totals.z2 + totals.z3 + totals.z4 + totals.z5 : 0
 
   function change(value: Section) {
@@ -83,8 +88,8 @@ export function Health({ overview, profile, onProfile }: {
           {!!data.trend.length && <>
             {hasTrendMeasurements ? <div className="health-chart" role="group" aria-label="Gráfico de tendência de atividade">
               <BarChart height={240} skipAnimation hideLegend
-                xAxis={[{ scaleType: 'band', data: data.trend.map(day => day.dateKey), valueFormatter: formatDay }]}
-                series={[{ data: data.trend.map(day => day[metric]), label: details[metric][0], color: '#fb923c', valueFormatter: value => formatMetric(value, unit) }]}
+                xAxis={[{ scaleType: 'band', data: trend.map(day => day.dateKey), valueFormatter: formatDay }]}
+                series={[{ data: trend.map(day => day.value), label: details[metric][0], color: '#fb923c', valueFormatter: value => formatMetric(value, unit) }]}
               />
             </div> : <p>Sem medições para a métrica selecionada.</p>}
             <details><summary>Valores da tendência por dia</summary>
@@ -138,7 +143,7 @@ export function Health({ overview, profile, onProfile }: {
       </>}
     </div>
     <div id="health-sincronizacao" role="tabpanel" aria-labelledby="health-tab-sincronizacao" className="view" hidden={section !== 'sincronizacao'}>
-      {section === 'sincronizacao' && <><HealthConnect /><Strava callback={callback} /><HealthImport /></>}
+      {section === 'sincronizacao' && <><HealthConnect /><Strava callback={callback} /><HealthImport owner={owner} /></>}
     </div>
   </section>
 }

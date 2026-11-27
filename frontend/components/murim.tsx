@@ -20,6 +20,7 @@ import { Achievements, Missions } from './missions'
 import { refreshRpg } from '../lib/rpg-api'
 import { Profile } from './profile'
 import { Training } from './training'
+import { PendingWorkouts } from './pending-workouts'
 
 const navigation = [
   ['inicio', 'Início', '⌂'], ['painel', 'Painel', '▤'], ['treinar', 'Treinar', '⚔'],
@@ -29,7 +30,7 @@ type View = (typeof navigation)[number][0]
 
 const totals = (xp: number, coins: number) => <>{number.format(xp)} XP <span aria-hidden="true">·</span> {number.format(coins)} moedas</>
 
-export function Murim() {
+export function Murim({ owner }: { owner: string }) {
   const client = useQueryClient()
   const [view, setView] = useState<View>('inicio')
   const [active, setActive] = useState<WorkoutTemplate>()
@@ -105,7 +106,7 @@ export function Murim() {
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training workout={active} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
+  if (active) return <Training owner={owner} workout={active} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
     setActive(undefined)
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
@@ -155,6 +156,10 @@ export function Murim() {
       <header className="topbar"><strong>Fitness RPG &amp; Saúde</strong>{signOutButton}</header>
       <main id="main-content" ref={main} tabIndex={-1} className="content">
         {error && <Alert severity="error">{error}</Alert>}
+        <PendingWorkouts owner={owner} onSaved={(name, reward) => {
+          setReceipt({ name, reward })
+          void refreshRpg(client, 'history', 'missions', 'achievements', 'arsenal')
+        }} />
         {receipt && <section className="surface receipt" aria-labelledby="receipt-title">
           <div className="between"><div><h2 id="receipt-title" ref={receiptHeading} tabIndex={-1}>Treino salvo</h2><p>{receipt.name}</p></div>
             <Button onClick={() => {setReceipt(undefined); main.current?.focus()}}>Fechar resumo</Button></div>
@@ -196,7 +201,7 @@ export function Murim() {
               <ul className="list">{history.data.history.map(item => <li key={item.id}><div><strong>{item.name}</strong><time dateTime={item.createdAt}>{date.format(new Date(item.createdAt))}</time></div><span className="orange">{totals(item.xp, item.coins)}</span></li>)}</ul>}</>}
           </section>
         </section>}
-        {view === 'progresso' && <Health overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
+        {view === 'progresso' && <Health owner={owner} overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
         {view === 'coach' && <Oracle progress={metrics} overview={overview} />}
         {view === 'arsenal' && <Arsenal coins={metrics?.coins} />}
         {view === 'extrato' && <section className="view"><header className="view-heading"><h1>Extrato de recompensas</h1><p>Movimentações de XP e moedas do seu personagem.</p></header>

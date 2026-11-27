@@ -11,11 +11,11 @@ export function upstream(): URL {
   return url
 }
 
-export async function getAccount(cookie: string): Promise<boolean> {
-  const result = await fetch(new URL('/api/conta', upstream()), {
+export async function getAccount(cookie: string): Promise<string | null> {
+  const result = await fetch(new URL('/api/auth/get-session', upstream()), {
     cache: 'no-store', headers: { cookie }, signal: AbortSignal.timeout(5000),
   })
   if (!result.ok) throw new Error('Sessão indisponível')
-  const account: { authenticated?: unknown } = await result.json()
-  return account.authenticated === true
+  const account: { user?: { id?: unknown; emailVerified?: unknown } } | null = await result.json()
+  return account?.user?.emailVerified === true && typeof account.user.id === 'string' && account.user.id ? account.user.id : null
 }

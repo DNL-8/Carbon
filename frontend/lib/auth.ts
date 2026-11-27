@@ -4,9 +4,6 @@ export async function authRequest(path: string, body: Record<string, unknown>) {
   })
   const data: { url?: string; message?: string; statusMessage?: string; code?: string; user?: { emailVerified?: boolean } } = await response.json()
   if (!response.ok) {
-    if (data.code === 'EMAIL_NOT_VERIFIED') {
-      throw new Error('Verifique seu e-mail antes de entrar. Se necessário, confira o spam.')
-    }
     throw new Error(data.message || data.statusMessage || 'Não foi possível acessar o Murim.')
   }
   return data

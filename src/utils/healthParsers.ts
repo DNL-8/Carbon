@@ -606,7 +606,7 @@ export function parseCsvHealthContent(
     const distanceKm =
       colDistance >= 0 ? Math.max(0, Number((Number(cols[colDistance]) || 0).toFixed(2))) : 0;
 
-    if (durationMinutes > 0 || distanceKm > 0 || colTitle >= 0) {
+    if (durationMinutes > 0 || distanceKm > 0) {
       const title =
         (colTitle >= 0 && cols[colTitle]) ||
         (colSport >= 0 && cols[colSport]) ||
@@ -616,7 +616,7 @@ export function parseCsvHealthContent(
         colAvgHr >= 0 && cols[colAvgHr] ? Math.round(Number(cols[colAvgHr])) : null;
       const maxHrAct =
         colMaxHr >= 0 && cols[colMaxHr] ? Math.round(Number(cols[colMaxHr])) : null;
-      const dur = Math.max(1, durationMinutes || Math.round(distanceKm * 6) || 20);
+      const dur = durationMinutes;
       const rawExternal = colExternalId >= 0 ? cols[colExternalId]?.trim() : '';
       const rawTime = colTime >= 0 ? cols[colTime]?.trim() : '';
       const externalId = rawExternal
@@ -639,7 +639,7 @@ export function parseCsvHealthContent(
         startedAt: `${dateKey}T12:00:00.000Z`,
         durationMinutes: dur,
         distanceKm,
-        calories: calories || dur * 7,
+        calories,
         elevationGainM: 0,
         avgHeartRate: avgHr && avgHr >= 30 && avgHr <= 240 ? avgHr : null,
         maxHeartRate: maxHrAct && maxHrAct >= 30 && maxHrAct <= 250 ? maxHrAct : null,
