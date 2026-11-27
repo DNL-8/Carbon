@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 
 export type AvatarGear = { id: string; name: string; slot: string; rarity: string; equipped: boolean }
-type Props = { size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; resting?: boolean }
+type Props = { size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
 const rarityColors: Record<string, string> = { comum: '#a1a1aa', common: '#a1a1aa', incomum: '#34d399', uncommon: '#34d399', raro: '#60a5fa', rare: '#60a5fa', épico: '#c084fc', epico: '#c084fc', epic: '#c084fc', lendário: '#fbbf24', lendario: '#fbbf24', legendary: '#fbbf24' }
 
-export function WarriorAvatar({ size = 88, level, hp, gear = [], attack = 0, victory = false, resting = false }: Props) {
+export function WarriorAvatar({ size = 88, level, hp, gear = [], attack = 0, victory = false, milestone = false, resting = false }: Props) {
   const [look, setLook] = useState({ x: 0, y: 0 })
   const [pulse, setPulse] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -27,7 +27,7 @@ export function WarriorAvatar({ size = 88, level, hp, gear = [], attack = 0, vic
     const bounds = event.currentTarget.getBoundingClientRect()
     setLook({ x: Math.max(-4, Math.min(4, (event.clientX - bounds.left - bounds.width / 2) / bounds.width * 8)), y: Math.max(-3, Math.min(3, (event.clientY - bounds.top - bounds.height / 2) / bounds.height * 6)) })
   }
-  return <div className="warrior-avatar" data-paused={paused} data-resting={resting} data-hp={lowHp ? 'low' : 'normal'} data-victory={victory} data-attack={attack} data-level-up={levelUp} data-equipment={gear.filter(item => item.equipped).map(item => item.id).sort().join(',')}>
+  return <div className="warrior-avatar" data-paused={paused} data-resting={resting} data-hp={lowHp ? 'low' : 'normal'} data-victory={victory} data-attack={attack} data-level-up={Boolean(levelUp || milestone)} data-equipment={gear.filter(item => item.equipped).map(item => item.id).sort().join(',')}>
     <button type="button" className="warrior-avatar-trigger" aria-label="Interagir com guerreiro" onPointerMove={follow} onPointerLeave={() => setLook({ x: 0, y: 0 })} onClick={() => setPulse(value => value + 1)}>
       <svg width={size} height={size} viewBox="0 0 256 256" aria-hidden="true" focusable="false">
         <rect width="256" height="256" rx="40" fill="#111113"/>
@@ -35,7 +35,7 @@ export function WarriorAvatar({ size = 88, level, hp, gear = [], attack = 0, vic
 <path d="M17 195 58 151 91 178 129 147 171 175 205 145 239 195V223H17Z" fill="#242126"/>
 <ellipse cx="128" cy="230" rx="77" ry="7" fill="#09090b"/>
 
-        <g key={'aura-' + levelUp + '-' + victory + '-' + pulse} className={'warrior-aura' + (victory || levelUp || pulse ? ' warrior-aura-active' : '')}><circle cx="128" cy="122" r="98" fill="none" stroke={victory ? '#34d399' : '#fb923c'} strokeWidth="5" opacity=".65"/></g>
+        <g key={'aura-' + levelUp + '-' + milestone + '-' + victory + '-' + pulse} className={'warrior-aura' + (victory || milestone || levelUp || pulse ? ' warrior-aura-active' : '')}><circle cx="128" cy="122" r="98" fill="none" stroke={victory ? '#34d399' : '#fb923c'} strokeWidth="5" opacity=".65"/></g>
         <g className="warrior-body" key={'body-' + pulse}>
           {equipment('capa') && <path d="M94 134 63 158 54 218 128 204 202 218 193 158 162 134Z" fill={tint('capa', '#71717a')} stroke="#09090b" strokeWidth="4" opacity=".8"/>}
           <g className={attack > 0 ? 'warrior-sword warrior-strike' : 'warrior-sword'} key={'sword-' + attack}>
@@ -68,6 +68,6 @@ export function WarriorAvatar({ size = 88, level, hp, gear = [], attack = 0, vic
       </svg>
     </button>
     <button className="warrior-motion" type="button" aria-label="Pausar animações do guerreiro" aria-pressed={paused} onClick={() => {setPaused(value => !value); setLook({x: 0, y: 0})}}>{paused ? '▶' : 'Ⅱ'}</button>
-    <span className="warrior-sr" role="status">{pulse > 0 ? 'Energia Qi ativada.' : ''}{lowHp ? ' HP baixo.' : ''}{victory ? ' Chefe derrotado.' : ''}{levelUp > 0 ? ' Novo nível alcançado.' : ''}</span>
+    <span className="warrior-sr" role="status">{pulse > 0 ? 'Energia Qi ativada.' : ''}{lowHp ? ' HP baixo.' : ''}{victory ? ' Chefe derrotado.' : ''}{levelUp > 0 || milestone ? ' Novo nível alcançado.' : ''}</span>
   </div>
 }

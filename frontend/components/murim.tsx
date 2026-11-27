@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { Alert, Button, LinearProgress } from '@mui/material'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { WorkoutTemplate } from '../../src/types/fitness'
-import { getLevelProgress } from '../../src/utils/rpgLogic'
+import { calculateLevel, getLevelProgress } from '../../src/utils/rpgLogic'
 import {
   api, ApiError, dashboardResult, date, historyResult, ledgerResult, number,
   profileResult, progressResult, read, workouts, type Reward,
@@ -66,6 +66,7 @@ export function Murim({ owner }: { owner: string }) {
   const metrics = progress.data
   const overview = dashboard.data
   const level = metrics ? getLevelProgress(metrics.xp) : undefined
+  const receiptLevelUp = receipt ? calculateLevel(receipt.reward.xp) > calculateLevel(Math.max(0, receipt.reward.xp - receipt.reward.earnedXp)) : false
 
   useEffect(() => { setDraft(loadDraft(owner)) }, [owner])
   useEffect(() => { if (receipt) receiptHeading.current?.focus() }, [receipt])
@@ -159,7 +160,7 @@ export function Murim({ owner }: { owner: string }) {
       <div className="brand"><span><Glyph name="bolt" /></span>Carbon · Murim</div>
       <div className="surface sidebar-progress">
         <div className="character">
-          <WarriorAvatar size={54} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} resting={Boolean(draft)} />
+          <WarriorAvatar size={54} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} />
           <div><strong>{profile.data?.profile?.name}</strong><p className="orange">Rank {metrics?.rank ?? '—'} · Nv. {metrics?.level ?? '—'}</p></div>
         </div>
         {metrics && <><p className="mono">{totals(metrics.xp, metrics.coins)}</p>
@@ -203,7 +204,7 @@ export function Murim({ owner }: { owner: string }) {
           {!catalog.isPending && <Catalog workouts={choices} onStart={start} />}
         </>}
         {(view === 'inicio' || view === 'painel') && <section className="view">
-          <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
+          <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
             <p>{profile.data?.profile?.name} <span aria-hidden="true">·</span> {profile.data?.profile?.heroClass} {metrics && <>· <span className="green">{metrics.realm}</span></>}</p>
           </header>
           {(progress.isError || dashboard.isError) && <Alert severity="error" action={<Button onClick={() => {void progress.refetch(); void dashboard.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o progresso.</Alert>}
