@@ -48,7 +48,7 @@
     "firebase-admin": "^14.5.1",
     "hono": "^4.13.19",
     "jose": "^6.2.18",
-    "motion": "^12.23.24",
+    "motion": "^14.14.0",
     "next": "^16.4.6",
     "nuxt": "4",
     "nuxt-security": "^2.7.0",
