@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['frontend/**', 'backend/**', 'web/**', 'src/types/fitness.ts', 'src/utils/**', '.github/workflows/next-frontend.yml']
   push:
-    branches: [migration/next-frontend]
+    branches: [main, migration/next-frontend, migration/python-auth]
   workflow_dispatch:
 permissions:
   contents: read

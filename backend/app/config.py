@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +11,9 @@ class Settings(BaseSettings):
     database_url: str = ""
     enable_writes: bool = False
     auth_origin: str = ""
+    auth_provider: Literal["better-auth", "authlib"] = "better-auth"
+    python_auth_secret: str = ""
+    google_users: dict[str, str] = Field(default_factory=dict)
     better_auth_url: str = ""
     strava_client_id: str = ""
     strava_client_secret: str = ""

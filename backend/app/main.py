@@ -23,6 +23,7 @@ from .health_summary import router as health_summary_router
 from .history import router as history_router
 from .oracle import router as oracle_router
 from .profile import router as profile_router
+from .python_auth_routes import router as python_auth_router
 from .quests import router as quests_router
 from .state import router as state_router
 from .strava import router as strava_router
@@ -37,6 +38,7 @@ app.include_router(health_summary_router)
 app.include_router(health_import_router)
 app.include_router(weight_router)
 app.include_router(profile_router)
+app.include_router(python_auth_router)
 app.include_router(workouts_router)
 app.include_router(catalog_router)
 app.include_router(history_router)
@@ -95,7 +97,11 @@ def ready(settings: Annotated[Settings, Depends(get_settings)]):
     from .db import engine
 
     try:
-        if not settings.auth_origin:
+        if settings.auth_provider == "authlib":
+            from .python_auth import config
+
+            config(settings)
+        elif not settings.auth_origin:
             raise ValueError("missing auth origin")
         with engine().connect() as conn:
             conn.execute(text("SELECT xp FROM fitness_progress LIMIT 0"))

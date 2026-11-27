@@ -38,6 +38,10 @@ def current_user(
     request: Request, settings: Annotated[Settings, Depends(get_settings)]
 ) -> dict | None:
     request.state.auth_cookies = []
+    if settings.auth_provider == "authlib":
+        from .python_auth import session_user
+
+        return session_user(request, settings)
     return fetch_session(request.headers.get("cookie", ""), settings, request.state.auth_cookies)
 
 

@@ -31,7 +31,8 @@ async function proxy(request: NextRequest, context: RouteContext<'/api/[...path]
   }
   const probe = request.method === 'GET' && (route === 'health' || route === 'ready')
   try {
-    const url = upstream(isAuth || (probe && route === 'health') ? 'auth' : 'fastapi')
+    const pythonAuth = process.env.MURIM_AUTH_PROVIDER === 'authlib'
+    const url = upstream(!pythonAuth && (isAuth || (probe && route === 'health')) ? 'auth' : 'fastapi')
     url.pathname = '/api/' + route
     url.search = request.nextUrl.search
     const headers = new Headers()
