@@ -10,21 +10,24 @@ import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { savePendingWorkout, removePendingWorkout } from '../lib/pending-workouts'
+import { saveDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
-export function Training({ owner, workout, bonus, onFinish, onCancel }: {
-  owner: string; workout: WorkoutTemplate; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
+export function Training({ owner, workout, draft, bonus, onFinish, onCancel }: {
+  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
-  const [sets, setSets] = useState(() => initialFocusSets(workout))
-  const [index, setIndex] = useState(0)
+  const [sets, setSets] = useState(() => draft?.sets ?? initialFocusSets(workout))
+  const [index, setIndex] = useState(draft?.index ?? 0)
   const [dialog, setDialog] = useState<'finish' | 'exit' | null>(null)
-  const [elapsed, setElapsed] = useState(0)
-  const [paused, setPaused] = useState(false)
+  const [elapsed, setElapsed] = useState(draft?.elapsedSeconds ?? 0)
+  const [storageError, setStorageError] = useState(false)
+  const [draftId] = useState(() => draft?.id ?? crypto.randomUUID())
+  const [paused, setPaused] = useState(Boolean(draft))
   const [restEnd, setRestEnd] = useState(0)
   const [now, setNow] = useState(() => Date.now())
   const [error, setError] = useState('')
   const [locked, setLocked] = useState(false)
   const started = useRef(Date.now())
-  const carried = useRef(0)
+  const carried = useRef((draft?.elapsedSeconds ?? 0) * 1000)
   const heading = useRef<HTMLHeadingElement>(null)
   const payload = useRef<FinishInput>(null)
   const completed = completedFocusSets(sets)
@@ -48,6 +51,10 @@ export function Training({ owner, workout, bonus, onFinish, onCancel }: {
     return () => window.clearInterval(timer)
   }, [paused, locked])
 
+  useEffect(() => {
+    if (!locked) setStorageError(!saveDraft(owner, { version: 1, owner, id: draftId, workout, sets, index, elapsedSeconds: elapsed }))
+  }, [owner, draftId, workout, sets, index, elapsed, locked])
+
   function pause() {
     if (paused) started.current = Date.now()
     else carried.current += Date.now() - started.current
@@ -58,13 +65,15 @@ export function Training({ owner, workout, bonus, onFinish, onCancel }: {
     setDialog(null); setError('')
     if (!payload.current) {
       const duration = Math.min(28800, Math.floor((carried.current + (paused ? 0 : Date.now() - started.current)) / 1000))
-      payload.current = { id: crypto.randomUUID(), workoutId: workout.id, elapsedSeconds: duration, sets: completed }
+      payload.current = { id: draftId, workoutId: workout.id, elapsedSeconds: duration, sets: completed }
     }
     setLocked(true)
     const body = payload.current
     const persisted = savePendingWorkout(owner, workout.name, body)
+    if (persisted) removeDraft(owner, draftId)
     try {
       const reward = await mutation.mutateAsync(body)
+      removeDraft(owner, draftId)
       removePendingWorkout(owner, body.id)
       onFinish(reward)
     } catch (cause) {
@@ -89,6 +98,7 @@ export function Training({ owner, workout, bonus, onFinish, onCancel }: {
     </div></header>
     <main className="session-main">
       {error && <Alert severity="error">{error}</Alert>}
+      {storageError && <Alert severity="warning">Não foi possível guardar o rascunho neste navegador. Evite fechar a página.</Alert>}
       <section className="surface exercise-card" aria-labelledby="exercise-title">
         <div className="between"><span className="orange mono">Exercício atual · {index + 1}/{workout.exercises.length}</span>
           <Button variant="outlined" disabled={busy || locked} onClick={() => {setNow(Date.now()); setRestEnd(Date.now() + exercise.restSeconds * 1000)}}>Descanso ({exercise.restSeconds}s)</Button>
@@ -132,7 +142,7 @@ export function Training({ owner, workout, bonus, onFinish, onCancel }: {
       <DialogContent>{dialog === 'exit' ? 'As séries desta sessão não serão salvas.' :
         <><p>Revise o resumo antes de salvar o treino.</p><p>Exercícios: {count}/{workout.exercises.length} · Séries: {completed.length} · Volume: {number.format(completed.reduce((sum, set) => sum + set.weightKg * set.reps, 0))} kg</p><p>XP, moedas e recordes são calculados no servidor ao concluir.</p></>}</DialogContent>
       <DialogActions><Button onClick={() => setDialog(null)}>Voltar</Button>
-        <Button variant="contained" onClick={dialog === 'exit' ? onCancel : finish}>{dialog === 'exit' ? 'Cancelar treino' : 'Concluir treino'}</Button>
+        <Button variant="contained" onClick={dialog === 'exit' ? () => { removeDraft(owner, draftId); onCancel() } : finish}>{dialog === 'exit' ? 'Cancelar treino' : 'Concluir treino'}</Button>
       </DialogActions>
     </Dialog>
   </div>

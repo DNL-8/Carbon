@@ -40,6 +40,12 @@ test('autentica, conclui uma vez após falha e preserva a recompensa após recar
   await validateAccessibility(page)
   await page.getByRole('spinbutton', { name: 'Carga (kg) série 1' }).fill('25')
   await page.getByRole('button', { name: 'Concluir série 1', exact: true }).click()
+  await page.reload()
+  await expect(page.getByRole('region', { name: 'Treino em andamento' })).toBeVisible()
+  await page.getByRole('button', { name: 'Retomar treino' }).click()
+  await expect(page.getByRole('spinbutton', { name: 'Carga (kg) série 1' })).toHaveValue('25')
+  await expect(page.getByRole('button', { name: 'Concluir série 1', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: 'Continuar', exact: true })).toBeVisible()
   const requests: unknown[] = []
   await page.route('**/api/treinos/concluir', async route => {
     requests.push(route.request().postDataJSON())

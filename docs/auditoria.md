@@ -6,7 +6,7 @@ A arquitetura Next.js/FastAPI permanece inalterada. Correções de auditoria sã
 
 - Catálogos de treinos e equipamentos extraídos de rpgLogic.ts, mantendo exports e os oráculos de paridade.
 - Removidos módulos sem referências de tipos antigos, wrappers RPG, erros Firebase e paginação documentId. Fila offline antiga, alertas de descanso e animações são preservados para avaliação de funcionalidades e dados locais existentes.
-- Reenvio de treinos finalizados usa armazenamento local versionado por conta. Não guarda tokens; o navegador não fornece criptografia própria para esse conteúdo. Em dispositivo compartilhado, descarte cópias pendentes explicitamente. Rascunhos ainda não finalizados e a fila antiga não são migrados automaticamente.
+- Reenvio de treinos finalizados usa armazenamento local versionado por conta. Não guarda tokens; o navegador não fornece criptografia própria para esse conteúdo. Em dispositivo compartilhado, descarte cópias pendentes explicitamente. Rascunhos novos ainda não finalizados podem ser retomados após recarregar: séries, exercício atual e tempo decorrido são salvos por conta; retomada pausada não conta o intervalo fora da tela. Um rascunho por conta e navegador; não editar o mesmo treino em múltiplas abas. A fila antiga não é migrada automaticamente.
 - Importação CSV não inventa duração ou calorias. Limites de arquivos reduzem o risco de bloqueio do navegador. Contrato legado ainda não distingue todos os zeros e ausências de todas as fontes; transformação completa exige revisão coordenada de parsers, API e APK.
 - Cabeçalhos impedem enquadramento e objetos incorporados. CSP com nonce para scripts/estilos e lint React dedicado permanecem pendentes. Typecheck e Playwright continuam obrigatórios.
 

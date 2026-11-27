@@ -21,6 +21,7 @@ import { refreshRpg } from '../lib/rpg-api'
 import { Profile } from './profile'
 import { Training } from './training'
 import { PendingWorkouts } from './pending-workouts'
+import { loadDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
 const navigation = [
   ['inicio', 'Início', '⌂'], ['painel', 'Painel', '▤'], ['treinar', 'Treinar', '⚔'],
@@ -34,6 +35,8 @@ export function Murim({ owner }: { owner: string }) {
   const client = useQueryClient()
   const [view, setView] = useState<View>('inicio')
   const [active, setActive] = useState<WorkoutTemplate>()
+  const [draft, setDraft] = useState<WorkoutDraft | null>(null)
+  const [resume, setResume] = useState<WorkoutDraft | null>(null)
   const [receipt, setReceipt] = useState<{ name: string; reward: Reward }>()
   const [error, setError] = useState('')
   const [signingOut, setSigningOut] = useState(false)
@@ -59,6 +62,7 @@ export function Murim({ owner }: { owner: string }) {
   const overview = dashboard.data
   const level = metrics ? getLevelProgress(metrics.xp) : undefined
 
+  useEffect(() => { setDraft(loadDraft(owner)) }, [owner])
   useEffect(() => { if (receipt) receiptHeading.current?.focus() }, [receipt])
   useEffect(() => {
     const fromQuery = () => {
@@ -93,6 +97,14 @@ export function Murim({ owner }: { owner: string }) {
   }
 
   function start(workout: WorkoutTemplate) {
+    const existing = loadDraft(owner)
+    if (existing) {
+      setDraft(existing)
+      setError('Retome ou descarte o treino em andamento antes de iniciar outro.')
+      window.scrollTo(0, 0)
+      return
+    }
+    setResume(null); setError('')
     if (document.activeElement instanceof HTMLElement) trigger.current = document.activeElement
     setReceipt(undefined); setActive(workout)
     window.scrollTo(0, 0)
@@ -100,14 +112,14 @@ export function Murim({ owner }: { owner: string }) {
 
   function finish(reward: Reward) {
     if (!active) return
-    setReceipt({ name: active.name, reward }); setActive(undefined)
+    setReceipt({ name: active.name, reward }); setActive(undefined); setResume(null); setDraft(loadDraft(owner))
     client.setQueryData(['progress'], metrics ? { ...metrics, xp: reward.xp, coins: reward.coins } : undefined)
     void refreshRpg(client, 'history', 'missions', 'achievements', 'arsenal')
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training owner={owner} workout={active} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
-    setActive(undefined)
+  if (active) return <Training owner={owner} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} onFinish={finish} onCancel={() => {
+    setActive(undefined); setResume(null); setDraft(loadDraft(owner))
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
       else main.current?.focus()
@@ -156,6 +168,18 @@ export function Murim({ owner }: { owner: string }) {
       <header className="topbar"><strong>Fitness RPG &amp; Saúde</strong>{signOutButton}</header>
       <main id="main-content" ref={main} tabIndex={-1} className="content">
         {error && <Alert severity="error">{error}</Alert>}
+        {draft && <section className="surface overview" aria-label="Treino em andamento">
+          <h2>Treino em andamento</h2><p>{draft.workout.name} · {draft.sets.filter(set => set.completed).length} séries concluídas</p>
+          <div className="row"><Button variant="contained" onClick={() => {
+            const current = loadDraft(owner)
+            if (!current) { setDraft(null); return }
+            setResume(current); setReceipt(undefined); setError(''); setActive(current.workout)
+          }}>Retomar treino</Button><Button color="error" onClick={() => {
+            if (window.confirm('Descartar o treino em andamento? As séries não enviadas serão perdidas.')) {
+              removeDraft(owner, draft.id); setDraft(loadDraft(owner)); setError('')
+            }
+          }}>Descartar rascunho</Button></div>
+        </section>}
         <PendingWorkouts owner={owner} onSaved={(name, reward) => {
           setReceipt({ name, reward })
           void refreshRpg(client, 'history', 'missions', 'achievements', 'arsenal')
