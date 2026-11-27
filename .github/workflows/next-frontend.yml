@@ -56,3 +56,4 @@ jobs:
           bun run build
           bunx playwright install --with-deps chromium
           bun run test
+          bunx playwright test --config playwright.authlib.config.ts
