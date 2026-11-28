@@ -224,6 +224,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       const clone=(m:THREE.Material)=>{
         const copy=clones.get(m)??m.clone();clones.set(m,copy)
         if(copy instanceof THREE.MeshStandardMaterial){
+          // Low mode avoids extra normal-map sampling, without disposing shared GLTF textures.
+          if(quality==='low')copy.normalMap=null
           if(m.name==='Skin')copy.color.set(skinColors[appearance.skin])
           if(m.name==='Hair')copy.color.set(hairColors[appearance.hairColor])
           if(m.name==='Energy'){const color=energyColor(style,appearance);copy.color.set(color);copy.emissive.set(color)}
@@ -235,7 +237,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     }
     invalidate()
     return ()=>{for(const node of baseMeshes){if(node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}}for(const m of clones.values())m.dispose()}
-  },[baseMeshes,appearance,style,invalidate])
+  },[baseMeshes,appearance,style,quality,invalidate])
   useEffect(()=>{
     const head=scene.getObjectByName('Head')
     if(!head)return
@@ -373,6 +375,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     gl.domElement.dataset.glbEyeOpen=String(open)
     // Bounded, outward-only secondary motion; zero at collar, no physics solver.
     let capeDisplacement=0
+    let capeInward=0
     for(const mesh of drapes.current){
       const position=mesh.geometry.getAttribute('position')
       const rest=mesh.userData.restPositions as Float32Array
@@ -381,11 +384,13 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
         const displacement=strength*weight*weight*(.5+.5*Math.sin(time*5+Math.abs(rest[i*3])*17))
         position.setZ(i,rest[i*3+2]-displacement)
         capeDisplacement=Math.max(capeDisplacement,Math.abs(position.getZ(i)-rest[i*3+2]))
+        capeInward=Math.max(capeInward,position.getZ(i)-rest[i*3+2])
       }
       position.needsUpdate=true
       if(quality==='high')mesh.geometry.computeVertexNormals()
     }
     gl.domElement.dataset.glbCapeDisplacement=String(capeDisplacement)
+    gl.domElement.dataset.glbCapeInward=String(capeInward)
     for(const entry of hairMotion.current){entry.node.quaternion.copy(entry.rotation);entry.node.rotateX(-strength*(.5+.5*Math.sin(time*5)))}
     const group=effects.current
     if(group){

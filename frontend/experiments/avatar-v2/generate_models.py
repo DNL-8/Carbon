@@ -18,7 +18,7 @@ def surface_uv(vertices):
     return np.column_stack((vertices[:,0]+.37*vertices[:,2],
                             vertices[:,1]+.19*vertices[:,2])).astype('<f4') / .08
 
-def roughness_png(name):
+def material_png(name,kind):
     size=64
     y,x=np.mgrid[0:size,0:size]
     u=2*math.pi*x/size
@@ -31,7 +31,20 @@ def roughness_png(name):
         pattern=.5*np.sin(9*u+7*v)+.3*np.cos(13*u-5*v)+.2*np.cos(4*u+11*v)
     # Subtle contrast; existing material factors and customization remain authoritative.
     pixels=np.full((size,size,3),255,dtype=np.uint8)
-    pixels[:,:,1]=np.clip(np.rint(235+15*pattern),0,255).astype(np.uint8)
+    if kind=='Roughness':
+        pixels[:,:,1]=np.clip(np.rint(235+15*pattern),0,255).astype(np.uint8)
+    elif kind=='Normal':
+        # Periodic finite differences, tangent-space normals; no baked lighting.
+        dx=(np.roll(pattern,-1,axis=1)-np.roll(pattern,1,axis=1))*.15
+        dy=(np.roll(pattern,-1,axis=0)-np.roll(pattern,1,axis=0))*.15
+        normals=np.stack((-dx,-dy,np.ones_like(dx)),axis=-1)
+        normals/=np.linalg.norm(normals,axis=-1,keepdims=True)
+        pixels=np.clip(np.rint((normals*.5+.5)*255),0,255).astype(np.uint8)
+    elif kind=='Color':
+        # Neutral grayscale variation preserves the material tint and profile customization.
+        pixels[:]=np.clip(np.rint(244+9*pattern),0,255).astype(np.uint8)[:,:,None]
+    else:
+        raise ValueError(kind)
     def chunk(kind,data):
         return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
     scanlines=b''.join(b'\x00'+row.tobytes() for row in pixels)
@@ -64,14 +77,19 @@ class Model:
         m={'name':name,'pbrMetallicRoughness':{'baseColorFactor':[*rgb(h),1],'metallicFactor':metal,'roughnessFactor':rough}}
         if emission:m['emissiveFactor']=[v*emission for v in rgb(h)]
         if name in TEXTURED:
-            raw=roughness_png(name)
-            self.buf.extend(b'\0'*((-len(self.buf))%4))
-            offset=len(self.buf);self.buf.extend(raw)
-            self.views.append({'buffer':0,'byteOffset':offset,'byteLength':len(raw)})
-            self.images.append({'name':name+'_Roughness','bufferView':len(self.views)-1,'mimeType':'image/png'})
-            self.textures.append({'source':len(self.images)-1,'sampler':0})
-            m['pbrMetallicRoughness']['metallicRoughnessTexture']={'index':len(self.textures)-1}
+            m['pbrMetallicRoughness']['metallicRoughnessTexture']={'index':self.texture(name,'Roughness')}
+            if name!='Skin':
+                m['normalTexture']={'index':self.texture(name,'Normal'),'scale':.30}
+                m['pbrMetallicRoughness']['baseColorTexture']={'index':self.texture(name,'Color')}
         self.mats.append(m);return len(self.mats)-1
+    def texture(self,name,kind):
+        raw=material_png(name,kind)
+        self.buf.extend(b'\0'*((-len(self.buf))%4))
+        offset=len(self.buf);self.buf.extend(raw)
+        self.views.append({'buffer':0,'byteOffset':offset,'byteLength':len(raw)})
+        self.images.append({'name':name+'_'+kind,'bufferView':len(self.views)-1,'mimeType':'image/png'})
+        self.textures.append({'source':len(self.images)-1,'sampler':0})
+        return len(self.textures)-1
     def node(self,name,parent=None,pos=(0,0,0),mesh=None):
         n={'name':name,'translation':list(pos)}
         if mesh is not None:n['mesh']=mesh
@@ -83,11 +101,18 @@ class Model:
         v=np.asarray(mesh.triangles.reshape(-1,3),dtype='<f4')
         organic=name.startswith(('HeadMesh','Ear','EyeWhite','Iris','EyeGlint','Nose','HairCap','HairTuft','HairLock','Topknot','Ponytail','Neck','Hand.','BaseShoulder.','Sleeve.','Forearm.','Pants.','BaseTorso','BaseHip','BaseWaist','Boot.'))
         norm=(mesh.vertex_normals[mesh.faces].reshape(-1,3) if organic else np.repeat(mesh.face_normals,3,axis=0)).astype('<f4')
+        # Merge only identical position/normal pairs: preserve hard edges and triangle winding.
+        packed,indices=np.unique(np.column_stack((v,norm)),axis=0,return_inverse=True)
+        indices=indices.reshape(-1)
+        assert np.array_equal(packed[indices],np.column_stack((v,norm)))
+        v=packed[:,:3].astype('<f4');norm=packed[:,3:].astype('<f4')
         p=self.data(v,'VEC3',5126,34962,True);n=self.data(norm,'VEC3',5126,34962)
         attrs={'POSITION':p,'NORMAL':n}
         if self.mats[mat]['name'] in TEXTURED:
             attrs['TEXCOORD_0']=self.data(surface_uv(v),'VEC2',5126,34962)
-        self.meshes.append({'name':name,'primitives':[{'attributes':attrs,'material':mat}]})
+        short=len(v)<=65535
+        index=self.data(indices.astype('<u2' if short else '<u4'),'SCALAR',5123 if short else 5125,34963)
+        self.meshes.append({'name':name,'primitives':[{'attributes':attrs,'indices':index,'material':mat}]})
         return self.node('Mesh_'+name,parent,mesh=len(self.meshes)-1)
     def animation(self,name,channels):
         a={'name':name,'samplers':[],'channels':[]}

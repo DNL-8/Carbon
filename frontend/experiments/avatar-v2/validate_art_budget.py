@@ -33,6 +33,10 @@ for name in ('murim','cacador'):
         index=material['pbrMetallicRoughness']['metallicRoughnessTexture']['index']
         img=doc['images'][doc['textures'][index]['source']]
         assert 'bufferView' in img and img['mimeType']=='image/png',(name,material['name'],'expected embedded PNG')
+        if material['name']!='Skin':
+            for texture in (material['normalTexture'],material['pbrMetallicRoughness']['baseColorTexture']):
+                embedded=doc['images'][doc['textures'][texture['index']]['source']]
+                assert 'bufferView' in embedded and embedded['mimeType']=='image/png',(name,material['name'],'missing detail map')
     for mesh in doc['meshes']:
         for p in mesh['primitives']:
             if doc['materials'][p['material']]['name'] in textured:

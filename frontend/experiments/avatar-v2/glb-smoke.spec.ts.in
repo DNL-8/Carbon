@@ -133,6 +133,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await piece.selectOption(cape.id)
     await page.getByRole('button',{name:'Repouso',exact:true}).click()
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-displacement'))).toBeGreaterThan(.001)
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-inward'))).toBeLessThan(.00001)
     await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})
   }
