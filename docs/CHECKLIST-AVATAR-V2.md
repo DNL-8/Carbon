@@ -89,3 +89,7 @@ As duas variantes são somente experimentais. O pipeline de Blender e a matriz d
 
 - [x] Preparar capturas de conjuntos equipados de frente, perfil e costas para ambos os personagens.
 - [ ] Revisar as capturas geradas na nova CI e corrigir clipping/encaixes.
+
+### Validação adicional de exportação
+
+Inspeção dos arquivos reais do artefato Blender 15266265163: GLB Murim 266104 bytes e Caçador 266964 bytes. A comparação das matrizes globais de repouso confirmou a conservação dos quatro sockets, cabeça e mão esquerda (diferenças inferiores a 0,0001). Nomes de materiais preservados. Acrescentada verificação automatizada de roundtrip de matrizes dos quatro sockets, cabeça, ambas as mãos e materiais. A próxima CI deve confirmar a nova asserção. Não equivale a validação de colisão nas poses animadas.
