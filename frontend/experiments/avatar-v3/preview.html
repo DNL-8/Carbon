@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Avatar V3 · PC lab</title>
+<style>body{margin:0;background:#15171d;color:#eee;font:16px system-ui}canvas{display:block}#status{position:absolute;left:16px;top:16px}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<div id="status" role="status">Carregando</div>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1);
+renderer.setClearColor(0x15171d);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff,0x40372d,2));
+for(const [p,c,i] of [[[3,4,4],0xffe7ca,3],[[-3,2,-3],0x99baff,2]]){const l=new THREE.DirectionalLight(c,i);l.position.set(...p);scene.add(l)}
+const camera=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,.01,30);
+const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const status=document.querySelector('#status');
+try{
+ const model=await loader.loadAsync('/candidate.glb');
+ scene.add(model.scene);
+ const box=new THREE.Box3().setFromObject(model.scene);
+ const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+ let triangles=0;
+ model.scene.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3});
+ window.avatarMetrics={triangles,dimensions:size.toArray()};
+ window.pose=(angle)=>{camera.position.copy(center).add(new THREE.Vector3(Math.sin(angle)*3.6,0,Math.cos(angle)*3.6));camera.lookAt(center);renderer.render(scene,camera)};
+ window.pose(0);
+ status.textContent='Avatar V3 · PC';status.dataset.ready='true';
+}catch(error){status.textContent=String(error);status.dataset.ready='error';throw error}
+</script></html>

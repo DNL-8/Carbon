@@ -10,7 +10,12 @@ import sys
 from pathlib import Path
 from mathutils import Vector
 
-OUT = Path(sys.argv[sys.argv.index("--")+1]).resolve()
+ARGS = sys.argv[sys.argv.index("--")+1:]
+OUT = Path(ARGS[0]).resolve()
+STYLES = (ARGS[1],) if len(ARGS)>1 else ("murim","cacador")
+assert all(s in ("murim","cacador") for s in STYLES)
+MODE = ARGS[2] if len(ARGS)>2 else "generate"
+assert MODE in ("generate","render")
 OUT.mkdir(parents=True, exist_ok=True)
 
 def activate(obj):
@@ -139,6 +144,8 @@ def render(body, style, folder):
     scene.render.resolution_x=720
     scene.render.resolution_y=900
     scene.render.resolution_percentage=100
+    if scene.world is None:
+        scene.world=bpy.data.worlds.new('Studio World')
     scene.world.color=(.12,.12,.12)
     for name,pos,power,size in [('Key',(3,-4,4),500,3),('Fill',(-3,-2,2.4),260,3),('Rim',(1,3,3),450,2)]:
         bpy.ops.object.light_add(type='AREA',location=pos)
@@ -160,10 +167,15 @@ def render(body, style, folder):
         bpy.ops.render.render(write_still=True)
 
 reports=[]
-for style in ('murim','cacador'):
+for style in STYLES:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     folder=OUT/style
     folder.mkdir(exist_ok=True)
+    if MODE=='render':
+        bpy.ops.import_scene.gltf(filepath=str(folder/(style+'-desktop.glb')))
+        body=next(obj for obj in bpy.context.scene.objects if obj.type=='MESH')
+        render(body,style,folder)
+        continue
     body=add_body(style)
     source=stats(body)
     assert source['triangles']>=300000, source
@@ -188,10 +200,10 @@ for style in ('murim','cacador'):
     path=folder/(style+'-desktop.glb')
     bpy.ops.export_scene.gltf(filepath=str(path),export_format='GLB',use_selection=True,export_materials='EXPORT')
     assert path.stat().st_size<=20000000, path.stat().st_size
-    render(desktop,style,folder)
     result={'style':style,'source':source,'desktop':reduced,'glb_bytes':path.stat().st_size,
             'stage':'procedural anatomical blockout; not artistic sculpt approval, no rig or textures'}
     reports.append(result)
     (folder/'metrics.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     print('AVATAR_V3_ANATOMY',json.dumps(result),flush=True)
-(OUT/'metrics.json').write_text(json.dumps(reports,indent=2),encoding='utf-8')
+if MODE=='generate':
+    (OUT/'metrics.json').write_text(json.dumps(reports,indent=2),encoding='utf-8')

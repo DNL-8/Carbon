@@ -1,0 +1,110 @@
+name: Avatar V3 · CI PC
+on:
+  push:
+    branches: ['feature/avatar-v3-high-poly']
+    paths:
+      - 'frontend/experiments/avatar-v3/**'
+      - '.github/workflows/avatar-v3-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: avatar-v3-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  anatomy:
+    if: github.ref == 'refs/heads/feature/avatar-v3-high-poly'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      matrix:
+        style: [murim, cacador]
+    env:
+      STYLE: ${{ matrix.style }}
+      PIP_CACHE_DIR: ${{ runner.temp }}/avatar-pip
+      npm_config_cache: ${{ runner.temp }}/avatar-npm
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.5
+      - name: Identificar ambiente apt
+        id: apt
+        run: |
+          . /etc/os-release
+          sudo apt-get update
+          echo "key=${VERSION_ID}-$(apt-cache policy blender python3-numpy | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/avatar-debs"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/avatar-debs
+          key: avatar-v3-apt-${{ runner.os }}-${{ runner.arch }}-${{ steps.apt.outputs.key }}-v1
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/avatar-pip
+            ${{ runner.temp }}/avatar-npm
+            ~/.bun/install/cache
+          key: avatar-v3-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/bun.lock', '.github/workflows/avatar-v3-ci.yml') }}
+      - name: Instalar Blender e NumPy
+        run: |
+          sudo cp "$RUNNER_TEMP/avatar-debs/"*.deb /var/cache/apt/archives/ 2>/dev/null || true
+          sudo apt-get -o Binary::apt-get::APT::Keep-Downloaded-Packages=true --download-only install -y blender python3-numpy
+          cp /var/cache/apt/archives/*.deb "$RUNNER_TEMP/avatar-debs/"
+          sudo apt-get install -y blender python3-numpy
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python-expr "import numpy; print('NUMPY_OK', numpy.__version__)"
+      - run: python -m pip install numpy==2.3.5 trimesh==4.11.1
+      - name: Gerar anatomia e GLB sem renderizar
+        run: |
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- "$RUNNER_TEMP/avatar-v3" "$STYLE" generate
+      - name: Validar geometria antes de renderizar
+        run: |
+          dir="$RUNNER_TEMP/avatar-v3/$STYLE"
+          python frontend/experiments/avatar-v3/validate_mesh.py "$dir/$STYLE-desktop.glb" --report "$dir/validation-report.json"
+      - name: Comprimir GLB com Meshoptimizer
+        run: |
+          dir="$RUNNER_TEMP/avatar-v3/$STYLE"
+          npx --yes --package=@gltf-transform/cli@4.5.1 gltf-transform meshopt "$dir/$STYLE-desktop.glb" "$dir/$STYLE-optimized.glb" --level medium
+          python - "$dir" "$STYLE" <<'PY'
+          import json, pathlib, sys, struct
+          d=pathlib.Path(sys.argv[1]); s=sys.argv[2]
+          raw=(d/(s+'-desktop.glb')).stat().st_size
+          data=(d/(s+'-optimized.glb')).read_bytes()
+          n=struct.unpack_from('<I',data,12)[0]
+          doc=json.loads(data[20:20+n])
+          assert 'EXT_meshopt_compression' in doc.get('extensionsUsed',[]) or 'KHR_meshopt_compression' in doc.get('extensionsUsed',[])
+          assert len(data)<=20_000_000 and len(data)<raw,(raw,len(data))
+          (d/'compression-report.json').write_text(json.dumps({'original_bytes':raw,'optimized_bytes':len(data),'reduction_percent':round(100*(1-len(data)/raw),2)},indent=2))
+          PY
+      - name: Renderizar vistas no Blender
+        run: |
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- "$RUNNER_TEMP/avatar-v3" "$STYLE" render
+      - name: Preparar navegador isolado
+        working-directory: frontend
+        run: |
+          bun install --frozen-lockfile
+          bunx playwright install --with-deps chromium
+          mkdir -p "$RUNNER_TEMP/avatar-preview"
+          cp experiments/avatar-v3/preview.html "$RUNNER_TEMP/avatar-preview/"
+          cp "$RUNNER_TEMP/avatar-v3/$STYLE/$STYLE-optimized.glb" "$RUNNER_TEMP/avatar-preview/candidate.glb"
+          ln -s "$PWD/node_modules" "$RUNNER_TEMP/avatar-preview/node_modules"
+      - name: Testar GLB comprimido no PC
+        working-directory: frontend
+        run: |
+          PREVIEW_ROOT="$RUNNER_TEMP/avatar-preview" VALIDATION_REPORT="$RUNNER_TEMP/avatar-v3/$STYLE/validation-report.json" bunx playwright test --config experiments/avatar-v3/playwright.config.ts --output "$RUNNER_TEMP/avatar-v3/$STYLE/browser"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avatar-v3-${{ matrix.style }}-pc
+          path: ${{ runner.temp }}/avatar-v3/${{ matrix.style }}
+          retention-days: 7
+          if-no-files-found: warn

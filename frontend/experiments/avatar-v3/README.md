@@ -1,26 +1,26 @@
-# Avatar V3 — anatomia PC / fase 1
+# Avatar V3 — anatomia PC
 
-Branch experimental `feature/avatar-v3-high-poly`. V2 permanece publicado e intocado. Sem integração, deploy ou release. Blender gratuito no runner descartável. Sem novas dependências do app.
+Laboratório exclusivo da branch feature/avatar-v3-high-poly. Avatar V2 e produção intactos. Sem deploy ou release. Pipeline em avatar-v3-ci.yml substitui avatar-v3-anatomy.yml.
 
-O gerador `anatomy.py` cria duas bases originais de escultura em argila, em A-pose, sem cabelo ou vestimenta final. Murim mais esguio/atlético, Caçador mais robusto. Volumes anatômicos fundidos por voxel remesh e suavizados; inclui tórax, abdômen, costas, braços, pernas, mãos com dedos, base craniana e planos faciais. É blockout procedural, não escultura artística manual premium. Não contém rig, UVs, texturas PBR, expressões, equipamentos ou integração web. A decimação produz um candidato geométrico de PC, não retopologia adequada à animação.
+## Fluxo
+Matrix Murim/Caçador, fail-fast e concurrency; caches de pacotes APT, pip, npm e Bun (instalação APT ainda necessária). Geração procedural Blender, validação independente Trimesh/NumPy, compressão glTF Transform Meshoptimizer, capturas Blender e teste Chromium desktop do GLB comprimido. Artefatos por sete dias; sem binários no Git. Não alterar branch protection. Não adicionar dependências ao aplicativo.
 
 ## Executar localmente
-
-Com Blender instalado, na raiz do repositório:
-
+Blender instalado com exportador GLB e NumPy:
 ```powershell
-blender -b --factory-startup --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- avatar-v3-output
+blender -b --factory-startup --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- avatar-v3-output murim generate
+python -m pip install numpy==2.3.5 trimesh==4.11.1
+python frontend/experiments/avatar-v3/validate_mesh.py avatar-v3-output/murim/murim-desktop.glb --report avatar-v3-output/murim/validation-report.json
+blender -b --factory-startup --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- avatar-v3-output murim render
 ```
 
-A CI gera os .blend, GLBs isolados, capturas frontal/3/4/costas e relatórios JSON. Critérios: escultura com pelo menos 300 mil triângulos, candidato desktop entre 100 e 200 mil, zero arestas não manifold, altura entre 1,75 e 2 m, GLB até 20 MB. Metas iniciais, não resultados medidos. Refinar proporções e topologia após revisão visual. A meta artística de 1–5 milhões de polígonos não é garantida pelo blockout; densidade por si só não comprova qualidade.
+## Orçamentos e limitações
+Escultura inicial >=300 mil triângulos, candidato PC 100–200 mil, GLB <=20 MB. Meta posterior de 1–5 milhões para fonte artística, perfil Alta <=100 mil e futura versão mobile <=50 mil. Não reduzir a versão Ultra para 50 mil. A decimação não equivale a retopologia ou baking. Validação verifica índices, finitude, degeneração, orientação, volume, fechamento e orçamento; não certifica auto-interseções ou qualidade artística. Teste Chromium verifica decodificação, triângulos, altura e capturas, não comparação pixel-a-pixel nem FPS físico. Custo adicional zero é meta, não garantia de cobrança; monitorar armazenamento e cache do GitHub.
 
-## Checklist
+- [x] Pipeline implementado.
+- [ ] CI aprovada, métricas e capturas inspecionadas.
+- [ ] Anatomia artística, retopologia, rig, materiais, expressões e equipamentos.
+- [ ] Drei, pós-processamento, HDRI, texturas WebP/KTX2 quando houver ativos apropriados.
+- [ ] Testes de regressão visual com baselines aprovados e PC físico.
 
-- [x] Gerador de duas bases e pipeline Blender implementados.
-- [ ] CI aprovada e métricas reais verificadas.
-- [ ] Revisão visual das silhuetas, mãos, pés e proporções.
-- [ ] Refinamento anatômico artístico e topologia para rig.
-- [ ] Fase 2: rostos, expressões e cabelos.
-- [ ] Fases posteriores: vestimentas, equipamentos, rig, animações, energia, renderização e homologação PC.
-
-Não executar o preparador V2 na main. Nenhuma alteração de inventário, progresso, API ou banco. A meta de 60 FPS depende de medição em PC real; render offline não mede FPS no navegador.
+Não executar prepare.mjs do V2 na main. Nenhuma alteração de inventário, progresso, API ou banco.
