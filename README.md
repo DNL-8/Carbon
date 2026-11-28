@@ -50,31 +50,39 @@ A implementação atual não depende de Vue, Nuxt, Nitro ou Better Auth.
 
 ## Arquitetura
 
-Como o aplicativo funciona:
+Visão geral para quem possui conhecimentos básicos de informática.
 
 ```mermaid
 flowchart TD
-    U["Você"] --> W["Aplicativo web"]
-    U --> A["Aplicativo Android"]
-    HC["Health Connect"] --> A
-    W --> S["Servidor do Murim"]
-    A --> S
-    S --> D[("Banco de dados")]
-    S <--> G["Google · Login"]
-    S <--> T["Strava · Atividades"]
-    S <--> I["Gemini · Assistente"]
+    U["Usuários"] --> W["Frontend web<br/>Next.js + React"]
+    U --> A["App Android<br/>Kotlin"]
+    HC["Health Connect<br/>Dados de saúde"] --> A
+    W --> P["Proxy da API · Next.js"]
+    A --> P
+    P --> F["Backend · FastAPI / Python<br/>Treinos, saúde e RPG"]
+    F --> D[("Banco de dados<br/>PostgreSQL / Neon")]
+    F <--> G["Google OAuth · Login"]
+    F <--> S["Strava · Atividades"]
+    F <--> I["Gemini · Assistente IA"]
 
-    classDef app fill:#1e3a5f,stroke:#60a5fa,color:#ffffff
+    classDef client fill:#1e3a5f,stroke:#60a5fa,color:#ffffff
+    classDef gateway fill:#422006,stroke:#fb923c,color:#fff7ed
     classDef server fill:#164e3b,stroke:#34d399,color:#ffffff
     classDef storage fill:#312e81,stroke:#a5b4fc,color:#ffffff
-    class W,A app
-    class S server
+    class W,A client
+    class P gateway
+    class F server
     class D storage
 ```
 
-Você acessa o Murim pelo navegador ou pelo Android. O servidor processa treinos, saúde, evolução do personagem e equipamentos. O banco de dados guarda seu progresso e histórico. O Google permite entrar na conta, o Strava importa atividades, o Health Connect sincroniza dados autorizados pelo Android e o Gemini alimenta o assistente Oráculo.
+- **Frontend:** interface que o usuário acessa pelo navegador.
+- **Android:** aplicativo que coleta dados autorizados do Health Connect.
+- **Proxy:** encaminha as solicitações dos aplicativos à API.
+- **Backend:** valida o acesso e processa treinos, saúde, XP, Qi e equipamentos.
+- **Banco de dados:** armazena contas, histórico e progresso.
+- **Integrações:** Google para login, Strava para atividades e Gemini para o assistente Oráculo.
 
-O desenho mostra o funcionamento lógico do aplicativo, sem afirmar que todos os serviços estão publicados ou homologados em produção.
+O diagrama representa a arquitetura lógica do código, não a confirmação de um ambiente de produção homologado.
 
 ## Estrutura do repositório
 
