@@ -17,7 +17,8 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [x] Protótipos articulados com materiais separados e silhuetas distintas.
 - [x] Curvas de ataque distintas no gerador.
 - [ ] Modelagem artística final fiel às referências (Blender ou equivalente).
-- [ ] Rig deformável (skinning), pesos de vértices e articulações naturais.
+- [x] Rig deformável inicial com pesos de vértices validado tecnicamente no Blender.
+- [ ] Refinar naturalidade das articulações, pesos e silhuetas em poses extremas.
 - [ ] Materiais, cabelo, rosto e vestimentas de qualidade final.
 - [ ] Efeitos diferenciados de Qi e Mana e evolução visual por rank/reino.
 
@@ -64,7 +65,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [x] Preparar teste de deformação real no Blender e exportação GLB + arquivo .blend em runner descartável.
 - [x] Gerar e validar ambos os GLB com skin (15 juntas, cinco malhas e 304 vértices com influência mista por personagem; runner 46150966375).
 - [x] Instalar e executar Blender 5.0.1 no runner.
-- [ ] Confirmar importação no Blender, deformação e roundtrip de sockets/clips/skin.
+- [x] Confirmar importação no Blender, deformação e roundtrip de sockets/clips/skin (runner 46151298428).
 - [ ] Revisar a aparência e a orientação dos encaixes após exportação.
 - [ ] Refinar artisticamente as malhas e pesos antes de integrar ao visualizador.
 
@@ -77,6 +78,14 @@ Runner Blender 46150966375: os modelos ponderados passaram na validação estrut
 - [x] Preparar clonagem do esqueleto com SkeletonUtils, evitando compartilhamento de juntas entre avatares.
 - [x] Preparar CI comparativa dos GLB rígidos e dos GLB ponderados originais, com verificação de cinco malhas skinned e ligação dos ossos à própria instância do personagem.
 - [ ] Aprovar os testes de catálogo, conjuntos, câmera e animações nos modelos ponderados.
-- [ ] Homologar separadamente os GLB reexportados pelo Blender após o roundtrip aprovado (não são os mesmos arquivos testados por esta matriz).
+- [x] Configurar terceira variante de CI para executar o Blender e testar seus GLB reexportados no navegador, sem reutilizar os GLB ponderados de entrada.
+- [ ] Confirmar aprovação da variante Blender em desktop e mobile.
 
 As duas variantes são somente experimentais. O pipeline de Blender e a matriz de navegador são independentes; nenhum resultado publica modelos automaticamente em produção.
+
+### Evidência Blender aprovada
+
+[Runner 46151298428](https://github.com/DNL-8/Carbon/actions/runs/46151298428): os dois modelos foram importados no Blender 5.0.1, testados e reexportados. Cada um manteve 15 ossos, cinco malhas deformáveis, quatro sockets e quatro animações; 111 vértices do braço se moveram, incluindo 63 com pesos mistos. Cada GLB reexportado manteve 304 vértices com pesos mistos no total. Os .blend foram salvos. Esta validação é técnica, não artística.
+
+- [x] Preparar capturas de conjuntos equipados de frente, perfil e costas para ambos os personagens.
+- [ ] Revisar as capturas geradas na nova CI e corrigir clipping/encaixes.

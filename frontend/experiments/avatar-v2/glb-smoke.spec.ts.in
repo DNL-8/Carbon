@@ -14,7 +14,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
   for(const style of ['murim','cacador']){
     await character.selectOption(style)
     await expect(canvas).toHaveAttribute('data-glb-character',style)
-    await expect(canvas).toHaveAttribute('data-glb-skins',process.env.AVATAR_LAB_RIG==='skinned'?'5':'0')
+    await expect(canvas).toHaveAttribute('data-glb-skins',['skinned','blender'].includes(process.env.AVATAR_LAB_RIG??'rigid')?'5':'0')
     for(const item of EQUIPMENT_CATALOG){
       await piece.selectOption(item.id)
       await expect(canvas).toHaveAttribute('data-glb-equipment',item.id)
@@ -31,6 +31,19 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       expect(expected.every(Boolean),String(set)).toBe(true)
       await expect(canvas).toHaveAttribute('data-glb-equipment',expected.flatMap(item=>item?[item.id]:[]).sort().join(','))
     }
+    // Capture a real equipped set at three angles. These are visual review
+    // artifacts, not a substitute for artistic or collision inspection.
+    await canvas.screenshot({path:info.outputPath(style+'-conjunto-frente.png')})
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await expect(canvas).toHaveAttribute('data-glb-yaw',String(Math.PI/2))
+    await canvas.screenshot({path:info.outputPath(style+'-conjunto-perfil.png')})
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await expect(canvas).toHaveAttribute('data-glb-yaw',String(Math.PI))
+    await canvas.screenshot({path:info.outputPath(style+'-conjunto-costas.png')})
+    await page.getByRole('button',{name:'Restaurar',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-yaw','0')
     await page.getByLabel('Conjunto completo').uncheck()
     await piece.selectOption('')
     await expect(canvas).toHaveAttribute('data-glb-equipment','')
