@@ -19,7 +19,7 @@ def check(path):
     names=Counter(n.get("name") for n in nodes)
     for slot in ("elmo","armadura","capa","arma"):
         assert names["slot_"+slot]==1,(path,slot,names)
-    for clip in ("idle","attack","victory","rest"):
+    for clip in ("idle","attack","victory","rest","guard","dodge","channel"):
         assert clip in {a["name"] for a in doc["animations"]},(path,clip,[a["name"] for a in doc["animations"]])
     assert len(doc.get("skins",[]))>=1
     skinned=[n for n in nodes if "skin" in n and "mesh" in n]

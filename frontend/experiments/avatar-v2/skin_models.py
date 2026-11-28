@@ -124,15 +124,16 @@ def upgrade(name):
     nodes[names["Mesh_BaseTorso"]].pop("mesh",None)
     # Add bending channels so the new weights are exercised by actual clips.
     for anim in doc["animations"]:
-        if anim["name"] not in ("attack","rest","victory"): continue
+        if anim["name"] not in ("attack","rest","victory","guard","dodge","channel"): continue
         attack=anim["name"]=="attack"
-        times=[0,.25,.60,1] if attack else [0,.5,1.3,2]
-        angles=[0,-.50,-.85,0] if attack else [0,-.22,-.22,0]
+        times={"attack":[0,.25,.60,1],"guard":[0,.35,1.25,1.8],"dodge":[0,.20,.52,.95],"channel":[0,.5,1.25,2,2.5]}.get(anim["name"],[0,.5,1.3,2])
+        angles=[0,-.50,-.85,0] if attack else [0,-.48,-.55,-.48,0] if anim["name"]=="channel" else [0,-.36,-.36,0]
+        def curve(a,b): return [0,a,b,a,0] if len(times)==5 else [0,a,b,0]
         for joint,axis,values in [
             ("Forearm.R",[1,0,0],angles),
-            ("Forearm.L",[1,0,0],[0,-.18,-.30,0] if attack else [0,-.20,-.20,0]),
-            ("Shin.L",[1,0,0],[0,.10,.16,0] if attack else [0,.06,.06,0]),
-            ("Shin.R",[1,0,0],[0,.12,.18,0] if attack else [0,.06,.06,0]),
+            ("Forearm.L",[1,0,0],curve(-.18,-.30) if attack else curve(-.20,-.24)),
+            ("Shin.L",[1,0,0],curve(.10,.16) if attack else curve(.06,.09)),
+            ("Shin.R",[1,0,0],curve(.12,.18) if attack else curve(.06,.09)),
         ]:
             target=names[joint]
             assert not any(c["target"]["node"]==target and c["target"]["path"]=="rotation" for c in anim["channels"])

@@ -10,7 +10,7 @@ import { getEquipmentArt } from '../lib/equipment-art'
 import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
 import type { AvatarGear } from './warrior-avatar'
 
-type Clip = 'idle' | 'attack' | 'victory' | 'rest'
+type Clip = 'idle' | 'attack' | 'victory' | 'rest' | 'guard' | 'dodge' | 'channel'
 type AnimationRequest = { clip: Clip; sequence: number }
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 const slots = ['elmo', 'armadura', 'capa', 'arma'] as const
@@ -134,6 +134,9 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
   },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
   const appearance=preferences[style]
+  const helmet=gear.find(item=>item.equipped&&item.slot==='elmo')
+  const helmetArt=helmet?getEquipmentArt(helmet.id):null
+  const coveredHair=Boolean(helmetArt&&['hood','helm','horn'].includes(helmetArt.family))
   useEffect(()=>{
     const clones=new Map<THREE.Material,THREE.Material>()
     scene.traverse(node=>{
@@ -149,29 +152,60 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
       }
       node.userData.originalMaterial=node.material
       node.material=Array.isArray(node.material)?node.material.map(clone):clone(node.material)
-      if(node.name.startsWith('Mesh_Hair')||node.name.startsWith('Mesh_Fringe')||node.name.startsWith('Mesh_Topknot')||node.name.startsWith('Mesh_Ponytail'))node.visible=appearance.hair!==3
-      if(node.name.startsWith('Mesh_Topknot')||node.name.startsWith('Mesh_Ponytail'))node.visible=appearance.hair===0||appearance.hair===2
+      // Hair and face are evaluated separately, including helmet coverage.
     })
     invalidate()
     return ()=>{scene.traverse(node=>{if(node instanceof THREE.Mesh&&node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}});for(const m of clones.values())m.dispose()}
   },[scene,appearance,style,invalidate])
+  useEffect(()=>{
+    const head=scene.getObjectByName('Head')
+    if(!head)return
+    const changed:{node:THREE.Object3D;scale:THREE.Vector3;visible:boolean}[]=[]
+    const defaultHair=style==='murim'?0:1
+    const hairPattern=/^Mesh_(Hair|Fringe|Topknot|Ponytail)/
+    scene.traverse(node=>{
+      if(!(node instanceof THREE.Mesh))return
+      const isHair=hairPattern.test(node.name)
+      const isFace=/^Mesh_(HeadMesh|Ear|EyeWhite|Iris|EyeGlint|Brow|UpperLid|Nose|Mouth)/.test(node.name)
+      if(!isHair&&!isFace)return
+      changed.push({node,scale:node.scale.clone(),visible:node.visible})
+      if(isHair)node.visible=!coveredHair&&appearance.hair===defaultHair
+      if(isFace)node.scale.x*= [1,.94,1.04][appearance.face]??1
+      if(node.name.startsWith('Mesh_Brow'))node.scale.y*= [1,1.08,.95][appearance.face]??1
+    })
+    const custom=new THREE.Group();custom.name='AvatarCustomHair'
+    if(!coveredHair&&appearance.hair!==3&&appearance.hair!==defaultHair){
+      const material=new THREE.MeshStandardMaterial({color:hairColors[appearance.hairColor],roughness:.85})
+      const add=(size:[number,number,number],pos:[number,number,number])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);m.scale.set(...size);m.position.set(...pos);custom.add(m);return m}
+      // Attach to a rest-space socket rather than the bone axes, which Blender may reorient.
+      const anchor=scene.getObjectByName('slot_elmo')
+      if(anchor){
+        add([.108,.078,.105],[0,.035,-.018]);
+        if(appearance.hair===0){add([.050,.053,.049],[0,.115,-.055]);add([.030,.13,.032],[0,-.025,-.125])}
+        if(appearance.hair===1){for(let i=-2;i<=2;i++){const tuft=add([.037,.047,.042],[i*.038,.066,-.010]);tuft.rotation.z=-i*.18}}
+        if(appearance.hair===2){for(const side of [-1,1]){const lock=add([.035,.156,.047],[side*.088,-.080,-.058]);lock.rotation.z=side*.13}add([.083,.19,.039],[0,-.105,-.109])}
+        anchor.add(custom)
+      }else material.dispose()
+    }
+    gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
+    gl.domElement.dataset.glbHairCovered=String(coveredHair)
+    invalidate()
+    return ()=>{custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
+  },[scene,appearance,style,coveredHair,gl,invalidate])
   useEffect(()=>{
     const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
     const ids: string[] = []
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
-      const originals=socket.children.map(node=>({node,visible:node.visible}))
+      const originals=socket.children.filter(node=>node.name!=='AvatarCustomHair').map(node=>({node,visible:node.visible}))
       for(const entry of originals)entry.node.visible=false
       const selected=gear.find(item=>item.equipped&&item.slot===slot)
       const art=selected?getEquipmentArt(selected.id):null
       const group=art?makeAttachment(art,slot):new THREE.Group()
       if(slot==='elmo'&&art){
         group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
-        if(['hood','helm','horn'].includes(art.family)){
-          const head=scene.getObjectByName('Head')
-          if(head)for(const child of head.children)if(/^Mesh_(Hair|Fringe|Topknot|Ponytail)/.test(child.name)){ originals.push({node:child,visible:child.visible});child.visible=false }
-        }
+        // Hair coverage is handled by the appearance effect.
       }
       if(selected&&art&&group.children.length>0)ids.push(selected.id)
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
@@ -250,14 +284,14 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
     <p role="status">{loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
     <div className="row" style={{flexWrap:'wrap',gap:8}}>
       <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental">
-        <Button aria-label="Girar GLB à esquerda" onClick={()=>setYaw(v=>v-Math.PI/4)}>↶</Button>
-        <Button aria-label="Girar GLB à direita" onClick={()=>setYaw(v=>v+Math.PI/4)}>↷</Button>
+        <Button aria-label="Girar GLB à esquerda" onClick={()=>setYaw(v=>v-Math.PI/4)}>Esquerda</Button>
+        <Button aria-label="Girar GLB à direita" onClick={()=>setYaw(v=>v+Math.PI/4)}>Direita</Button>
         <Button onClick={()=>{setYaw(0);setZoom(false)}}>Restaurar</Button>
       </ButtonGroup>
       <Button size="small" variant="outlined" aria-pressed={zoom} onClick={()=>setZoom(v=>!v)}>{zoom?'Corpo inteiro':'Rosto'}</Button>
       <Button size="small" variant="outlined" aria-pressed={hideHelmet} onClick={()=>setHideHelmet(v=>!v)}>{hideHelmet?'Exibir elmo':'Ocultar elmo'}</Button>
       <Button size="small" variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Animar':'Pausar'}</Button>
-      {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
+      {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso'],['guard','Defesa'],['dodge','Esquiva'],['channel',style==='murim'?'Canalizar Qi':'Canalizar mana']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
     </div>
   </section>
 }

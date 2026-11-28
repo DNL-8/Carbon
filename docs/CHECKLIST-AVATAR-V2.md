@@ -79,7 +79,7 @@ Runner Blender 46150966375: os modelos ponderados passaram na validação estrut
 - [x] Preparar CI comparativa dos GLB rígidos e dos GLB ponderados originais, com verificação de cinco malhas skinned e ligação dos ossos à própria instância do personagem.
 - [x] Aprovar os testes de catálogo, conjuntos, câmera e animações nos modelos ponderados (CI 46151382324, variantes rígida e skinned).
 - [x] Configurar terceira variante de CI para executar o Blender e testar seus GLB reexportados no navegador, sem reutilizar os GLB ponderados de entrada.
-- [ ] Confirmar aprovação da variante Blender em desktop e mobile.
+- [x] Confirmar aprovação da variante Blender em desktop e mobile (CI 46151600841; três variantes aprovadas antes da revisão artística).
 
 As duas variantes são somente experimentais. O pipeline de Blender e a matriz de navegador são independentes; nenhum resultado publica modelos automaticamente em produção.
 
@@ -102,3 +102,14 @@ Inspeção direta das quatro capturas de navegador da variante skinned (artefato
 - [x] Implementar revisão de geometria da vestimenta base e elmos.
 - [ ] Validar nova versão em todas as variantes e revisar capturas sem equipamento e com conjuntos completos.
 - [ ] Refinar rosto, cabelo, tecidos, materiais e poses até atingir a referência artística. O modelo continua procedural e low-poly.
+
+## 9. Personalização e movimentos avançados
+
+- [x] Refinar malha do rosto, olhos, sobrancelhas e nariz do gerador.
+- [x] Implementar quatro penteados em ambos os estilos, três proporções de rosto, cores de pele/cabelo/energia e ocultação de cabelo por elmos. As variantes extras de cabelo são construídas no Three.js; os .blend incluem o cabelo base.
+- [x] Implementar sete clips (idle, attack, victory, rest, guard, dodge, channel), incluindo defesa, esquiva e canalização de Qi/mana com curvas específicas.
+- [x] Incluir testes de seleção de aparência e execução dos novos clips nos dois personagens.
+- [ ] Confirmar CI desta revisão e capturas finais; os novos clips e personalização ainda não foram homologados.
+- [ ] Revisão artística manual, clipping de combinações extremas, desempenho em hardware físico e integração autenticada na main.
+
+A CI do Blender 46151721448 aprovou a revisão das vestimentas. Os testes das três variantes no commit ce580fb passaram (46151600841). As novas formas ainda são modelos low-poly procedurais, não escultura artística final. As opções não concedem bônus nem alteram o inventário.

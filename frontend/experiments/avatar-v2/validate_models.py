@@ -10,7 +10,7 @@ for name in ("murim", "cacador"):
     assert bt == b"BIN\0" and 28+n+bn == len(b)
     nodes = {node["name"] for node in data["nodes"]}
     assert {"slot_elmo","slot_armadura","slot_capa","slot_arma"} <= nodes
-    assert {"idle","attack","victory","rest"} == {anim["name"] for anim in data["animations"]}
+    assert {"idle","attack","victory","rest","guard","dodge","channel"} == {anim["name"] for anim in data["animations"]}
     assert not data.get("skins")
     for view in data["bufferViews"]:
         assert view.get("byteOffset",0)+view["byteLength"] <= bn
