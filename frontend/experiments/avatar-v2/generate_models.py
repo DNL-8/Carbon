@@ -214,18 +214,20 @@ def build(martial):
         # Outer ear with a shallow folded rim; remains within the existing helmet envelope.
         P('Ear',head,ell((s*.101,.115,-.005),(.017,.035,.023),2),skin)
         P('EarRim',head,curved_trim([(s*.105,.084,.006),(s*.113,.105,.009),(s*.113,.131,.008),(s*.104,.143,.003)],.0035),skin)
-        P('EyeWhite',head,ell((s*.043,.132,.091),(.029,.009,.012),2),white)
-        P('Iris',head,ell((s*.043,.132,.102),(.010,.009,.004),2),iris)
-        P('EyeGlint',head,ell((s*.043-.003,.135,.106),(.0028,.0028,.0014),1),white)
-        P('UpperLid',head,curved_trim([(s*.017,.132,.100),(s*.031,.140,.105),(s*.049,.142,.105),(s*.070,.135,.096)],.0022),hair)
+        P('EyeWhite',head,ell((s*.043,.132,.091),(.027,.0085,.011),2),white)
+        P('Iris',head,ell((s*.043,.132,.101),(.009,.008,.0035),2),iris)
+        P('EyeGlint',head,ell((s*.043-.0025,.135,.1045),(.0018,.0018,.0011),1),white)
+        P('UpperLid',head,curved_trim([(s*.018,.132,.099),(s*.031,.139,.104),(s*.049,.140,.104),(s*.069,.134,.096)],.0016),hair)
         P('Brow',head,curved_trim([(s*.019,.153,.099),(s*.042,.159 if martial else .155,.102),(s*.072,.160,.089)],.0038),hair)
-        P('LowerLid',head,curved_trim([(s*.019,.126,.099),(s*.044,.123,.104),(s*.069,.128,.096)],.0017),hair)
+        P('LowerLid',head,curved_trim([(s*.019,.127,.098),(s*.044,.124,.102),(s*.069,.128,.095)],.0011),skin)
     # A tapered bridge connects the brow to the rounded nasal tip, instead of a detached sphere.
     P('Nose',head,loft([(.083,.006,.004,.097),(.090,.015,.010,.104),(.101,.013,.016,.106),(.114,.009,.012,.103),(.132,.007,.008,.099),(.151,.004,.004,.096)],16),skin)
     for s in (-1,1):
         P('NoseWing',head,ell((s*.009,.092,.105),(.007,.006,.007),1),skin)
         P('NoseCrease',head,ell((s*.009,.088,.110),(.003,.0016,.0012),1),iris)
-    P('Mouth',head,curved_trim([(-.023,.065,.090),(-.011,.062,.100),(0,.061,.104),(.011,.062,.100),(.023,.065,.090)],.0022),iris)
+    # Subtle neutral lip line, with a shallow lower lip instead of a painted smile.
+    P('Mouth',head,curved_trim([(-.021,.063,.091),(-.010,.063,.099),(0,.062,.103),(.010,.063,.099),(.021,.063,.091)],.0015),iris)
+    P('MouthLower',head,ell((0,.057,.098),(.014,.003,.005),1),skin)
     P('HairCap',head,loft([(.15,.108,.099,-.018),(.181,.112,.103,-.018),(.21,.112,.102,-.018),(.237,.101,.089,-.019),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],24),hair)
     for i in range(7):
         x=(i-3)*.026

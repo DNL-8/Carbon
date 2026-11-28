@@ -89,3 +89,8 @@ Baseline Blender da CI 46167504468 (commit fa54aee): 4 relatórios, 28 janelas d
 ### Cobertura temporal das animações
 
 CI 46168792940 aprovada integralmente (b0d1ce7). Relatórios Blender em desktop/mobile: Murim 96 draw calls (antes 124), Caçador 98 (antes 126); triângulos inalterados, 14.496 e 14.120; 28 poses sem amostras internas aos volumes aproximados. Nesta revisão, dividir cada clip em dez intervalos temporais e registrar uma amostra por intervalo, mantendo as janelas FPS separadas. Exigir todos os dez intervalos por clip/personagem/viewport e persistir os relatórios de trajetória; não declarar colisões eliminadas com base em volumes aproximados. Cobertura prevista: 280 amostras por variante, de um conjunto completo por personagem. Sem alterar main ou deploy.
+
+
+### Acabamento facial e cabelos alternativos
+
+Revisão das capturas Blender da CI 46169985364: personagens ainda estilizados, olhos excessivamente contornados e cabelo alternativo com volumes esféricos. Ajustados tamanho dos olhos e brilhos, espessura das pálpebras, linha neutra da boca e lábio inferior discreto. Os cabelos curtos/longos alternativos passam a usar mechas curvas afiladas de baixa resolução; mantêm a cobertura por elmos. Nenhuma textura extra, nenhum novo pacote. Validar orçamento original, aparência e contagem de mechas nas próximas capturas. Não se trata de modelos fotorrealistas nem de validação visual de vídeo contínuo. Sem deploy.

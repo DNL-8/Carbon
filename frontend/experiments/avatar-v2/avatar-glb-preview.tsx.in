@@ -317,19 +317,38 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     if(!coveredHair&&appearance.hair!==3&&appearance.hair!==defaultHair){
       const material=new THREE.MeshStandardMaterial({color:hairColors[appearance.hairColor],roughness:.85})
       const add=(size:[number,number,number],pos:[number,number,number])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);m.scale.set(...size);m.position.set(...pos);custom.add(m);return m}
+      // Tapered swept locks keep the alternate hairstyles from looking like separate balls.
+      const lock=(points:THREE.Vector3[],radius:number)=>{
+        const curve=new THREE.CatmullRomCurve3(points)
+        const geometry=new THREE.TubeGeometry(curve,8,radius,6,false)
+        const position=geometry.getAttribute('position')
+        for(let row=0;row<=8;row++){
+          const u=row/8,center=curve.getPointAt(u),factor=1-.83*Math.pow(u,2)
+          for(let col=0;col<=6;col++){
+            const i=row*7+col
+            position.setXYZ(i,center.x+(position.getX(i)-center.x)*factor,center.y+(position.getY(i)-center.y)*factor,center.z+(position.getZ(i)-center.z)*factor)
+          }
+        }
+        geometry.computeVertexNormals()
+        const mesh=new THREE.Mesh(geometry,material);mesh.name='CarbonHairLock';custom.add(mesh)
+      }
       // Attach to a rest-space socket rather than the bone axes, which Blender may reorient.
       const anchor=scene.getObjectByName('slot_elmo')
       if(anchor){
         add([.108,.078,.105],[0,.035,-.018]);
         if(appearance.hair===0){add([.050,.053,.049],[0,.115,-.055]);add([.030,.13,.032],[0,-.025,-.125])}
-        if(appearance.hair===1){for(let i=-2;i<=2;i++){const tuft=add([.037,.047,.042],[i*.038,.066,-.010]);tuft.rotation.z=-i*.18}}
-        if(appearance.hair===2){for(const side of [-1,1]){const lock=add([.035,.156,.047],[side*.088,-.080,-.058]);lock.rotation.z=side*.13}add([.083,.19,.039],[0,-.105,-.109])}
+        if(appearance.hair===1){for(let i=-2;i<=2;i++)lock([new THREE.Vector3(i*.033,.040,.020),new THREE.Vector3(i*.036,.098,-.015),new THREE.Vector3(i*.030+.012,.065,-.065)],.031)}
+        if(appearance.hair===2){
+          for(const side of [-1,1])for(let j=0;j<3;j++)lock([new THREE.Vector3(side*(.07+j*.012),.055,-.032),new THREE.Vector3(side*(.093+j*.008),-.055,-.065),new THREE.Vector3(side*(.075+j*.012),-.21+j*.018,-.09)],.026)
+          add([.083,.17,.039],[0,-.087,-.109])
+        }
         anchor.add(custom)
       }else material.dispose()
     }
     hairMotion.current=changed.filter(entry=>/^Mesh_(Ponytail|HairLockTail)/.test(entry.node.name)).map(entry=>({node:entry.node,rotation:entry.node.quaternion.clone()}))
     gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
     gl.domElement.dataset.glbHairCovered=String(coveredHair)
+    gl.domElement.dataset.glbCustomHairLocks=String(custom.children.filter(node=>node.name==='CarbonHairLock').length)
     invalidate()
     return ()=>{for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}faceMotion.current=[];for(const entry of hairMotion.current)entry.node.quaternion.copy(entry.rotation);hairMotion.current=[];custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
   },[scene,appearance,style,coveredHair,gl,invalidate])
