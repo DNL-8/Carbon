@@ -1,4 +1,4 @@
-"""Armory reads and atomic purchase/equip operations."""
+"""Armory reads and atomic acquisition/equip operations."""
 import json
 from typing import Annotated, Literal
 
@@ -119,8 +119,12 @@ def mutate_arsenal(db: Connection, user: str, body: ArmoryAction) -> dict:
     if body.action == "buy":
         if item["owned"]:
             return {"id": body.id}
-        if not item["unlock"]["met"] or totals["coins"] < item["priceCoins"]:
-            raise HTTPException(409, "Requisitos ou moedas insuficientes")
+        if not item["unlock"]["met"]:
+            raise HTTPException(409, "Requisitos de equipamento insuficientes")
+        # The existing acquisition operation serves purchases and milestone rewards.
+        # Mode and price are authoritative catalog values, never supplied by the client.
+        if item["acquisition"] == "purchase" and totals["coins"] < item["priceCoins"]:
+            raise HTTPException(409, "Moedas insuficientes")
         gear["owned"] = [*gear["owned"], body.id]
     else:
         if not item["owned"]:
@@ -131,7 +135,7 @@ def mutate_arsenal(db: Connection, user: str, body: ArmoryAction) -> dict:
         VALUES (:uid, CAST(:owned AS jsonb), CAST(:equipped AS jsonb))
         ON CONFLICT (user_id) DO UPDATE SET owned = EXCLUDED.owned, equipped = EXCLUDED.equipped
     """), {"uid": user, "owned": json.dumps(gear["owned"]), "equipped": json.dumps(gear["equipped"])})
-    if body.action == "buy":
+    if body.action == "buy" and item["acquisition"] == "purchase":
         coins = totals["coins"] - item["priceCoins"]
         db.execute(text("UPDATE fitness_progress SET coins = :coins WHERE user_id = :uid"),
                    {"uid": user, "coins": coins})

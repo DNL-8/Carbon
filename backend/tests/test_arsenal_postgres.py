@@ -59,6 +59,21 @@ def test_purchase_idempotence_and_isolation():
             mutate_arsenal(db, "a", ArmoryAction(id=ident, action="equip"))
             assert read_gear(db, "a")["equipped"][item["slot"]] == ident
             assert ident not in read_gear(db, "b")["owned"]
+            reward = next(row for row in gear["items"] if row["acquisition"] == "reward"
+                          and row["requirement"] == {"tipo": "rank_cacador", "valor": 7})
+            claim = ArmoryAction(id=reward["id"], action="buy")
+            with pytest.raises(HTTPException) as exc:
+                mutate_arsenal(db, "b", claim)
+            assert exc.value.status_code == 409
+            balance = read_totals(db, "a")["coins"]
+            equipped_before = read_gear(db, "a")["equipped"]
+            assert mutate_arsenal(db, "a", claim) == {"id": reward["id"]}
+            assert mutate_arsenal(db, "a", claim) == {"id": reward["id"]}
+            assert read_gear(db, "a")["owned"].count(reward["id"]) == 1
+            assert read_gear(db, "a")["equipped"] == equipped_before
+            assert read_totals(db, "a")["coins"] == balance
+            assert reward["id"] not in read_gear(db, "b")["owned"]
+            assert db.execute(text("SELECT count(*) FROM fitness_progress_ledger")).scalar_one() == 1
             uid = "d99676b3-0000-4000-8000-000000000001"
             saved = mutate_loadout(db, "a", SaveLoadout(action="save", id=uid, name="  Build  "))
             assert saved[0]["name"] == "Build"

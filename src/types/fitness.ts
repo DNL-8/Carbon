@@ -193,6 +193,7 @@ export interface EquipmentItem {
   auraMultiplier: number;
   iconName: EquipmentIconName;
   priceCoins: number;
+  acquisition: 'starter' | 'reward' | 'purchase';
   requirement: EquipmentRequirement;
   unlockRequirementLabel: string;
   description: string;

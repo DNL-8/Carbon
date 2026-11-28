@@ -31,6 +31,7 @@ const slot = z.enum(['elmo', 'armadura', 'capa', 'arma'])
 
 export const itemsResult = z.array(z.object({
   id: z.string(), name: z.string(), description: z.string(), slot, rarity: z.string(), priceCoins: z.number(),
+  acquisition: z.enum(['starter', 'reward', 'purchase']).default('purchase'),
   powerBonusLabel: z.string(), setId: z.string().nullish(), owned: z.boolean(), equipped: z.boolean(),
   unlock: z.object({ met: z.boolean(), progressText: z.string() }),
 }))

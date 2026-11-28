@@ -222,7 +222,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 2,
-    "setId": "viajante"
+    "setId": "viajante",
+    "acquisition": "starter"
   },
   {
     "id": "elmo_faixa_taiyuan",
@@ -232,12 +233,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Wind",
-    "priceCoins": 15,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 1
     },
-    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 15 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · Recompensa de marco",
     "description": "Faixa tradicional dos discípulos de Taiyuan para disciplinar a respiração.",
     "accentHex": "#475569",
     "secondaryHex": "#94A3B8",
@@ -246,7 +247,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "reward"
   },
   {
     "id": "elmo_visor_rank_f",
@@ -256,12 +258,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Eye",
-    "priceCoins": 30,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 1
     },
-    "unlockRequirementLabel": "Caçador Rank F · 30 Moedas",
+    "unlockRequirementLabel": "Caçador Rank F · Recompensa de marco",
     "description": "Visor padrão emitido pela Associação para leitura básica de portões.",
     "accentHex": "#334155",
     "secondaryHex": "#60A5FA",
@@ -270,7 +272,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "reward"
   },
   {
     "id": "elmo_bandana_novico",
@@ -280,12 +283,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Flame",
-    "priceCoins": 35,
+    "priceCoins": 25,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 1
     },
-    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 35 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 25 Moedas",
     "description": "Tecido amarrado na testa dos praticantes iniciantes de 3ª Classe para conter o suor.",
     "accentHex": "#64748B",
     "secondaryHex": "#38BDF8",
@@ -294,7 +297,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 4,
     "powerScore": 8,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_mercador_vidente",
@@ -304,12 +308,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Eye",
-    "priceCoins": 120,
+    "priceCoins": 90,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 2
     },
-    "unlockRequirementLabel": "Caçador Rank E · 120 Moedas",
+    "unlockRequirementLabel": "Caçador Rank E · 90 Moedas",
     "description": "Lente encantada para enxergar tesouros ocultos ao final de cada incursão.",
     "accentHex": "#2563EB",
     "secondaryHex": "#EAB308",
@@ -318,7 +322,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_tiara_qi_basico",
@@ -328,12 +333,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Flame",
-    "priceCoins": 140,
+    "priceCoins": 90,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 2
     },
-    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · 140 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · 90 Moedas",
     "description": "Tiara metálica de 2ª Classe que estabiliza o fluxo de Qi durante golpes.",
     "accentHex": "#EA580C",
     "secondaryHex": "#FDBA74",
@@ -342,7 +347,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_capacete_rank_d",
@@ -352,12 +358,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Shield",
-    "priceCoins": 175,
+    "priceCoins": 160,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 3
     },
-    "unlockRequirementLabel": "Caçador Rank D · 175 Moedas",
+    "unlockRequirementLabel": "Caçador Rank D · 160 Moedas",
     "description": "Proteção reforçada usada por líderes de esquadrões Rank D em fendas.",
     "accentHex": "#1D4ED8",
     "secondaryHex": "#93C5FD",
@@ -366,7 +372,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 8,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_sabio_abissal",
@@ -376,12 +383,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Sparkles",
-    "priceCoins": 350,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 5
     },
-    "unlockRequirementLabel": "Caçador Rank B · 350 Moedas",
+    "unlockRequirementLabel": "Caçador Rank B · Recompensa de marco",
     "description": "Diadema rúnica dos Caçadores Rank B que converte foco em ganho acelerado de XP.",
     "accentHex": "#7E22CE",
     "secondaryHex": "#38BDF8",
@@ -390,7 +397,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "reward"
   },
   {
     "id": "elmo_presa_carmesim",
@@ -400,12 +408,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Flame",
-    "priceCoins": 400,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 4
     },
-    "unlockRequirementLabel": "Pico (4.100 Qi) · 400 Moedas",
+    "unlockRequirementLabel": "Pico (4.100 Qi) · Recompensa de marco",
     "description": "Elmo feroz com chifres flamejantes forjado para especialistas no reino Pico.",
     "accentHex": "#DC2626",
     "secondaryHex": "#FCA5A5",
@@ -414,7 +422,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 10,
     "powerScore": 24,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "reward"
   },
   {
     "id": "elmo_mascara_pico",
@@ -424,12 +433,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Flame",
-    "priceCoins": 440,
+    "priceCoins": 260,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 4
     },
-    "unlockRequirementLabel": "Pico (4.100 Qi) · 440 Moedas",
+    "unlockRequirementLabel": "Pico (4.100 Qi) · 260 Moedas",
     "description": "Máscara ritual de mestres no reino Pico que amplifica o Qi da Espada.",
     "accentHex": "#C2410C",
     "secondaryHex": "#FB923C",
@@ -438,7 +447,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 10,
     "powerScore": 24,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_monarca",
@@ -448,12 +458,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Crown",
-    "priceCoins": 950,
+    "priceCoins": 850,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 7
     },
-    "unlockRequirementLabel": "Caçador Rank S · 950 Moedas",
+    "unlockRequirementLabel": "Caçador Rank S · 850 Moedas",
     "description": "Coroa suprema da eternidade concedida aos guerreiros do Rank S.",
     "accentHex": "#F59E0B",
     "secondaryHex": "#F97316",
@@ -462,7 +472,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 16,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_coroa_rei_fogo",
@@ -472,12 +483,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Flame",
-    "priceCoins": 980,
+    "priceCoins": 600,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 6
     },
-    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · 980 Moedas",
+    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · 600 Moedas",
     "description": "Relíquia do Reino Sem Restrições inspirada no mestre Jeok Cheon-gang.",
     "accentHex": "#EA580C",
     "secondaryHex": "#FDE047",
@@ -486,7 +497,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 14,
     "powerScore": 34,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_diadema_vida_morte",
@@ -496,12 +508,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Sparkles",
-    "priceCoins": 1180,
+    "priceCoins": 850,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 7
     },
-    "unlockRequirementLabel": "Reino Profundo (8.900 Qi) · 1.180 Moedas",
+    "unlockRequirementLabel": "Reino Profundo (8.900 Qi) · 850 Moedas",
     "description": "Coroa etérea de um mestre do Reino Profundo, onde mente e Qi são um só.",
     "accentHex": "#06B6D4",
     "secondaryHex": "#E0F2FE",
@@ -510,7 +522,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 1,
     "powerScore": 38,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_tunica_couro",
@@ -534,7 +547,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "viajante"
+    "setId": "viajante",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_dobok_jin",
@@ -544,12 +558,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Shield",
-    "priceCoins": 40,
+    "priceCoins": 25,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 1
     },
-    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 40 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 25 Moedas",
     "description": "Uniforme clássico da família Jin para artistas marciais iniciantes de 3ª Classe.",
     "accentHex": "#475569",
     "secondaryHex": "#CBD5E1",
@@ -558,7 +572,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_colete_rank_e",
@@ -568,12 +583,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "ShieldCheck",
-    "priceCoins": 55,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 2
     },
-    "unlockRequirementLabel": "Caçador Rank E · 55 Moedas",
+    "unlockRequirementLabel": "Caçador Rank E · Recompensa de marco",
     "description": "Colete reforçado distribuído a Caçadores que superaram o Rank F.",
     "accentHex": "#1E40AF",
     "secondaryHex": "#93C5FD",
@@ -582,7 +597,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "reward"
   },
   {
     "id": "armadura_placa_aco",
@@ -592,12 +608,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Shield",
-    "priceCoins": 150,
+    "priceCoins": 160,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 3
     },
-    "unlockRequirementLabel": "Caçador Rank D · 150 Moedas",
+    "unlockRequirementLabel": "Caçador Rank D · 160 Moedas",
     "description": "Couraça temperada usada por vanguardas de incursão a partir do Rank D.",
     "accentHex": "#3B82F6",
     "secondaryHex": "#CBD5E1",
@@ -606,7 +622,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 8,
     "powerScore": 18,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_traje_2_classe",
@@ -616,12 +633,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Flame",
-    "priceCoins": 165,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 2
     },
-    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · 165 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · Recompensa de marco",
     "description": "Veste bordada da Chama do Sul tecida para resistir ao calor do Qi interno.",
     "accentHex": "#C2410C",
     "secondaryHex": "#FDBA74",
@@ -630,7 +647,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "reward"
   },
   {
     "id": "armadura_guarda_taiyuan",
@@ -640,12 +658,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "ShieldCheck",
-    "priceCoins": 190,
+    "priceCoins": 160,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 3
     },
-    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · 190 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · 160 Moedas",
     "description": "Armadura da escolta de elite de Taiyuan para mestres de 1ª Classe.",
     "accentHex": "#334155",
     "secondaryHex": "#E2E8F0",
@@ -654,7 +672,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 0,
     "powerScore": 18,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_liga_cacador_c",
@@ -664,12 +683,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "ShieldAlert",
-    "priceCoins": 210,
+    "priceCoins": 260,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 4
     },
-    "unlockRequirementLabel": "Caçador Rank C · 210 Moedas",
+    "unlockRequirementLabel": "Caçador Rank C · 260 Moedas",
     "description": "Liga metálica derivada de minério de masmorra para veteranos Rank C.",
     "accentHex": "#2563EB",
     "secondaryHex": "#60A5FA",
@@ -678,7 +697,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 10,
     "bossDamageBonusPercent": 1,
     "powerScore": 24,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_couraca_rubra",
@@ -688,12 +708,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "ShieldAlert",
-    "priceCoins": 420,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 5
     },
-    "unlockRequirementLabel": "Caçador Rank B · 420 Moedas",
+    "unlockRequirementLabel": "Caçador Rank B · 400 Moedas",
     "description": "Armadura escarlate de elite Rank B que transforma esforço em dano em chefes.",
     "accentHex": "#BE123C",
     "secondaryHex": "#FB7185",
@@ -702,7 +722,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 12,
     "powerScore": 28,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_manto_alquimista",
@@ -712,12 +733,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Coins",
-    "priceCoins": 380,
+    "priceCoins": 260,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 4
     },
-    "unlockRequirementLabel": "Pico (4.100 Qi) · 380 Moedas",
+    "unlockRequirementLabel": "Pico (4.100 Qi) · 260 Moedas",
     "description": "Traje bordado a ouro de guildas do Pico que multiplica recompensas de treino.",
     "accentHex": "#A855F7",
     "secondaryHex": "#EAB308",
@@ -726,7 +747,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 10,
     "bossDamageBonusPercent": 1,
     "powerScore": 24,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_manto_pico_supremo",
@@ -736,12 +758,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Sparkles",
-    "priceCoins": 520,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 5
     },
-    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · 520 Moedas",
+    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · 400 Moedas",
     "description": "Veste dos líderes de seita no Pico Supremo, imbuída com Força da Arma.",
     "accentHex": "#0891B2",
     "secondaryHex": "#67E8F9",
@@ -750,7 +772,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_monarca",
@@ -760,12 +783,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "ShieldCheck",
-    "priceCoins": 1100,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 6
     },
-    "unlockRequirementLabel": "Caçador Rank A · 1.100 Moedas",
+    "unlockRequirementLabel": "Caçador Rank A · Recompensa de marco",
     "description": "Couraça abissal digna de um Caçador Rank A de poder incomparável.",
     "accentHex": "#EA580C",
     "secondaryHex": "#FBBF24",
@@ -774,7 +797,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 14,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "reward"
   },
   {
     "id": "armadura_dragao_rank_s",
@@ -784,12 +808,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "ShieldCheck",
-    "priceCoins": 1120,
+    "priceCoins": 850,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 7
     },
-    "unlockRequirementLabel": "Caçador Rank S · 1.120 Moedas",
+    "unlockRequirementLabel": "Caçador Rank S · 850 Moedas",
     "description": "Conjunto blindado exclusivo dos Caçadores Rank S de poder nacional.",
     "accentHex": "#1D4ED8",
     "secondaryHex": "#FDE047",
@@ -798,7 +822,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 16,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_celestial_vida_morte",
@@ -808,12 +833,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Crown",
-    "priceCoins": 1240,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 7
     },
-    "unlockRequirementLabel": "Reino Profundo (8.900 Qi) · 1.240 Moedas",
+    "unlockRequirementLabel": "Reino Profundo (8.900 Qi) · Recompensa de marco",
     "description": "Traje lendário tecido com fios de Qi puro para mestres além das restrições.",
     "accentHex": "#0E7490",
     "secondaryHex": "#A5F3FC",
@@ -822,7 +847,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 1,
     "powerScore": 38,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "reward"
   },
   {
     "id": "capa_pano_simples",
@@ -832,12 +858,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Wind",
-    "priceCoins": 20,
+    "priceCoins": 25,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 1
     },
-    "unlockRequirementLabel": "Caçador Rank F · 20 Moedas",
+    "unlockRequirementLabel": "Caçador Rank F · 25 Moedas",
     "description": "Manto simples de tecido leve usado por Caçadores Rank F em sua primeira fenda.",
     "accentHex": "#6B7280",
     "secondaryHex": "#D1D5DB",
@@ -846,7 +872,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "viajante"
+    "setId": "viajante",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_manto_taiyuan",
@@ -856,12 +883,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Wind",
-    "priceCoins": 35,
+    "priceCoins": 25,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 1
     },
-    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 35 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 25 Moedas",
     "description": "Capa leve usada pelos iniciantes de 3ª Classe nos pátios da família Jin.",
     "accentHex": "#475569",
     "secondaryHex": "#CBD5E1",
@@ -870,7 +897,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_sobretudo_cacador",
@@ -880,12 +908,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Feather",
-    "priceCoins": 50,
+    "priceCoins": 90,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 2
     },
-    "unlockRequirementLabel": "Caçador Rank E · 50 Moedas",
+    "unlockRequirementLabel": "Caçador Rank E · 90 Moedas",
     "description": "Casaco tático impermeável para incursões em portões instáveis.",
     "accentHex": "#1E3A8A",
     "secondaryHex": "#93C5FD",
@@ -894,7 +922,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_sabio_astral",
@@ -918,7 +947,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 0,
     "powerScore": 18,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_estandarte_rank_d",
@@ -928,12 +958,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Shield",
-    "priceCoins": 170,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 3
     },
-    "unlockRequirementLabel": "Caçador Rank D · 170 Moedas",
+    "unlockRequirementLabel": "Caçador Rank D · Recompensa de marco",
     "description": "Capa com insígnia oficial de resposta rápida da Associação de Caçadores.",
     "accentHex": "#2563EB",
     "secondaryHex": "#DBEAFE",
@@ -942,7 +972,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 8,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "reward"
   },
   {
     "id": "capa_flama_iniciante",
@@ -952,12 +983,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Flame",
-    "priceCoins": 195,
+    "priceCoins": 160,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 3
     },
-    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · 195 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · 160 Moedas",
     "description": "Capa escarlate de 1ª Classe aquecida pelo fluxo constante de Qi.",
     "accentHex": "#DC2626",
     "secondaryHex": "#FDBA74",
@@ -966,7 +997,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 8,
     "powerScore": 18,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_mercador_sombrio",
@@ -976,12 +1008,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Gem",
-    "priceCoins": 360,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 5
     },
-    "unlockRequirementLabel": "Caçador Rank B · 360 Moedas",
+    "unlockRequirementLabel": "Caçador Rank B · 400 Moedas",
     "description": "Manto nobre de Caçador Rank B com forro dourado de alta recompensa.",
     "accentHex": "#9333EA",
     "secondaryHex": "#FACC15",
@@ -990,7 +1022,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 12,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_asa_carmesim",
@@ -1000,12 +1033,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Feather",
-    "priceCoins": 410,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 5
     },
-    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · 410 Moedas",
+    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · Recompensa de marco",
     "description": "Asas escarlates de mestres do Pico Supremo que intensificam golpes em chefes.",
     "accentHex": "#B91C1C",
     "secondaryHex": "#F87171",
@@ -1014,7 +1047,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 12,
     "powerScore": 28,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "reward"
   },
   {
     "id": "capa_elite_rank_b",
@@ -1024,12 +1058,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Wind",
-    "priceCoins": 430,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 5
     },
-    "unlockRequirementLabel": "Caçador Rank B · 430 Moedas",
+    "unlockRequirementLabel": "Caçador Rank B · 400 Moedas",
     "description": "Manto de comando usado por Caçadores Rank B em portões de alto risco.",
     "accentHex": "#7C3AED",
     "secondaryHex": "#93C5FD",
@@ -1038,7 +1072,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 12,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_chama_sul",
@@ -1048,12 +1083,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Flame",
-    "priceCoins": 460,
+    "priceCoins": 260,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 4
     },
-    "unlockRequirementLabel": "Pico (4.100 Qi) · 460 Moedas",
+    "unlockRequirementLabel": "Pico (4.100 Qi) · 260 Moedas",
     "description": "Capa flamejante tecida para artistas marciais no reino Pico.",
     "accentHex": "#EA580C",
     "secondaryHex": "#FDE047",
@@ -1062,7 +1097,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 10,
     "powerScore": 24,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_monarca",
@@ -1072,12 +1108,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Ghost",
-    "priceCoins": 980,
+    "priceCoins": 600,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 6
     },
-    "unlockRequirementLabel": "Caçador Rank A · 980 Moedas",
+    "unlockRequirementLabel": "Caçador Rank A · 600 Moedas",
     "description": "Manto etéreo dos Caçadores Rank A forjado após dominar o retorno de Murim.",
     "accentHex": "#F59E0B",
     "secondaryHex": "#FB923C",
@@ -1086,7 +1122,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 14,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_asas_chama_eterna",
@@ -1096,12 +1133,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Flame",
-    "priceCoins": 1040,
+    "priceCoins": 600,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 6
     },
-    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · 1.040 Moedas",
+    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · 600 Moedas",
     "description": "Asas de fogo vivo erguidas pelos cem guerreiros do Reino Sem Restrições.",
     "accentHex": "#DC2626",
     "secondaryHex": "#FACC15",
@@ -1110,7 +1147,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 14,
     "powerScore": 34,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_veu_espada_invisivel",
@@ -1120,12 +1158,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Ghost",
-    "priceCoins": 1320,
+    "priceCoins": 1100,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 8
     },
-    "unlockRequirementLabel": "Reino da Vida e da Morte (10.800 Qi) · 1.320 Moedas",
+    "unlockRequirementLabel": "Reino da Vida e da Morte (10.800 Qi) · 1.100 Moedas",
     "description": "Manto silencioso do Reino da Vida e da Morte que acompanha a Espada Invisível.",
     "accentHex": "#0891B2",
     "secondaryHex": "#E0F2FE",
@@ -1134,7 +1172,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_bastao_treino",
@@ -1158,7 +1197,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 2,
-    "setId": "viajante"
+    "setId": "viajante",
+    "acquisition": "starter"
   },
   {
     "id": "arma_faca_incursao_f",
@@ -1182,7 +1222,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_espada_ferro_jin",
@@ -1192,12 +1233,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "comum",
     "auraMultiplier": 1,
     "iconName": "Swords",
-    "priceCoins": 45,
+    "priceCoins": 25,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 1
     },
-    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 45 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 3ª Classe (0 Qi) · 25 Moedas",
     "description": "Lâmina pesada de treinamento para praticantes iniciantes de 3ª Classe da família Jin.",
     "accentHex": "#64748B",
     "secondaryHex": "#E2E8F0",
@@ -1206,7 +1247,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_adaga_mercador",
@@ -1216,12 +1258,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Swords",
-    "priceCoins": 180,
+    "priceCoins": 90,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 2
     },
-    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · 180 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 2ª Classe (1.350 Qi) · 90 Moedas",
     "description": "Lâmina ágil de 2ª Classe que extrai moedas extras de cada missão concluída.",
     "accentHex": "#3B82F6",
     "secondaryHex": "#FACC15",
@@ -1230,7 +1272,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_lanca_1_classe",
@@ -1240,12 +1283,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Zap",
-    "priceCoins": 220,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 3
     },
-    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · 220 Moedas",
+    "unlockRequirementLabel": "Artista Marcial de 1ª Classe (2.700 Qi) · Recompensa de marco",
     "description": "Lança de 1ª Classe cuja haste conduz Qi direto para a ponta de aço.",
     "accentHex": "#EA580C",
     "secondaryHex": "#FDE047",
@@ -1254,7 +1297,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 8,
     "powerScore": 18,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "reward"
   },
   {
     "id": "arma_katana_rank_c",
@@ -1264,12 +1308,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "raro",
     "auraMultiplier": 1.25,
     "iconName": "Sword",
-    "priceCoins": 230,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 4
     },
-    "unlockRequirementLabel": "Caçador Rank C · 230 Moedas",
+    "unlockRequirementLabel": "Caçador Rank C · Recompensa de marco",
     "description": "Lâmina com núcleo de mana usada pela linha de frente da Associação.",
     "accentHex": "#2563EB",
     "secondaryHex": "#38BDF8",
@@ -1278,7 +1322,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 10,
     "bossDamageBonusPercent": 1,
     "powerScore": 24,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "reward"
   },
   {
     "id": "arma_cajado_abissal",
@@ -1288,12 +1333,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Wand2",
-    "priceCoins": 430,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 5
     },
-    "unlockRequirementLabel": "Caçador Rank B · 430 Moedas",
+    "unlockRequirementLabel": "Caçador Rank B · 400 Moedas",
     "description": "Cajado arcano de Caçador Rank B que amplia fortemente todo XP conquistado.",
     "accentHex": "#7C3AED",
     "secondaryHex": "#38BDF8",
@@ -1302,7 +1347,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_espada_carmesim",
@@ -1312,12 +1358,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Flame",
-    "priceCoins": 480,
+    "priceCoins": 400,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 5
     },
-    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · 480 Moedas",
+    "unlockRequirementLabel": "Pico Supremo (5.600 Qi) · 400 Moedas",
     "description": "Espada rubra de mestres do Pico Supremo forjada para romper defesas de chefes.",
     "accentHex": "#EF4444",
     "secondaryHex": "#FCA5A5",
@@ -1326,7 +1372,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 12,
     "powerScore": 28,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_espada_qi_pico",
@@ -1336,12 +1383,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "epico",
     "auraMultiplier": 1.5,
     "iconName": "Swords",
-    "priceCoins": 490,
+    "priceCoins": 260,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 4
     },
-    "unlockRequirementLabel": "Pico (4.100 Qi) · 490 Moedas",
+    "unlockRequirementLabel": "Pico (4.100 Qi) · 260 Moedas",
     "description": "Sabre do reino Pico capaz de projetar lâminas de Qi da Espada à distância.",
     "accentHex": "#0284C7",
     "secondaryHex": "#67E8F9",
@@ -1350,7 +1397,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 1,
     "powerScore": 24,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_espada_rank_a_taekyung",
@@ -1360,12 +1408,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Swords",
-    "priceCoins": 920,
+    "priceCoins": 600,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 6
     },
-    "unlockRequirementLabel": "Caçador Rank A · 920 Moedas",
+    "unlockRequirementLabel": "Caçador Rank A · 600 Moedas",
     "description": "Arma da categoria Rank A+ usada quando Taekyung retorna do Murim.",
     "accentHex": "#2563EB",
     "secondaryHex": "#FDE047",
@@ -1374,7 +1422,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 14,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_lanca_rei_fogo",
@@ -1384,12 +1433,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Flame",
-    "priceCoins": 1200,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 6
     },
-    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · 1.200 Moedas",
+    "unlockRequirementLabel": "Reino Sem Restrições (7.200 Qi) · Recompensa de marco",
     "description": "Lança lendária que canaliza a técnica secreta das Dez Mil Chamas do Rei do Fogo.",
     "accentHex": "#DC2626",
     "secondaryHex": "#FDE047",
@@ -1398,7 +1447,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 14,
     "powerScore": 34,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "reward"
   },
   {
     "id": "arma_presas_monarca",
@@ -1408,12 +1458,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Zap",
-    "priceCoins": 1250,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "rank_cacador",
       "valor": 7
     },
-    "unlockRequirementLabel": "Caçador Rank S · 1.250 Moedas",
+    "unlockRequirementLabel": "Caçador Rank S · Recompensa de marco",
     "description": "Relíquia suprema dupla dos Caçadores Rank S com dano abissal máximo em chefes.",
     "accentHex": "#F97316",
     "secondaryHex": "#FDE047",
@@ -1422,7 +1472,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 16,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "reward"
   },
   {
     "id": "arma_espada_invisivel",
@@ -1432,12 +1483,12 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "rarityKey": "lendario",
     "auraMultiplier": 2,
     "iconName": "Sparkles",
-    "priceCoins": 1480,
+    "priceCoins": 0,
     "requirement": {
       "tipo": "reino_murim",
       "valor": 8
     },
-    "unlockRequirementLabel": "Reino da Vida e da Morte (10.800 Qi) · 1.480 Moedas",
+    "unlockRequirementLabel": "Reino da Vida e da Morte (10.800 Qi) · Recompensa de marco",
     "description": "Manifestação pura de Qi sem forma física: o pináculo absoluto da arte marcial.",
     "accentHex": "#06B6D4",
     "secondaryHex": "#FFFFFF",
@@ -1446,7 +1497,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "reward"
   },
   {
     "id": "elmo_v2_visor_de_reconhecimento",
@@ -1470,7 +1522,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_capacete_de_cerco",
@@ -1494,7 +1547,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 7,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_mascara_de_carbono",
@@ -1518,7 +1572,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 9,
     "powerScore": 24,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_lente_de_ambar",
@@ -1542,7 +1597,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 7,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_diadema_de_circuitos",
@@ -1566,7 +1622,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 24,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_capacete_eclipse",
@@ -1590,7 +1647,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 11,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_visor_de_prisma",
@@ -1614,7 +1672,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_mascara_do_horizonte_negro",
@@ -1638,7 +1697,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 15,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_faixa_das_folhas",
@@ -1662,7 +1722,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_tiara_de_bronze_solar",
@@ -1686,7 +1747,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_mascara_da_garca_rubra",
@@ -1710,7 +1772,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 9,
     "powerScore": 24,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_coroa_do_patio_celeste",
@@ -1734,7 +1797,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "elmo_v2_aureola_de_jade_branco",
@@ -1758,7 +1822,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 3,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_colete_de_patrulha",
@@ -1782,7 +1847,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_couraca_de_ambar",
@@ -1806,7 +1872,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_peitoral_de_cerco",
@@ -1830,7 +1897,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 7,
     "powerScore": 18,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_casaco_de_runas",
@@ -1854,7 +1922,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 24,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_armadura_eclipse_de_campo",
@@ -1878,7 +1947,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 11,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_exotraje_de_ambar_negro",
@@ -1902,7 +1972,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 15,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_dobok_das_folhas",
@@ -1926,7 +1997,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_veste_de_cobre_solar",
@@ -1950,7 +2022,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_tunica_da_rota_de_seda",
@@ -1974,7 +2047,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 7,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_couraca_da_garca_rubra",
@@ -1998,7 +2072,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 9,
     "powerScore": 24,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_veste_do_ceu_de_jade",
@@ -2022,7 +2097,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 28,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_traje_do_sol_de_bronze",
@@ -2046,7 +2122,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 13,
     "powerScore": 34,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "armadura_v2_manto_de_jade_imortal",
@@ -2070,7 +2147,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 3,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_manto_de_patrulha",
@@ -2094,7 +2172,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_sobretudo_do_explorador",
@@ -2118,7 +2197,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_estandarte_de_cerco",
@@ -2142,7 +2222,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 7,
     "powerScore": 18,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_veu_de_circuitos",
@@ -2166,7 +2247,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 24,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_manto_eclipse_de_campo",
@@ -2190,7 +2272,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 11,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_capa_de_ambar_negro",
@@ -2214,7 +2297,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 15,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_manto_das_folhas",
@@ -2238,7 +2322,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_faixa_de_seda_solar",
@@ -2262,7 +2347,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_veu_do_mercado_celeste",
@@ -2286,7 +2372,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 7,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_asas_da_garca_rubra",
@@ -2310,7 +2397,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 9,
     "powerScore": 24,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_capa_do_ceu_de_jade",
@@ -2334,7 +2422,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 28,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_asas_do_sol_de_bronze",
@@ -2358,7 +2447,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 13,
     "powerScore": 34,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "capa_v2_veu_de_jade_imortal",
@@ -2382,7 +2472,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 3,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_adaga_de_patrulha",
@@ -2406,7 +2497,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 4,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "associacao_cacadores"
+    "setId": "associacao_cacadores",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_lamina_do_explorador",
@@ -2430,7 +2522,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 6,
     "bossDamageBonusPercent": 0,
     "powerScore": 12,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_martelo_de_cerco",
@@ -2454,7 +2547,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 7,
     "powerScore": 18,
-    "setId": "guarda_aco"
+    "setId": "guarda_aco",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_cajado_de_circuitos",
@@ -2478,7 +2572,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 1,
     "bossDamageBonusPercent": 2,
     "powerScore": 24,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_sabre_eclipse",
@@ -2502,7 +2597,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 11,
     "bossDamageBonusPercent": 1,
     "powerScore": 28,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_espada_de_prisma",
@@ -2526,7 +2622,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "sabio_abissal"
+    "setId": "sabio_abissal",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_laminas_gemeas_de_ambar",
@@ -2550,7 +2647,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 15,
     "bossDamageBonusPercent": 2,
     "powerScore": 38,
-    "setId": "monarca_eternidade"
+    "setId": "monarca_eternidade",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_bastao_das_folhas",
@@ -2574,7 +2672,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 0,
     "powerScore": 8,
-    "setId": "familia_jin"
+    "setId": "familia_jin",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_lanca_de_cobre_solar",
@@ -2598,7 +2697,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 0,
     "bossDamageBonusPercent": 6,
     "powerScore": 12,
-    "setId": "seita_rei_fogo"
+    "setId": "seita_rei_fogo",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_leque_de_seda_dourada",
@@ -2622,7 +2722,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 7,
     "bossDamageBonusPercent": 1,
     "powerScore": 18,
-    "setId": "manto_mercador"
+    "setId": "manto_mercador",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_sabre_da_garca_rubra",
@@ -2646,7 +2747,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 9,
     "powerScore": 24,
-    "setId": "presa_carmesim"
+    "setId": "presa_carmesim",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_espada_do_ceu_de_jade",
@@ -2670,7 +2772,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 2,
     "powerScore": 34,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   },
   {
     "id": "arma_v2_lamina_de_jade_imortal",
@@ -2694,7 +2797,8 @@ export const EQUIPMENT_CATALOG: readonly EquipmentItem[] = [
     "coinBonusPercent": 2,
     "bossDamageBonusPercent": 3,
     "powerScore": 44,
-    "setId": "espada_invisivel"
+    "setId": "espada_invisivel",
+    "acquisition": "purchase"
   }
 ];
 

@@ -49,7 +49,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     onSuccess: async (_, body) => {
       if (body.action === 'save') { form.reset(); draft.current = null }
       setMessage({
-        buy: 'Equipamento comprado.', equip: 'Equipamento ativo atualizado.', save: 'Conjunto salvo.',
+        buy: items.data?.find(item => item.id === body.id)?.acquisition === 'reward' ? 'Recompensa resgatada.' : 'Equipamento comprado.', equip: 'Equipamento ativo atualizado.', save: 'Conjunto salvo.',
         apply: 'Conjunto equipado.', delete: 'Conjunto excluído.',
       }[body.action])
       await refreshRpg(client, 'arsenal', 'loadouts')
@@ -70,7 +70,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     arma: shownGear.find(item => item.slot === 'arma')?.id ?? null,
   })
   const filtered = items.data?.filter(item => (slot === 'all' || item.slot === slot) && (rarity === 'all' || item.rarity === rarity)
-    && (set === 'all' || item.setId === set) && (ownership === 'all' || (ownership === 'owned' ? item.owned : !item.owned && item.unlock.met))
+    && (set === 'all' || item.setId === set) && (ownership === 'all' || (ownership === 'owned' ? item.owned : !item.owned && item.unlock.met && (ownership === 'rewards' ? item.acquisition === 'reward' : item.acquisition === 'purchase')))
     && (item.name.toLocaleLowerCase('pt-BR').includes(term) || item.description.toLocaleLowerCase('pt-BR').includes(term)))
 
   function showPreview(id: string, trigger: HTMLButtonElement) {
@@ -144,6 +144,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
       <div className="arsenal-preview">
         <p className="orange" role="status">{preview && 'Prévia: ' + preview.name}</p>
         {preview && <div className="row">
+          {!preview.owned && preview.unlock.met && preview.acquisition === 'reward' && <Button variant="contained" disabled={mutation.isPending} onClick={() => run({ action: 'buy', id: preview.id })}>Resgatar recompensa</Button>}
           {preview?.owned && !preview.equipped && <Button variant="contained" disabled={mutation.isPending} onClick={() => {
             equipmentHeading.current?.focus()
             run({ action: 'equip', id: preview.id })
@@ -160,7 +161,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
         <div><dt>Poder total</dt><dd>{number.format(summary.totalPowerScore)} pts</dd></div>
       </dl>
       {summary.activeSets.map(({ set, equippedCount, twoPieceActive, fourPieceActive }) => <div className="surface arsenal-set-bonus" key={set.id}>
-        <span className="orange">{set.name} · {equippedCount}/{items.data?.filter(item => item.setId === set.id).length}</span>
+        <span className="orange">{set.name} · {equippedCount}/4</span>
         <span>{fourPieceActive ? set.fourPieceBonus?.label : twoPieceActive ? set.twoPieceBonus.label : 'Bônus a partir de 2 peças'}</span>
       </div>)}
     </section>}
@@ -196,7 +197,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
             <MenuItem value="all">Todas</MenuItem>{['Comum', 'Raro', 'Épico', 'Lendário'].map(label => <MenuItem key={label} value={label}>{label}</MenuItem>)}
           </TextField>
           <TextField label="Mostrar" select size="small" value={ownership} onChange={event => setOwnership(event.target.value)}>
-            <MenuItem value="all">Catálogo completo</MenuItem><MenuItem value="owned">Meus equipamentos</MenuItem><MenuItem value="available">Liberados para compra</MenuItem>
+            <MenuItem value="all">Catálogo completo</MenuItem><MenuItem value="owned">Meus equipamentos</MenuItem><MenuItem value="available">Liberados para compra</MenuItem><MenuItem value="rewards">Recompensas disponíveis</MenuItem>
           </TextField>
           <TextField label="Conjunto" select size="small" value={set} onChange={event => setSet(event.target.value)}>
             <MenuItem value="all">Todos</MenuItem>{EQUIPMENT_SETS.map(item => <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}
@@ -207,13 +208,14 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
       {filtered?.length === 0 && <p role="status">Nenhum equipamento nesta seleção.</p>}
       <div className="workout-grid arsenal-cards">{filtered?.map(item => <article className={'surface workout-card' + (item.equipped ? ' fulfilled' : '')} aria-label={item.name} key={item.id}>
         <div className="arsenal-card-meta"><small className="gear-rarity mono">{slots[item.slot]} · {item.rarity}</small>
-          {item.equipped && <span className="green">Equipado</span>}</div><h2>{item.name}</h2>
+          {item.equipped && <span className="green">Equipado</span>}{item.acquisition === 'reward' && !item.owned && <Chip size="small" label="Recompensa de marco" color="success" variant="outlined" /> }</div><h2>{item.name}</h2>
         <p>{item.description}</p><p className="orange">{item.powerBonusLabel}</p>
         {!item.owned && !item.unlock.met && <p>{item.unlock.progressText}</p>}
         <div className="row">
           <Button variant="outlined" aria-pressed={previewId === item.id} onClick={event => showPreview(item.id, event.currentTarget)}>Visualizar</Button>
           {!item.equipped && (item.owned ?
             <Button variant="outlined" disabled={mutation.isPending} onClick={() => run({ action: 'equip', id: item.id })}>Equipar</Button> :
+            item.acquisition === 'reward' ? (item.unlock.met && <Button variant="contained" disabled={mutation.isPending} onClick={() => run({ action: 'buy', id: item.id })}>Resgatar recompensa</Button>) :
             <Button variant="outlined" disabled={mutation.isPending || !item.unlock.met || coins === undefined || coins < item.priceCoins}
               onClick={() => run({ action: 'buy', id: item.id })}>Comprar por {number.format(item.priceCoins)} moedas</Button>)}
         </div>
