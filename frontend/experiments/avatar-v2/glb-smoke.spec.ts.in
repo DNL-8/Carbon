@@ -1,0 +1,65 @@
+import { expect, test } from '@playwright/test'
+import { EQUIPMENT_CATALOG } from '../../../src/utils/equipmentCatalog'
+
+test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page},info)=>{
+  const errors:string[]=[]
+  page.on('pageerror',error=>errors.push(error.message))
+  await page.goto('/avatar-v2-lab-test')
+  const canvas=page.locator('canvas[data-glb-character]')
+  await expect(canvas).toHaveAttribute('data-glb-character','murim',{timeout:30000})
+  await page.getByRole('button',{name:'Pausar',exact:true}).click()
+  const piece=page.getByLabel('Peça')
+  const character=page.getByLabel('Personagem')
+  expect(EQUIPMENT_CATALOG).toHaveLength(104)
+  for(const style of ['murim','cacador']){
+    await character.selectOption(style)
+    await expect(canvas).toHaveAttribute('data-glb-character',style)
+    for(const item of EQUIPMENT_CATALOG){
+      await piece.selectOption(item.id)
+      await expect(canvas).toHaveAttribute('data-glb-equipment',item.id)
+    }
+    const sets=new Map(EQUIPMENT_CATALOG.filter(item=>item.setId).map(item=>[item.setId,item.id]))
+    expect(sets.size).toBe(10)
+    await page.getByLabel('Conjunto completo').check()
+    for(const [set,id] of sets){
+      await piece.selectOption(id)
+      await expect(canvas).toHaveAttribute('data-glb-equipment',EQUIPMENT_CATALOG.filter(item=>item.setId===set).map(item=>item.id).sort().join(','))
+    }
+    await page.getByLabel('Conjunto completo').uncheck()
+    await piece.selectOption('')
+    await expect(canvas).toHaveAttribute('data-glb-equipment','')
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await page.getByRole('button',{name:'Rosto',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-zoom','true')
+    await page.getByRole('button',{name:'Restaurar',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-yaw','0')
+    await expect(canvas).toHaveAttribute('data-glb-zoom','false')
+    const helmet=EQUIPMENT_CATALOG.find(item=>item.slot==='elmo')
+    if(!helmet)throw Error('Elmo ausente')
+    await piece.selectOption(helmet.id)
+    await expect(canvas).toHaveAttribute('data-glb-equipment',helmet.id)
+    await page.getByRole('button',{name:'Ocultar elmo'}).click()
+    await expect(canvas).toHaveAttribute('data-glb-equipment','')
+    await page.getByRole('button',{name:'Exibir elmo'}).click()
+    await expect(canvas).toHaveAttribute('data-glb-equipment',helmet.id)
+    await page.getByRole('button',{name:'Ataque',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-animation','attack')
+    const first=await canvas.getAttribute('data-glb-sequence')
+    await page.getByRole('button',{name:'Ataque',exact:true}).click()
+    await expect(canvas).not.toHaveAttribute('data-glb-sequence',first??'')
+    await page.getByRole('button',{name:'Vitória',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-animation','victory')
+    await page.getByRole('button',{name:'Descanso',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-animation','rest')
+    await page.getByRole('button',{name:'Repouso',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-animation','idle')
+    await canvas.screenshot({path:info.outputPath(style+'.png')})
+  }
+  expect(errors).toEqual([])
+})
+test('GLB: respeita movimento reduzido',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'})
+  await page.goto('/avatar-v2-lab-test')
+  await expect(page.locator('canvas[data-glb-character]')).toHaveAttribute('data-glb-character','murim',{timeout:30000})
+  await expect(page.getByRole('button',{name:'Ataque',exact:true})).toBeDisabled()
+})

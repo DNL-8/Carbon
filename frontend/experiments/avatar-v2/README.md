@@ -19,3 +19,7 @@ O workflow de laboratório gera o lockfile e os ativos num runner descartável, 
 ## Revisão do laboratório
 
 O primeiro runner instalou Three.js/R3F e produziu o lockfile, mas a geração GLB parou em `ModuleNotFoundError: networkx`. Incluída dependência explícita; ataques agora usam curvas distintas para Murim e Caçador. O resultado do build e do navegador ainda precisa ser conferido.
+
+## Homologação isolada
+
+Os dois arquivos GLB foram gerados e passaram na verificação estrutural do runner 46149806949. Corrigidos os dois diagnósticos de dependências de hooks. O workflow agora prepara uma rota descartável de teste (não incluída no artefato de integração), testa 104 peças e dez conjuntos por personagem em desktop e mobile, câmera, ocultação de elmo, repetição de comandos de animação e preferência de movimento reduzido. As verificações inspecionam a ligação efetiva dos objetos no canvas, não garantem ausência de clipping ou fidelidade artística. Capturas e validação visual continuam necessárias. Não há testes com dados reais.

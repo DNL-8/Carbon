@@ -34,10 +34,26 @@ jobs:
       - run: node experiments/avatar-v2/prepare.mjs
       - run: bun install --frozen-lockfile
       - run: bun run lint
+      - name: Preparar rota de teste isolada
+        run: |
+          mkdir -p app/avatar-v2-lab-test
+          cp experiments/avatar-v2/test-page.tsx.in app/avatar-v2-lab-test/page.tsx
+          cp experiments/avatar-v2/playwright.config.ts.in experiments/avatar-v2/playwright.config.ts
+          cp experiments/avatar-v2/glb-smoke.spec.ts.in experiments/avatar-v2/glb-smoke.spec.ts
       - run: bun run typecheck
       - run: bun run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      - run: bunx playwright install --with-deps chromium
+      - name: Homologar GLB nos dois personagens em desktop e mobile
+        run: bunx playwright test --config experiments/avatar-v2/playwright.config.ts
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avatar-v2-browser-results
+          path: frontend/test-results
+          if-no-files-found: ignore
+          retention-days: 7
       - uses: actions/upload-artifact@v7
         if: always()
         with:
