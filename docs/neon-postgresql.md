@@ -11,3 +11,7 @@ Antes de preparar uma transferência do schema legado, siga o [pré-voo e plano 
 ## Arsenal V2 e persistência
 
 A expansão do catálogo usa os campos existentes de `fitness_arsenal` (owned, equipped, loadouts) e o saldo de `fitness_progress`. Compras registram `fitness_progress_ledger`; resgates não debitam moedas. A serialização por proprietário ocorre na transação de progresso. Não é necessária nova migração Alembic exclusivamente para o Arsenal V2; isso não comprova compatibilidade do schema legado. Teste aquisição simultânea em PostgreSQL descartável conforme [CI](ci.md) e [Arsenal](plano-arsenal.md).
+
+## Inspeção somente leitura — 28/11/2026
+
+No projeto murim, a branch padrão possui dois bancos: `carbon` com as 17 tabelas de aplicação e a tabela de versão Alembic (`0001_drizzle_baseline`), e `neondb` com o schema legado. O banco carbon é candidato ao ambiente novo, mas ainda não foi comprovada a configuração do deployment nem a equivalência de todas as restrições/índices. Nenhuma consulta a conteúdo de registros ou alteração foi feita. O histórico de migração anterior continua válido para neondb.

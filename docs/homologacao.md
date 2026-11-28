@@ -61,3 +61,18 @@ Registro de referência: `cbee77b` publicado na main; [execução 46104328684](h
 Registrar data, SHA, ambiente (sem segredos), plataforma, resultado e pendências de cada cenário. Anexar apenas evidências sintéticas e sem dados pessoais. Não declarar produção homologada enquanto houver cenários reais não verificados, divergência de versão, falha de build, migração incompatível ou erro de isolamento.
 
 Referências: [DESIGN.md](../DESIGN.md), [Android](../android/README.md), [backend](../backend/README.md), [frontend](../frontend/README.md).
+
+## 8. Registro de homologação — 28/11/2026
+
+Versão funcional verificada: [f18d18c](https://github.com/DNL-8/Carbon/commit/f18d18cf6b75c85e65f807c15c32f13d2bf04f58). A [CI 46105794816](https://github.com/DNL-8/Carbon/actions/runs/46105794816) aprovou os dois jobs: 170 testes Python (2 warnings), 10 testes Playwright, build Next.js, auditorias de dependências, Ruff, testes e APK Android, interface Compose no emulador API 35 e restauração criptografada em banco descartável.
+
+| Área | Resultado e limite |
+| --- | --- |
+| Web e Arsenal | CI aprovada; capturas e inspeção manual ainda pendentes. A nova suíte de evidências testa todas as 104 prévias e registra uma captura por família em cada projeto desktop/mobile, além das telas principais. |
+| Android | APK de CI e relatórios disponíveis nos artefatos da execução; APK aponta para origem fictícia, não homologado em aparelho físico. |
+| Neon | Consulta somente leitura identificou banco carbon com 17 tabelas esperadas e revisão Alembic `0001_drizzle_baseline`; neondb legado permanece separado. Restrições completas, dados e conexão do deployment não foram validados. |
+| Deploy | Projeto Vercel murim encontrado usa configuração Nuxt e deploys de App-fitness; não foi identificado um projeto Carbon nessa conta. Não substituir produção ou apontar o app ao banco legado. |
+| OAuth / Strava / Gemini | Fluxos sintéticos aprovados; falta teste real autorizado em ambiente Carbon. |
+| Backup | Restore descartável aprovado na CI; configuração e restauração de backup real não comprovadas. |
+
+Não houve acesso a registros pessoais, alteração de infraestrutura, migração de produção nem publicação de aplicativo. A homologação real depende de um ambiente Carbon separado, com origem HTTPS, upstream FastAPI, banco de destino validado e credenciais configuradas privadamente. Não promover ambiente antigo como Carbon.

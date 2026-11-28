@@ -24,3 +24,7 @@ node scripts/check-arsenal-economy.mjs
 O primeiro script valida catálogo, 104 IDs, 26 peças por slot, modalidades, conjuntos e emite o oráculo TypeScript; a CI redireciona o JSON para `MURIM_EQUIPMENT_ORACLE` e o pytest confronta o resultado com FastAPI. Os demais verificam cobertura das 33 famílias/encaixes e cenários econômicos. A suíte PostgreSQL inclui compras e resgates repetidos/concorrentes; Playwright cobre paginação, prévia, resgate, equipar e mascote.
 
 A CI dispara em pushes para main e feature/arsenal-104, PRs para main e execução manual. Consulte o SHA exato em [Actions](https://github.com/DNL-8/Carbon/actions). Em 28/11/2026, a versão Arsenal V2 `cbee77b` estava na main: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Não declarar uma execução aprovada antes de confirmar os dois jobs.
+
+## Evidências visuais de homologação
+
+O fluxo Playwright registra capturas das telas principais usando somente fixtures sintéticas, e `tests/arsenal-visual.spec.ts` verifica a prévia e o encaixe das 104 peças, uma captura por família visual e a preservação de posse/equipamento. As imagens ficam no artefato `murim-web-homologacao` por sete dias; a inspeção humana das imagens continua necessária. Não execute a coleta com credenciais reais nem publique dados de saúde.

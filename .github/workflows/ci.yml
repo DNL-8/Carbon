@@ -118,6 +118,14 @@ jobs:
           bun run build
           bunx playwright install --with-deps chromium
           bun run test
+      - name: Guardar capturas de homologação web
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: murim-web-homologacao
+          path: frontend/test-results/**/homologacao-*.png
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Guardar relatórios de falha do Playwright
         if: failure()
         uses: actions/upload-artifact@v7
