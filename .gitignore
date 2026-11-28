@@ -21,3 +21,6 @@ next-env.d.ts
 
 # Checkout separado do workspace
 /.murim-web-experience/
+
+# Credenciais temporárias do Google GitHub Actions
+gha-creds-*.json
