@@ -19,6 +19,8 @@ class Model:
         if bounds:a.update(min=np.atleast_1d(x.min(axis=0)).tolist(),max=np.atleast_1d(x.max(axis=0)).tolist())
         self.acc.append(a);return len(self.acc)-1
     def material(self,name,h,metal=0,rough=.75,emission=0):
+        if not all(math.isfinite(value) and 0 <= value <= 1 for value in (metal,rough,emission)):
+            raise ValueError(f'Invalid PBR parameters for {name}')
         m={'name':name,'pbrMetallicRoughness':{'baseColorFactor':[*rgb(h),1],'metallicFactor':metal,'roughnessFactor':rough}}
         if emission:m['emissiveFactor']=[v*emission for v in rgb(h)]
         self.mats.append(m);return len(self.mats)-1
@@ -81,7 +83,18 @@ def curved_trim(points,r=.004):
 
 def build(martial):
     m=Model('murim' if martial else 'cacador'); root=m.node('CharacterRoot'); pelvis=m.node('Hips',root,(0,.91,0));spine=m.node('Spine',pelvis,(0,.13,0));head=m.node('Head',spine,(0,.48,0));
-    skin=m.material('Skin','C99873',rough=.63);hair=m.material('Hair','292027',rough=.52);cloth=m.material('BaseCloth','30282A' if martial else '252B35',rough=.91);dark=m.material('DarkCloth','17191E',rough=.88);accent=m.material('Trim','B7833B' if martial else '527898',.4);metal=m.material('Metal','8E673C' if martial else '7E8797',.7,.36);inner=m.material('Lining','9C3F28' if martial else '234F76');energy=m.material('Energy','FFAB42' if martial else '55C8FF',.1,.35,.8);white=m.material('Eyes','F4E5CF');iris=m.material('Iris','50301F');
+    # Distinguish dielectric surfaces from metals using the core glTF PBR model.
+    # These are material parameters, not baked texture maps.
+    skin=m.material('Skin','C99873',rough=.58)
+    hair=m.material('Hair','292027',rough=.48 if martial else .56)
+    cloth=m.material('BaseCloth','30282A' if martial else '252B35',rough=.67 if martial else .88)
+    dark=m.material('DarkCloth','17191E',rough=.92)
+    accent=m.material('Trim','B7833B' if martial else '527898',metal=.58 if martial else .38,rough=.39 if martial else .49)
+    metal=m.material('Metal','8E673C' if martial else '7E8797',metal=.78 if martial else .82,rough=.32 if martial else .43)
+    inner=m.material('Lining','9C3F28' if martial else '234F76',rough=.72 if martial else .89)
+    energy=m.material('Energy','FFAB42' if martial else '55C8FF',metal=.0,rough=.32,emission=.8)
+    white=m.material('Eyes','F4E5CF',rough=.24)
+    iris=m.material('Iris','50301F',rough=.31)
     P=m.part;w=.93 if martial else 1.08
     P('BaseTorso',spine,loft([(0,.15*w,.105,0),(.17,.19*w,.115,0),(.32,.235*w,.12,0),(.39,.19*w,.105,0),(.43,.075,.075,0)],12),cloth)
     # Base clothing is independent of equipment sockets: no item or bonus is implied.
