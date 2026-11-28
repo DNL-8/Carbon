@@ -280,3 +280,6 @@ summary { cursor: pointer; color: #d4d4d8; }
 .arsenal-delta[data-direction="1"] { color: var(--green); }
 .arsenal-delta[data-direction="-1"] { color: #fca5a5; }
 .arsenal-cards .workout-card > .row:last-child { margin-top: auto; }
+
+.oracle-reply b { font-weight: 700; color: inherit; }
+.oracle-reply code { font-size: .9em; overflow-wrap: anywhere; }

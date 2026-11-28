@@ -161,3 +161,31 @@ def test_oracle_http_respects_health_opt_in(client, monkeypatch):
     assert client.post("/api/oracle/ask", json={**body, "includeHealth": True}, headers=headers).status_code == 200
     read_health.assert_called_once_with(connection, dashboard_context("owner", today_in_sao_paulo()))
     assert reply.call_args.args[-1]["recovery"] == {"periodDays": 28, "acwr": None, "readiness": None}
+
+
+@pytest.mark.parametrize(("upstream", "expected"), [(429, 429), (403, 503), (404, 503), (503, 503), (400, 502)])
+def test_oracle_provider_errors_are_classified(monkeypatch, upstream, expected):
+    import httpx
+    from fastapi import HTTPException
+
+    real = httpx.Client
+    transport = httpx.MockTransport(lambda _: httpx.Response(upstream, text="private provider detail"))
+    monkeypatch.setattr(httpx, "Client", lambda **kwargs: real(transport=transport, **kwargs))
+    with pytest.raises(HTTPException) as exc:
+        oracle.gemini_reply("fixture", "test-model", "Pergunta", {"xp": 0})
+    assert exc.value.status_code == expected
+    assert "private provider detail" not in exc.value.detail
+
+
+def test_oracle_timeout_is_classified(monkeypatch):
+    import httpx
+    from fastapi import HTTPException
+
+    def timeout(request):
+        raise httpx.ReadTimeout("private provider detail", request=request)
+
+    real = httpx.Client
+    monkeypatch.setattr(httpx, "Client", lambda **kwargs: real(transport=httpx.MockTransport(timeout), **kwargs))
+    with pytest.raises(HTTPException) as exc:
+        oracle.gemini_reply("fixture", "test-model", "Pergunta", {})
+    assert exc.value.status_code == 504
