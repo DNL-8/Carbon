@@ -1,0 +1,48 @@
+name: Avatar V2 Blender rig
+on:
+  push:
+    branches: ['feature/avatar-v2-glb']
+    paths:
+      - 'frontend/experiments/avatar-v2/*skin*.py'
+      - 'frontend/experiments/avatar-v2/blender_rig.py'
+      - '.github/workflows/avatar-v2-blender.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rig:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend/experiments/avatar-v2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install numpy==2.3.5 trimesh==4.11.1 scipy networkx==3.5
+      - run: python generate_models.py
+      - run: python skin_models.py
+      - run: python validate_skin.py skinned
+      - name: Instalar Blender no runner descartável
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender python3-numpy
+          env -u LD_LIBRARY_PATH -u PYTHONHOME -u PYTHONPATH /usr/bin/blender --version
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python-expr "import sys, numpy; print('BLENDER_PYTHON', sys.version, 'NUMPY', numpy.__version__)"
+      - name: Importar, testar deformação e exportar com Blender
+        run: env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python blender_rig.py -- "$PWD"
+      - run: python validate_skin.py blender-output
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avatar-v2-blender-rig
+          path: |
+            frontend/experiments/avatar-v2/skinned/*.glb
+            frontend/experiments/avatar-v2/blender-output/*.glb
+            frontend/experiments/avatar-v2/blender-output/*.blend
+          if-no-files-found: warn
+          retention-days: 14

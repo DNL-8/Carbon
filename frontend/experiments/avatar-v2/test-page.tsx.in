@@ -1,0 +1,42 @@
+'use client'
+import { useMemo, useState } from 'react'
+import { AvatarGlbPreview } from '../../components/avatar-glb-preview'
+import { appearanceOptions, defaultAvatarPreferences, type AvatarPreferences, type AppearanceKey, type CharacterStyle } from '../../lib/avatar-preferences'
+import { EQUIPMENT_CATALOG } from '../../../src/utils/equipmentCatalog'
+
+export default function LabTestPage(){
+  const [style,setStyle]=useState<CharacterStyle>('murim')
+  const [id,setId]=useState('')
+  const [full,setFull]=useState(false)
+  const [appearance,setAppearance]=useState<AvatarPreferences>(defaultAvatarPreferences)
+  const preferences=useMemo(()=>({...appearance,style}),[appearance,style])
+  const selected=useMemo(()=>{
+    const chosen=EQUIPMENT_CATALOG.find(item=>item.id===id)
+    if(!chosen)return []
+    if(!full||!chosen.setId)return [chosen]
+    const members=EQUIPMENT_CATALOG.filter(item=>item.setId===chosen.setId)
+    return (['elmo','armadura','capa','arma'] as const).flatMap(slot=>{
+      const item=chosen.slot===slot?chosen:members.find(member=>member.slot===slot)
+      return item?[item]:[]
+    })
+  },[id,full])
+  const gear=useMemo(()=>selected.map(item=>({id:item.id,name:item.name,rarity:item.rarity,slot:item.slot,equipped:true})),[selected])
+  return <main style={{maxWidth:480,margin:'auto',padding:12}}>
+    <h1>Homologação isolada do avatar</h1>
+    <label>Personagem<select value={style} onChange={e=>setStyle(e.target.value==='murim'?'murim':'cacador')}><option value="murim">Murim</option><option value="cacador">Caçador</option></select></label>
+    <label>Peça<select value={id} onChange={e=>setId(e.target.value)}><option value="">Nenhuma</option>{EQUIPMENT_CATALOG.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+    <label><input type="checkbox" checked={full} onChange={e=>setFull(e.target.checked)}/>Conjunto completo</label>
+    {(Object.keys(appearanceOptions) as AppearanceKey[]).map(key=>{
+      const label=({hair:'Cabelo',face:'Rosto',skin:'Pele',hairColor:'Cor do cabelo',energy:'Energia'})[key]
+      const fieldId='lab-appearance-'+key
+      return <div key={key}>
+        <label htmlFor={fieldId}>{label}</label>
+        <select id={fieldId} aria-label={label} value={appearance[style][key]} onChange={e=>{
+          const value=Number(e.target.value)
+          setAppearance(prev=>({...prev,[style]:{...prev[style],[key]:value}}))
+        }}>{appearanceOptions[key].map((option,i)=><option key={option} value={String(i)}>{option}</option>)}</select>
+      </div>
+    })}
+    <AvatarGlbPreview preferences={preferences} gear={gear}/>
+  </main>
+}
