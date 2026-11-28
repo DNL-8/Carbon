@@ -50,93 +50,31 @@ A implementação atual não depende de Vue, Nuxt, Nitro ou Better Auth.
 
 ## Arquitetura
 
-O Carbon segue uma arquitetura em camadas, com dois clientes, uma origem HTTP compartilhada e um backend central responsável pelas regras de negócio e pelos dados.
+Como o aplicativo funciona:
 
 ```mermaid
-flowchart TB
-    U["Dois usuários autorizados"] --> WEB
-    U --> APK
+flowchart TD
+    U["Você"] --> W["Aplicativo web"]
+    U --> A["Aplicativo Android"]
+    HC["Health Connect"] --> A
+    W --> S["Servidor do Murim"]
+    A --> S
+    S --> D[("Banco de dados")]
+    S <--> G["Google · Login"]
+    S <--> T["Strava · Atividades"]
+    S <--> I["Gemini · Assistente"]
 
-    subgraph CLIENT["01 · Clientes"]
-        WEB["Web · Next.js App Router<br/>React + TypeScript"]
-        UI["Material UI + Emotion<br/>MUI X Charts · Arsenal SVG"]
-        STATE["TanStack Query<br/>React Hook Form + Zod"]
-        APK["Android · Kotlin<br/>Jetpack Compose + Material 3"]
-        SYNC["Health Connect + WorkManager"]
-        WEB --- UI
-        WEB --- STATE
-        APK --- SYNC
-    end
-
-    HC["Health Connect · dados locais"] --> SYNC
-
-    subgraph GATE["02 · Origem da aplicação"]
-        PROXY["Next.js · Route Handler /api<br/>Rotas permitidas · cookies · no-store"]
-    end
-    WEB -->|"HTTP(S) · mesma origem"| PROXY
-    APK -->|"HTTPS · sessão criptografada no dispositivo"| PROXY
-
-    subgraph BACK["03 · Backend central · Python"]
-        API["FastAPI + Pydantic<br/>Uvicorn · contratos HTTP"]
-        AUTH["Authlib · Google OAuth2/OIDC<br/>Sessão e autorização por proprietário"]
-        RPG["Treinos · XP/Qi · missões<br/>Chefes · Arsenal V2 · recompensas"]
-        HEALTH["Importação · saúde<br/>Peso · histórico · recuperação"]
-        INT["Oráculo Gemini<br/>Sincronização Strava"]
-        DBL["SQLAlchemy + psycopg<br/>Transações e consultas por conta"]
-        API --> AUTH
-        API --> RPG
-        API --> HEALTH
-        API --> INT
-        AUTH --> DBL
-        RPG --> DBL
-        HEALTH --> DBL
-        INT --> DBL
-    end
-    PROXY --> API
-
-    subgraph DATA["04 · Persistência"]
-        DB[("PostgreSQL / Neon<br/>Contas · sessões · saúde · RPG")]
-        MIG["Alembic · migrações"]
-        MIG -.-> DB
-    end
-    DBL --> DB
-
-    subgraph EXT["05 · Integrações externas"]
-        GOOGLE["Google OAuth"]
-        STRAVA["Strava OAuth / API"]
-        GEMINI["Gemini API · consentimento"]
-    end
-    AUTH <-->|"Autenticação"| GOOGLE
-    INT <-->|"OAuth e atividades"| STRAVA
-    INT <-->|"Resumo autorizado"| GEMINI
-
-    subgraph OPS["06 · Qualidade e operação"]
-        CI["GitHub Actions · CI"]
-        TEST["Ruff · pytest · Playwright<br/>TypeScript · Gradle · emulador"]
-        PAR["Paridade RPG · catálogo<br/>Arte e economia"]
-        BAK["Workflow de backup opcional<br/>pg_dump + age"]
-        CI --> TEST
-        CI --> PAR
-    end
-    DB -.->|"Se configurado"| BAK
-
-    classDef client fill:#1e3a5f,stroke:#60a5fa,color:#ffffff
-    classDef gateway fill:#422006,stroke:#fb923c,color:#fff7ed
-    classDef backend fill:#164e3b,stroke:#34d399,color:#ffffff
-    classDef data fill:#312e81,stroke:#a5b4fc,color:#ffffff
-    classDef external fill:#3f3f46,stroke:#a1a1aa,color:#fafafa
-    classDef ops fill:#3b2b14,stroke:#fbbf24,color:#ffffff
-    class WEB,UI,STATE,APK,SYNC client
-    class PROXY gateway
-    class API,AUTH,RPG,HEALTH,INT,DBL backend
-    class DB,MIG data
-    class HC,GOOGLE,STRAVA,GEMINI external
-    class CI,TEST,PAR,BAK ops
+    classDef app fill:#1e3a5f,stroke:#60a5fa,color:#ffffff
+    classDef server fill:#164e3b,stroke:#34d399,color:#ffffff
+    classDef storage fill:#312e81,stroke:#a5b4fc,color:#ffffff
+    class W,A app
+    class S server
+    class D storage
 ```
 
-**Fluxo principal:** Web ou APK → Route Handler Next.js → FastAPI → PostgreSQL. O servidor valida sessão, origem das escritas, requisitos de aquisição e propriedade dos registros. O Android obtém dados autorizados do Health Connect localmente. Google, Strava e Gemini são integrações externas, não serviços internos adicionais.
+Você acessa o Murim pelo navegador ou pelo Android. O servidor processa treinos, saúde, evolução do personagem e equipamentos. O banco de dados guarda seu progresso e histórico. O Google permite entrar na conta, o Strava importa atividades, o Health Connect sincroniza dados autorizados pelo Android e o Gemini alimenta o assistente Oráculo.
 
-**Operação:** a CI valida a aplicação e o Android em ambientes isolados; o backup criptografado é independente e depende de configuração. O diagrama representa a arquitetura lógica do código, não uma confirmação de hospedagem, deploy ou homologação em produção.
+O desenho mostra o funcionamento lógico do aplicativo, sem afirmar que todos os serviços estão publicados ou homologados em produção.
 
 ## Estrutura do repositório
 
