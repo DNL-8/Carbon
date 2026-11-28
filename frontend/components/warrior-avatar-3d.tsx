@@ -124,7 +124,8 @@ function helmet(m: Mesh, t: Transform, art: Art | null) {
     m.box(t,[0,.01,.52],[.74,.15,.04],black,.05)
     if(f==='lens') m.orb(t,[.25,.01,.59],[.14,.12,.07],b,.15)
   }
-  if(art && f!=='halo') {
+  // The halo branch has already returned above.
+  if(art) {
     const emblem=f==='visor'||f==='mask'||f==='lens'? [.0,.15,.53] as V : [0,.28,.48] as V
     m.orb(t,emblem,[.055,.055,.035],b,art.tier>=4?.15:0)
   }
