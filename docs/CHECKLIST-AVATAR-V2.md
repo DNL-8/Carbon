@@ -71,3 +71,12 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 Os protótipos rígidos aprovados continuam como referência. O laboratório Blender é separado e não modifica o código ou ativos da main. A CI 46150418021 aprovou os quatro testes do visualizador rígido; a aprovação não se estende ao novo rig.
 
 Runner Blender 46150966375: os modelos ponderados passaram na validação estrutural; Blender 5.0.1 iniciou, mas a importação falhou por NumPy ausente no Python interno. Instalado python3-numpy da distribuição, isolado o Python do setup-python e acrescentado preflight. Teste de deformação agora exige que vértices de influência mista se movam e que parte da malha permaneça imóvel. A nova execução ainda precisa ser validada.
+
+## 7. Integração técnica do skinning no navegador
+
+- [x] Preparar clonagem do esqueleto com SkeletonUtils, evitando compartilhamento de juntas entre avatares.
+- [x] Preparar CI comparativa dos GLB rígidos e dos GLB ponderados originais, com verificação de cinco malhas skinned e ligação dos ossos à própria instância do personagem.
+- [ ] Aprovar os testes de catálogo, conjuntos, câmera e animações nos modelos ponderados.
+- [ ] Homologar separadamente os GLB reexportados pelo Blender após o roundtrip aprovado (não são os mesmos arquivos testados por esta matriz).
+
+As duas variantes são somente experimentais. O pipeline de Blender e a matriz de navegador são independentes; nenhum resultado publica modelos automaticamente em produção.

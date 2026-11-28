@@ -5,6 +5,7 @@ import { Alert, Button, ButtonGroup } from '@mui/material'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js'
 import { getEquipmentArt } from '../lib/equipment-art'
 import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
 import type { AvatarGear } from './warrior-avatar'
@@ -115,7 +116,20 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
 }) {
   const gltf=useLoader(GLTFLoader,'/assets/avatar-v2/'+style+'.glb')
   const {camera,invalidate,gl}=useThree()
-  const scene=useMemo(()=>gltf.scene.clone(true),[gltf.scene])
+  const scene=useMemo(()=>cloneSkeleton(gltf.scene),[gltf.scene])
+  useEffect(()=>{
+    const descendants=new Set<THREE.Object3D>()
+    scene.traverse(node=>descendants.add(node))
+    let skins=0
+    scene.traverse(node=>{
+      if(node instanceof THREE.SkinnedMesh){
+        skins++
+        if(!node.skeleton.bones.every(bone=>descendants.has(bone)))throw new Error('Esqueleto GLB fora da instância do avatar')
+      }
+    })
+    gl.domElement.dataset.glbSkins=String(skins)
+    invalidate()
+  },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
   const appearance=preferences[style]
   useEffect(()=>{

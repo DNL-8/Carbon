@@ -2,6 +2,10 @@ name: Avatar V2 GLB lab
 on:
   push:
     branches: ['feature/avatar-v2-glb']
+    paths:
+      - 'frontend/**'
+      - 'src/**'
+      - '.github/workflows/avatar-v2-lab.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,6 +13,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        rig: [rigid, skinned]
+    env:
+      AVATAR_LAB_RIG: ${{ matrix.rig }}
     defaults:
       run:
         working-directory: frontend
@@ -31,6 +41,10 @@ jobs:
       - run: python -m pip install numpy==2.3.5 trimesh==4.11.1 scipy networkx==3.5
       - run: python experiments/avatar-v2/generate_models.py
       - run: python experiments/avatar-v2/validate_models.py
+      - if: matrix.rig == 'skinned'
+        run: |
+          python experiments/avatar-v2/skin_models.py
+          python experiments/avatar-v2/validate_skin.py skinned
       - run: node experiments/avatar-v2/prepare.mjs
       - run: bun install --frozen-lockfile
       - run: bun run lint
@@ -50,14 +64,14 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: avatar-v2-browser-results
+          name: avatar-v2-browser-results-${{ matrix.rig }}
           path: frontend/test-results
           if-no-files-found: ignore
           retention-days: 7
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: avatar-v2-prepared
+          name: avatar-v2-prepared-${{ matrix.rig }}
           path: |
             frontend/package.json
             frontend/bun.lock

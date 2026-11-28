@@ -14,6 +14,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
   for(const style of ['murim','cacador']){
     await character.selectOption(style)
     await expect(canvas).toHaveAttribute('data-glb-character',style)
+    await expect(canvas).toHaveAttribute('data-glb-skins',process.env.AVATAR_LAB_RIG==='skinned'?'5':'0')
     for(const item of EQUIPMENT_CATALOG){
       await piece.selectOption(item.id)
       await expect(canvas).toHaveAttribute('data-glb-equipment',item.id)
