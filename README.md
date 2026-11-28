@@ -109,7 +109,7 @@ Carbon/
 
 ## Hospedagem
 
-A implantação opcional em Google Cloud Run usa dois serviços separados, API privada por IAM e o banco Neon existente. Veja [guia Cloud Run](docs/cloud-run.md). A hospedagem Vercel permanece compatível.
+A hospedagem utiliza Vercel (Next.js e FastAPI) e PostgreSQL Neon.
 
 ## Como rodar localmente
 

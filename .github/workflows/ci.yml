@@ -118,13 +118,6 @@ jobs:
           bun run build
           bunx playwright install --with-deps chromium
           bun run test
-      - name: Validar contêiner web para Cloud Run
-        working-directory: .
-        run: |
-          docker build -t murim-web:ci .
-          docker run -d --name murim-web-ci -p 127.0.0.1:38201:8080 murim-web:ci
-          trap 'docker rm -f murim-web-ci >/dev/null' EXIT
-          curl --fail --silent --show-error --max-time 3 --retry 15 --retry-all-errors --retry-delay 1 http://127.0.0.1:38201/ >/dev/null
       - name: Guardar capturas de homologação web
         if: always()
         uses: actions/upload-artifact@v7
@@ -195,31 +188,3 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  deploy:
-    name: Google Cloud Run · publicação
-    needs: [application, android]
-    if: ${{ github.repository == 'DNL-8/Carbon' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.GCP_DEPLOY_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-      GCP_REGION: southamerica-east1
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - name: Construir imagens sem credenciais
-        run: |
-          docker build -t carbon-api:ci backend
-          docker build -t carbon-web:ci .
-      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-      - name: Publicar e verificar
-        run: bash scripts/cloud-run-release.sh

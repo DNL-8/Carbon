@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server'
-import { upstream, upstreamHeaders } from '../../../lib/upstream'
+import { upstream } from '../../../lib/upstream'
 
 const business: Record<string, readonly string[]> = {
   GET: [
@@ -42,7 +42,7 @@ async function proxy(request: NextRequest, context: RouteContext<'/api/[...path]
     const withBody = request.method !== 'GET' && request.body !== null
     const timeout = ['strava/sync', 'oracle/ask'].includes(route) ? 35_000 : 20_000
     const response = await fetch(url, {
-      method: request.method, headers: await upstreamHeaders(url, headers), cache: 'no-store', redirect: 'manual',
+      method: request.method, headers, cache: 'no-store', redirect: 'manual',
       signal: AbortSignal.timeout(timeout),
       ...(withBody ? { body: request.body, duplex: 'half' } : {}),
     } as RequestInit)
