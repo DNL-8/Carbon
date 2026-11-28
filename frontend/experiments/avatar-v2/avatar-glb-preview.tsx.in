@@ -1,17 +1,20 @@
 'use client'
 
-import { Component, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Alert, Button, ButtonGroup } from '@mui/material'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js'
 import { getEquipmentArt } from '../lib/equipment-art'
+import { HUNTER_RANK_TIERS, MURIM_REALM_TIERS } from '../../src/utils/progressionCurves'
 import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
 import type { AvatarGear } from './warrior-avatar'
 
 type Clip = 'idle' | 'attack' | 'victory' | 'rest' | 'guard' | 'dodge' | 'channel'
 type AnimationRequest = { clip: Clip; sequence: number }
+type Quality = 'auto'|'low'|'high'
+type ResolvedQuality = 'low'|'high'
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 const slots = ['elmo', 'armadura', 'capa', 'arma'] as const
 
@@ -69,7 +72,10 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     }
     const geometry=new THREE.BufferGeometry()
     geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setIndex(indices);geometry.computeVertexNormals()
-    return add(geometry,main)
+    const mesh=add(geometry,main)
+    mesh.name='CarbonDrape'
+    mesh.userData.restPositions=new Float32Array(points)
+    return mesh
   }
   if(slot==='elmo'){
     if(f==='halo'){ring(.17,.012,glow,0,.03,-.12);ball(.022,trim,0,.20,-.12)}
@@ -167,8 +173,8 @@ function disposeAttachment(group: THREE.Object3D) {
   for(const material of materials)material.dispose()
 }
 
-function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onContextLost}: {
-  style: 'murim'|'cacador'; preferences: AvatarPreferences; gear: AvatarGear[]; animation: AnimationRequest; paused:boolean; yaw:number; zoom:boolean; onLoaded:()=>void; onContextLost:()=>void
+function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,onLoaded,onContextLost}: {
+  style: 'murim'|'cacador'; preferences: AvatarPreferences; gear: AvatarGear[]; animation: AnimationRequest; paused:boolean; yaw:number; zoom:boolean; quality:ResolvedQuality; stage:number; onLoaded:()=>void; onContextLost:()=>void
 }) {
   const gltf=useLoader(GLTFLoader,'/assets/avatar-v2/'+style+'.glb')
   const {camera,invalidate,gl}=useThree()
@@ -193,14 +199,17 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
     invalidate()
   },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
+  const drapes=useRef<THREE.Mesh[]>([])
+  const effects=useRef<THREE.Group|null>(null)
+  const hairMotion=useRef<{node:THREE.Object3D;rotation:THREE.Quaternion}[]>([])
+  const baseMeshes=useMemo(()=>{const nodes:THREE.Mesh[]=[];scene.traverse(node=>{if(node instanceof THREE.Mesh)nodes.push(node)});return nodes},[scene])
   const appearance=preferences[style]
   const helmet=gear.find(item=>item.equipped&&item.slot==='elmo')
   const helmetArt=helmet?getEquipmentArt(helmet.id):null
   const coveredHair=Boolean(helmetArt&&['hood','helm','horn'].includes(helmetArt.family))
   useEffect(()=>{
     const clones=new Map<THREE.Material,THREE.Material>()
-    scene.traverse(node=>{
-      if(!(node instanceof THREE.Mesh))return
+    for(const node of baseMeshes){
       const clone=(m:THREE.Material)=>{
         const copy=clones.get(m)??m.clone();clones.set(m,copy)
         if(copy instanceof THREE.MeshStandardMaterial){
@@ -212,11 +221,10 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
       }
       node.userData.originalMaterial=node.material
       node.material=Array.isArray(node.material)?node.material.map(clone):clone(node.material)
-      // Hair and face are evaluated separately, including helmet coverage.
-    })
+    }
     invalidate()
-    return ()=>{scene.traverse(node=>{if(node instanceof THREE.Mesh&&node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}});for(const m of clones.values())m.dispose()}
-  },[scene,appearance,style,invalidate])
+    return ()=>{for(const node of baseMeshes){if(node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}}for(const m of clones.values())m.dispose()}
+  },[baseMeshes,appearance,style,invalidate])
   useEffect(()=>{
     const head=scene.getObjectByName('Head')
     if(!head)return
@@ -247,15 +255,17 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
         anchor.add(custom)
       }else material.dispose()
     }
+    hairMotion.current=changed.filter(entry=>/^Mesh_(Ponytail|HairLockTail)/.test(entry.node.name)).map(entry=>({node:entry.node,rotation:entry.node.quaternion.clone()}))
     gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
     gl.domElement.dataset.glbHairCovered=String(coveredHair)
     invalidate()
-    return ()=>{custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
+    return ()=>{for(const entry of hairMotion.current)entry.node.quaternion.copy(entry.rotation);hairMotion.current=[];custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
   },[scene,appearance,style,coveredHair,gl,invalidate])
   useEffect(()=>{
     const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
     const ids: string[] = []
     const designs: string[] = []
+    const capeMeshes: THREE.Mesh[] = []
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
@@ -275,6 +285,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
         if(bits.length!==5 || ![...bounds.min.toArray(),...bounds.max.toArray()].every(Number.isFinite))throw new Error('Geometria de equipamento inválida: '+selected.id)
         designs.push(slot+':'+bits)
       }
+      if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
         const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
@@ -283,10 +294,28 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
     }
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
+    drapes.current=capeMeshes
+    gl.domElement.dataset.glbDrapes=String(capeMeshes.length)
     gl.domElement.dataset.glbDesign=designs.sort().join(',')
     invalidate()
-    return ()=>{for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
+    return ()=>{drapes.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
   },[scene,gear,invalidate,gl,style])
+  useEffect(()=>{
+    const group=new THREE.Group();group.name='CarbonEnergyEffects'
+    const color=energyColor(style,appearance)
+    const material=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.28,depthWrite:false,blending:THREE.AdditiveBlending})
+    const count=quality==='low'?1:Math.min(4,1+Math.floor(stage/2))
+    for(let i=0;i<count;i++){
+      const geometry=style==='murim'?new THREE.TorusGeometry(.25+i*.055,.004,6,32):new THREE.TorusGeometry(.25+i*.055,.004,4,6)
+      const ring=new THREE.Mesh(geometry,material);ring.rotation.x=Math.PI/2;ring.position.y=.14+i*.016;group.add(ring)
+    }
+    group.visible=true;scene.add(group);effects.current=group
+    gl.domElement.dataset.glbEnergy=style==='murim'?'qi':'mana'
+    gl.domElement.dataset.glbStage=String(stage);gl.domElement.dataset.glbQuality=quality
+    gl.domElement.dataset.glbEnergyRings=String(count)
+    invalidate()
+    return ()=>{effects.current=null;group.removeFromParent();disposeAttachment(group)}
+  },[scene,style,appearance,stage,quality,gl,invalidate])
   useEffect(()=>{
     const clip=animation.clip
     const selected=gltf.animations.find(item=>item.name===clip)
@@ -305,7 +334,36 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
   useEffect(()=>{onLoaded()},[onLoaded])
   useEffect(()=>{mixer.timeScale=paused?0:1;invalidate()},[paused,mixer,invalidate])
   useEffect(()=>{const resume=()=>{if(!document.hidden)invalidate()};document.addEventListener('visibilitychange',resume);return ()=>document.removeEventListener('visibilitychange',resume)},[invalidate])
-  useFrame((_,dt)=>{if(!paused&&!document.hidden){const clip=gltf.animations.find(item=>item.name===animation.clip);const action=clip?mixer.existingAction(clip):null;if(action?.isRunning()){mixer.update(Math.min(dt,.05));gl.domElement.dataset.glbTime=String(action.time);if(action.isRunning())invalidate()}}})
+  useFrame((_,dt)=>{
+    if(paused||document.hidden)return
+    const clip=gltf.animations.find(item=>item.name===animation.clip)
+    const action=clip?mixer.existingAction(clip):null
+    if(!action?.isRunning())return
+    mixer.update(Math.min(dt,.05))
+    const time=action.time
+    const active=animation.clip==='attack'||animation.clip==='dodge'||animation.clip==='channel'||animation.clip==='victory'
+    const strength=active?.065:.018
+    // Bounded, outward-only secondary motion; zero at collar, no physics solver.
+    for(const mesh of drapes.current){
+      const position=mesh.geometry.getAttribute('position')
+      const rest=mesh.userData.restPositions as Float32Array
+      for(let i=0;i<position.count;i++){
+        const y=rest[i*3+1],weight=Math.min(1,Math.abs(y)/.65)
+        position.setZ(i,rest[i*3+2]-strength*weight*weight*(.5+.5*Math.sin(time*5+i%9*.45)))
+      }
+      position.needsUpdate=true
+      if(quality==='high')mesh.geometry.computeVertexNormals()
+    }
+    for(const entry of hairMotion.current){entry.node.quaternion.copy(entry.rotation);entry.node.rotateX(-strength*(.5+.5*Math.sin(time*5)))}
+    const group=effects.current
+    if(group){
+      const power=active?1.2+.18*Math.sin(time*8):1
+      group.scale.set(power,1,power);group.rotation.y=time*(style==='murim'?.65:1.3)
+      gl.domElement.dataset.glbEffectScale=String(power)
+    }
+    gl.domElement.dataset.glbTime=String(time)
+    if(action.isRunning())invalidate()
+  })
   return <primitive object={scene} dispose={null} />
 }
 
@@ -315,7 +373,7 @@ class PreviewBoundary extends Component<{children:ReactNode},{failed:boolean}>{
   render(){return this.state.failed?<Alert severity="warning">Prévia GLB indisponível. O avatar original permanece acima.</Alert>:this.props.children}
 }
 
-export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferences;gear:AvatarGear[]}){
+export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:AvatarPreferences;gear:AvatarGear[];rank?:string;realm?:string}){
   const [animation,setAnimation]=useState<AnimationRequest>({clip:'idle',sequence:0})
   const [paused,setPaused]=useState(false)
   const [reduced,setReduced]=useState(false)
@@ -323,16 +381,22 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
   const [zoom,setZoom]=useState(false)
   const [loaded,setLoaded]=useState<'murim'|'cacador'|null>(null)
   const [hideHelmet,setHideHelmet]=useState(false)
+  const [quality,setQuality]=useState<Quality>('auto')
+  const [smallScreen,setSmallScreen]=useState(false)
   const [contextFailed,setContextFailed]=useState(false)
   const loseContext=useCallback(()=>{setContextFailed(true);setLoaded(null)},[])
   const style=resolveAvatarStyle(preferences.style,gear)
   const markLoaded=useCallback(()=>setLoaded(style),[style])
+  const stage=Math.max(0,style==='murim'?MURIM_REALM_TIERS.findIndex(tier=>tier.name===realm||tier.id===realm):HUNTER_RANK_TIERS.findIndex(tier=>tier.rank===rank))
+  const resolvedQuality:ResolvedQuality=quality==='auto'?(smallScreen||reduced?'low':'high'):quality
   const visibleGear=useMemo(()=>hideHelmet?gear.filter(item=>item.slot!=='elmo'):gear,[gear,hideHelmet])
   useEffect(()=>{
     const media=window.matchMedia('(prefers-reduced-motion: reduce)')
     const sync=()=>setReduced(media.matches)
-    sync();media.addEventListener('change',sync)
-    return ()=>media.removeEventListener('change',sync)
+    const viewport=window.matchMedia('(max-width: 767px)')
+    const syncViewport=()=>setSmallScreen(viewport.matches)
+    sync();syncViewport();media.addEventListener('change',sync);viewport.addEventListener('change',syncViewport)
+    return ()=>{media.removeEventListener('change',sync);viewport.removeEventListener('change',syncViewport)}
   },[])
   const play=(next:Clip)=>setAnimation(value=>({clip:next,sequence:value.sequence+1}))
   return <section aria-label="Laboratório Avatar V2" className="surface inset" style={{width:'100%',padding:12}}>
@@ -340,18 +404,20 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
     <p className="muted">Modelos articulados e encaixes protótipos. O avatar original continua oficial; não altera inventário.</p>
     <div style={{height:320,width:'100%',background:'#111113',borderRadius:8,overflow:'hidden'}}>
       {contextFailed?<Alert severity="warning" action={<Button color="inherit" onClick={()=>setContextFailed(false)}>Tentar novamente</Button>}>Contexto 3D indisponível. Use o avatar original.</Alert>:<PreviewBoundary key={style}>
-        <Canvas frameloop="demand" dpr={[1,1.5]} camera={{position:[0,1.02,3.85],fov:34,near:.01,far:20}} fallback={<p role="status">WebGL indisponível. Use o avatar original.</p>}>
+        <Canvas frameloop="demand" dpr={resolvedQuality==='low'?1:[1,1.5]} camera={{position:[0,1.02,3.85],fov:34,near:.01,far:20}} fallback={<p role="status">WebGL indisponível. Use o avatar original.</p>}>
           <color attach="background" args={['#111113']}/>
-          <ambientLight intensity={1.15}/>
+          <ambientLight intensity={1.10}/>
+          <hemisphereLight args={['#dbeafe','#211713',.65]}/>
           <directionalLight position={[3,5,4]} intensity={2.1}/>
           <directionalLight position={[-3,2,-3]} intensity={1.4} color={style==='murim'?'#fb923c':'#60a5fa'}/>
           <Suspense fallback={null}>
-            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={markLoaded} onContextLost={loseContext}/>
+            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} quality={resolvedQuality} stage={stage} onLoaded={markLoaded} onContextLost={loseContext}/>
           </Suspense>
         </Canvas>
       </PreviewBoundary>}
     </div>
     <p role="status">{contextFailed?'Prévia indisponível':loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
+    <label style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>Qualidade gráfica <select aria-label="Qualidade gráfica" value={quality} onChange={event=>{const value=event.target.value;setQuality(value==='low'||value==='high'?value:'auto')}} style={{minHeight:44,color:'inherit',background:'#18181b'}}><option value="auto">Automática</option><option value="low">Econômica</option><option value="high">Detalhada</option></select></label>
     <div className="row" style={{flexWrap:'wrap',gap:8}} aria-label="Controles do avatar" role="group">
       <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental" sx={{flexWrap:"wrap","& .MuiButton-root":{minHeight:44}}}>
         <Button aria-label="Girar GLB à esquerda" onClick={()=>setYaw(v=>v-Math.PI/4)}>Esquerda</Button>
