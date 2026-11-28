@@ -84,7 +84,7 @@ test('geometria 3D: 104 itens permanecem finitos e enquadrados em várias poses'
 
 // Full sets exercise the shared joints together rather than just one piece at a time.
 test('geometria 3D: dez conjuntos completos em rotação e ataque', () => {
-  const sets = new Set(EQUIPMENT_CATALOG.map(item => item.setId).filter(Boolean))
+  const sets = new Set(EQUIPMENT_CATALOG.map(item => item.setId).filter(id => id !== null))
   expect(sets.size).toBe(10)
   for (const id of sets) {
     const pieces = new Map(EQUIPMENT_CATALOG.filter(item => item.setId === id).map(item => [item.slot, item]))
