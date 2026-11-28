@@ -38,6 +38,17 @@ def roughness_png(name):
     return (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',size,size,8,2,0,0,0))
             +chunk(b'IDAT',zlib.compress(scanlines,9))+chunk(b'IEND',b''))
 
+def eased_keys(times,angles,subdivisions=4):
+    # Smoothstep sampling retains original key poses and duration, including loop endpoints.
+    sampled_t=[];sampled_a=[]
+    for i in range(len(times)-1):
+        for step in range(subdivisions):
+            u=step/subdivisions
+            ease=u*u*(3-2*u)
+            sampled_t.append(times[i]+(times[i+1]-times[i])*u)
+            sampled_a.append(angles[i]+(angles[i+1]-angles[i])*ease)
+    return sampled_t+[times[-1]],sampled_a+[angles[-1]]
+
 class Model:
     def __init__(self,name):
         self.name=name;self.buf=bytearray();self.views=[];self.acc=[];self.meshes=[];self.nodes=[];self.mats=[];self.anim=[];self.images=[];self.textures=[]
@@ -81,6 +92,7 @@ class Model:
     def animation(self,name,channels):
         a={'name':name,'samplers':[],'channels':[]}
         for node,axis,angles,times in channels:
+            times,angles=eased_keys(times,angles)
             inp=self.data(np.array(times,dtype='<f4'),'SCALAR',5126,bounds=True);out=self.data(np.array([quat(axis,angle) for angle in angles],dtype='<f4'),'VEC4',5126)
             a['samplers'].append({'input':inp,'output':out,'interpolation':'LINEAR'});a['channels'].append({'sampler':len(a['samplers'])-1,'target':{'node':node,'path':'rotation'}})
         self.anim.append(a)

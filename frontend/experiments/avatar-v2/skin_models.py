@@ -7,7 +7,7 @@ import math
 import pathlib
 import struct
 import numpy as np
-from generate_models import surface_uv
+from generate_models import surface_uv, eased_keys
 
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "skinned"
@@ -148,8 +148,9 @@ def upgrade(name):
         ]:
             target=names[joint]
             assert not any(c["target"]["node"]==target and c["target"]["path"]=="rotation" for c in anim["channels"])
-            quats=np.array([[*(np.array(axis)*math.sin(a/2)),math.cos(a/2)] for a in values],dtype="<f4")
-            ti=acc(np.array(times,dtype="<f4"),"SCALAR",5126,bounds=True)
+            sampled_t,sampled_a=eased_keys(times,values)
+            quats=np.array([[*(np.array(axis)*math.sin(a/2)),math.cos(a/2)] for a in sampled_a],dtype="<f4")
+            ti=acc(np.array(sampled_t,dtype="<f4"),"SCALAR",5126,bounds=True)
             qi=acc(quats,"VEC4",5126)
             anim["samplers"].append({"input":ti,"output":qi,"interpolation":"LINEAR"})
             anim["channels"].append({"sampler":len(anim["samplers"])-1,"target":{"node":target,"path":"rotation"}})
