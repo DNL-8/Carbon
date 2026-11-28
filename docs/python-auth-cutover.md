@@ -5,3 +5,7 @@ FastAPI/Authlib é a única implementação. Configure em segredo APP_ORIGIN (HT
 Configure a URI de callback exata APP_ORIGIN + /api/auth/callback/google no Google Cloud. O Android usa o mesmo contrato de ID token e cookie; o nome histórico do cookie foi preservado por compatibilidade, não existe serviço de autenticação externo TypeScript. Sessões antigas não são aceitas. O token aleatório é armazenado em hash SHA-256, expira em sete dias e pode ser revogado. OAuth usa state, PKCE e nonce; escritas exigem a origem pública exata.
 
 Não há cadastro público, login por senha ou modo visitante. Antes de habilitar uso real, configure as identidades autorizadas, valide login web e Android, logout, isolamento de dados, Gemini e Health Connect físico. Configure MURIM_FASTAPI_ORIGIN no frontend.
+
+## Autorização do Arsenal V2
+
+As rotas de leitura exigem sessão válida e as escritas exigem a autorização de origem já adotada. Aquisição e equipamento são validados para a identidade autenticada pelo FastAPI; nenhum ID de proprietário fornecido pelo cliente controla o inventário. O modo de aquisição, preço e requisito vêm do catálogo do servidor. Teste resgate e compra com as duas contas sintéticas conforme [homologação](homologacao.md). A expansão não altera o protocolo Google OAuth nem os cookies de sessão.

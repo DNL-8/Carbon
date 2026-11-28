@@ -40,3 +40,7 @@ Timestamps sem fuso exigem confirmação da interpretação antiga. Campos obrig
 6. Trocar a configuração de destino apenas depois da homologação e autorização de publicação. Não apagar as tabelas antigas neste procedimento.
 
 A inspeção do catálogo confirmou que o projeto Neon murim possui PostgreSQL 18 e schema legado nas branches consultadas. Não foi estabelecido que ele é o banco usado pelo deployment atual. Nenhum dado real foi modificado.
+
+## Compatibilidade do Arsenal V2
+
+O catálogo atual contém 104 IDs, incluindo os 52 anteriores à expansão. Valide IDs históricos com o mapa de migração de `backend/app/equipment.py` e `src/utils/rpgLogic.ts` antes de importar posse ou conjuntos. Preserve os saldos originais e registros de compra; não recalcule gastos históricos com os preços novos nem resgate itens em nome do usuário durante uma migração. Recompensas de marcos são elegíveis a partir do progresso reconhecido pelo servidor e não duplicam itens possuídos. A expansão não exige uma revisão Alembic específica; o procedimento legado continua não executado. Consulte [Arsenal V2](plano-arsenal.md).

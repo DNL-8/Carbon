@@ -83,6 +83,15 @@ Execute cada comando em seu diretório. As versões abaixo seguem a CI e os READ
 - Busque conformidade WCAG AA: contraste adequado, foco visível, navegação por teclado, rótulos acessíveis, semântica, estados não dependentes apenas de cor e respeito a movimento reduzido.
 - Valide desktop e mobile, reflow, áreas de toque, textos longos e estados de carregamento, vazio, erro e sucesso. Mantenha consistência das unidades e cores nas métricas de saúde.
 
+### Arsenal e progressão RPG
+
+- Preserve os 104 IDs atuais, os dez IDs dos conjuntos, os quatro slots e a propriedade individual dos inventários; a expansão V2 mantém os 52 IDs anteriores. Evite renomear IDs para mudar nomes de apresentação.
+- Mantenha o catálogo TypeScript em `src/utils/equipmentCatalog.ts` e o JSON FastAPI em `backend/app/data/equipment.json` equivalentes. Rode a paridade e as verificações visuais/econômicas descritas em [docs/ci.md](docs/ci.md).
+- O backend define requisito, modalidade e preço. `buy` é a aquisição (compra ou resgate), `equip` exige posse. Preserve o bloqueio de progresso por usuário, a idempotência, o débito único de compras e o resgate sem débito. Não equipar automaticamente nem reemitir recompensas já possuídas.
+- Preserve 15 recompensas (sete ranks e oito reinos), 87 compras e dois iniciais. Mudanças de preços ou bônus exigem revisão explícita de progressão/economia; bônus de quatro peças substitui o de duas.
+- Reutilize a biblioteca de arte em `frontend/lib/equipment-art.ts` nos cartões e no mascote. Preserve foco, pausa e movimento reduzido. Valide inventário completo, comparação, filtros, resgate retroativo, concorrência e isolamento entre contas.
+- Consulte [docs/plano-arsenal.md](docs/plano-arsenal.md). Gamificação e simulações não são metas de saúde nem motivo para aumentar carga de treino.
+
 ## 7. Skills no Codex local
 
 Verifique a lista de skills disponíveis na sessão e os diretórios reais do ambiente, como `$HOME/.agents/skills/` e `.agents/skills/` no repositório, quando existentes. Considere caminhos adicionais configurados no Codex, sem presumir instalações. Leia o `SKILL.md` da skill selecionada e somente as referências necessárias. Não confunda catálogo de design, CLI e skill instalada.

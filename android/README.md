@@ -39,3 +39,7 @@ O build e os testes unitários verificam o APK e o contrato HTTP. A homologaçã
 ## Testes instrumentados
 
 O job Android executa os testes de interface Compose em emulador API 35 com dados sintéticos e publica capturas e relatórios, além do APK debug de CI. O APK de CI aponta para `https://murim-ci.example.test` e serve somente para testes de interface; para login/sincronização compile com a origem HTTPS real autorizada. O teste não concede permissões reais nem simula uma homologação completa do Health Connect. Em um emulador local iniciado, execute `./gradlew :app:connectedDebugAndroidTest` (Windows: `.\\gradlew.bat :app:connectedDebugAndroidTest`).
+
+## Compatibilidade com Arsenal V2
+
+A expansão de equipamentos, os filtros e o mascote pertencem à interface web e às regras de negócio do FastAPI; não representam novas telas de Arsenal no APK nativo. O fluxo de autenticação, Health Connect e sincronização descrito acima permanece separado. Consulte [Arsenal V2](../docs/plano-arsenal.md) e [homologação](../docs/homologacao.md) para o status do app completo.

@@ -45,7 +45,18 @@ Seguir [python-auth-cutover.md](python-auth-cutover.md).
 - [ ] Reimportar uma atividade corrigida, conferir dados atualizados e XP inalterado. Testar permissões parciais, revogação, interrupção de rede, expiração do checkpoint e troca de conta. Testar WorkManager em segundo plano; o intervalo de seis horas não garante execução exata.
 - [ ] Verificar limitações conhecidas: alterações fora da janela de 30 dias e exclusões individuais ainda não são reconciliadas automaticamente; calorias históricas antigas podem corresponder à energia total. Nenhum dado histórico deve ser apagado durante a homologação.
 
-## 6. Critério de aceite
+## 6. Arsenal V2
+
+- [ ] Confirmar 104 peças (26 por slot), dez conjuntos, 51 itens de cada trilha e dois iniciais; comparar inventário e conjuntos existentes, sem remover IDs antigos.
+- [ ] Conferir resgate de marcos já atingidos (15 no total), sem duplicação, cobrança ou equipamento automático; testar requisito não atingido e saldo insuficiente em compra.
+- [ ] Testar requisições simultâneas e repetidas em banco descartável; confirmar isolamento, débito único de compras e preservação do equipamento atual.
+- [ ] Conferir os bônus de 2 e 4 peças, filtros por trilha/slot/raridade/conjunto/posse, ordenação, paginação, busca sem acentos e comparação de prévia.
+- [ ] Inspecionar as miniaturas e os encaixes das 33 famílias no mascote, incluindo armas longas, asas, auréolas e combinações dos quatro slots; testar golpe, pausa, teclado, foco, movimento reduzido e larguras de 360/390/1280 px.
+- [ ] Rodar os scripts de [CI](ci.md) e revisar a [simulação econômica](plano-arsenal.md); não transformar o ritmo simulado em obrigação física.
+
+Registro de referência: `cbee77b` publicado na main; [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta em 28/11/2026. Homologação manual não confirmada.
+
+## 7. Critério de aceite
 
 Registrar data, SHA, ambiente (sem segredos), plataforma, resultado e pendências de cada cenário. Anexar apenas evidências sintéticas e sem dados pessoais. Não declarar produção homologada enquanto houver cenários reais não verificados, divergência de versão, falha de build, migração incompatível ou erro de isolamento.
 

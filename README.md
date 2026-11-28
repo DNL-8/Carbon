@@ -12,7 +12,7 @@ Desenvolvido para duas pessoas, com foco em simplicidade, desempenho, segurança
 | --- | --- |
 | Treinos | Catálogo, treinos personalizados, séries, cargas, repetições, cronômetro de descanso e histórico. |
 | Progressão RPG | XP, Qi, níveis, atributos, batalhas contra chefes, missões, votos e conquistas. |
-| Arsenal | Equipamentos, moedas, conjuntos e extrato de recompensas. |
+| Arsenal | 104 equipamentos, dez conjuntos especializados, 15 recompensas de marco, 87 compras, dois itens iniciais, prévia animada e extrato de compras. |
 | Saúde | Atividades, passos, sono, frequência cardíaca, calorias, peso, IMC e indicadores de carga e recuperação. |
 | Relatórios | Gráficos MUI X Charts de evolução do peso e tendência de atividades, filtros por período e fonte e valores textuais acessíveis. |
 | Importação | Apple Health, Samsung Health, GPX e CSV; integração OAuth com Strava. |
@@ -20,6 +20,16 @@ Desenvolvido para duas pessoas, com foco em simplicidade, desempenho, segurança
 | Oráculo | Assistente Gemini com consentimento para compartilhamento de resumo de saúde e treino. |
 
 As métricas de recuperação e as sugestões do Oráculo são informativas, não constituem diagnóstico ou recomendação médica individual.
+
+## Arsenal V2
+
+- Quatro slots (26 peças por slot): elmo, armadura, capa e arma. São 51 peças de Caçador, 51 de Murim e dois itens iniciais.
+- Resgate gratuito após atingir um marco, inclusive para progresso anterior; compra com moedas e equipar são operações distintas. Os 52 IDs anteriores e os dez IDs de conjuntos foram preservados.
+- Bônus especializados em XP, moedas ou dano contra chefes; bônus de conjunto de 2 peças (+4%) ou 4 peças (+10%, substitui o de 2).
+- Catálogo com busca sem acentos, filtros, ordenação, 24 peças por página e comparação da prévia com o equipamento ativo.
+- Mascote SVG interativo com 33 famílias visuais, miniaturas, animação de golpe e pausa. A coleção completa é opcional; não exige uma rotina específica de treino.
+
+Consulte [Arsenal — catálogo, regras e economia](docs/plano-arsenal.md).
 
 ## Stack tecnológica
 
@@ -144,7 +154,7 @@ Nunca versione segredos, tokens, IDs de contas autorizadas ou dados pessoais de 
 | Diretório | Verificações |
 | --- | --- |
 | backend/ | `uv run ruff check .` · `uv run pytest -q` |
-| frontend/ | `bun run typecheck` · `bun run build` · `bun run test` |
+| frontend/ | `bun run lint` · `bun run typecheck` · `bun run build` · `bun run test` |
 | android/ | `.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug` |
 
 Quando o contrato OpenAPI mudar, execute `bun run generate:api` em `frontend/`. Os testes de integração exigem PostgreSQL descartável em loopback, banco `murim_fastapi_test` e dados sintéticos. Consulte [CI](docs/ci.md).
@@ -153,7 +163,8 @@ O pipeline principal possui dois jobs: Aplicação (FastAPI + Next.js) e Android
 
 ## Estado e homologação
 
-- CI de referência: [commit 44c093c](https://github.com/DNL-8/Carbon/actions/runs/46039846414), aprovado nos dois jobs.
+- Arsenal V2 publicado na main no commit [cbee77b](https://github.com/DNL-8/Carbon/commit/cbee77bf5ea24532ccc445bcd68c76aee034e60e). Estado consultado em 28/11/2026: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Acompanhe o [pipeline atual](https://github.com/DNL-8/Carbon/actions); esta anotação é histórica.
+- Referência anterior: [commit 44c093c](https://github.com/DNL-8/Carbon/actions/runs/46039846414), aprovado nos dois jobs antes da expansão.
 - Google, Gemini e Strava são simulados nos testes automatizados.
 - Homologação com provedores reais, Health Connect em aparelho físico, restauração de backup e compatibilidade do banco de destino ainda precisam ser confirmadas.
 - Não há confirmação de que um deployment de produção executa esta versão da stack. Valide o commit e o ambiente antes de utilizar o aplicativo com dados reais.
@@ -171,3 +182,6 @@ O pipeline principal possui dois jobs: Aplicação (FastAPI + Next.js) e Android
 | [PostgreSQL / Neon](docs/neon-postgresql.md) | Compatibilidade, Alembic e backup |
 | [CI](docs/ci.md) | Pipeline de validação |
 | [Homologação](docs/homologacao.md) | Roteiro de aceite e testes reais |
+| [Arsenal V2](docs/plano-arsenal.md) | Catálogo, regras, arte, API e simulação econômica |
+| [Auditoria](docs/auditoria.md) | Alterações e limitações conhecidas |
+| [Migração legada](docs/migracao-legado.md) | Pré-voo e preservação de dados |

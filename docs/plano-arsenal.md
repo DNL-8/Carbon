@@ -1,19 +1,20 @@
-# Itens do Arsenal do Carbon
+# Arsenal V2 — catálogo, progressão e implementação
 
-Planejar a melhoria dos itens do Arsenal do Carbon com inspiração em *Logando no Murim*, usando a premissa de um caçador que entra num mundo de artes marciais como referência temática. [Edição oficial na Tapas](https://tapas.io/series/log-in-murim)
+A expansão dos itens do Arsenal do Carbon foi implementada na branch main com inspiração em *Logando no Murim*, usando a premissa de um caçador que entra num mundo de artes marciais como referência temática. [Edição oficial na Tapas](https://tapas.io/series/log-in-murim)
 
-## Em escopo
+## Escopo entregue
 
-- Revisar as 104 peças na primeira versão, com propostas originais para o catálogo e para o mascote no Figma.
-- Revisar a progressão do equipamento, incluindo bônus, preços e requisitos de desbloqueio.
+- Expansão de 52 para 104 peças, 26 em cada slot, preservando os IDs antigos e os dez conjuntos.
+- Progressão, bônus, preços, resgate, prévia, catálogo e encaixes SVG do mascote.
+- Commit funcional publicado: [cbee77b](https://github.com/DNL-8/Carbon/commit/cbee77bf5ea24532ccc445bcd68c76aee034e60e). A validação completa segue [CI](ci.md) e [homologação](homologacao.md).
 
 ## O que existe hoje
 
 O catálogo expandido tem 104 peças, quatro slots e dez conjuntos. O Arsenal já permite visualizar uma troca no mascote e calcular os bônus antes de equipar. Preços, requisitos e bônus afetam compras e recompensas. Preservar os IDs mantém inventários e conjuntos salvos reconhecíveis, e mudanças no catálogo devem passar pela verificação de paridade entre TypeScript e FastAPI.
 
-## Primeira versão
+## Referência visual
 
-A primeira versão cobre as 104 peças e as relações de progressão entre os conjuntos. O Figma deve mostrar como as peças mudam de silhueta no mascote e como o catálogo comunica custo, requisito e benefício.
+[Arquivo Figma de conceitos V1/V2](https://www.figma.com/design/bV9gn518ngX5MZiSXepmak) e [expansão de 52 peças](https://www.figma.com/design/bV9gn518ngX5MZiSXepmak?node-id=3-314). Os conceitos são referências vetoriais; não são capturas da interface em execução.
 
 ## Trilhas de desbloqueio
 
@@ -21,7 +22,7 @@ As duas trilhas são distintas. Equipamentos de Caçador exigem o rank da trilha
 
 ## Aquisição
 
-Marcos selecionados de rank ou cultivo entregam peças como recompensa. As demais peças seguem disponíveis para compra com moedas após o desbloqueio. São 15 recompensas, 87 compras e dois itens iniciais. O contrato de aquisição existente (`buy`) é reutilizado; o servidor determina o modo pelo catálogo, e a interface distingue resgatar de comprar. Nenhuma moeda é debitada em resgates. O inventário usa IDs por jogador. O servidor deve validar a elegibilidade e garantir uma única entrega por item, inclusive se houver repetição ou duas solicitações ao mesmo tempo.
+Marcos selecionados de rank ou cultivo entregam peças como recompensa. As demais peças seguem disponíveis para compra com moedas após o desbloqueio. São 15 recompensas, 87 compras e dois itens iniciais. O contrato de aquisição existente (`buy`) é reutilizado; o servidor determina o modo pelo catálogo, e a interface distingue resgatar de comprar. Nenhuma moeda é debitada em resgates. O inventário usa IDs por jogador. O servidor valida a elegibilidade e serializa a aquisição por proprietário com bloqueio de progresso; a repetição retorna o ID já possuído. Os testes de concorrência verificam o comportamento com duas solicitações.
 
 O progresso já atingido na data da atualização conta para as recompensas. Uma conta que já possui a peça conserva seu item e não recebe uma duplicata.
 
@@ -49,15 +50,30 @@ O jogador resgata a recompensa no Arsenal. A ação aparece para uma peça eleg�
 
 ## Balanceamento
 
-Os conjuntos serão especializados em XP, moedas ou dano contra chefes. A revisão deve manter escolhas úteis entre conjuntos, evitar um conjunto que domine os três objetivos e calibrar o ritmo de aquisição para a rotina normal, com espaço para descanso e recuperação.
+Os conjuntos são especializados em XP, moedas ou dano contra chefes. O bônus do conjunto é +4% com duas peças e +10% com quatro peças (substitui, não acumula com o anterior), além dos bônus individuais. A pontuação de poder recebe 18 ou 45 pontos pela sinergia, respectivamente.
+
+| Conjunto | ID preservado | Especialidade |
+| --- | --- | --- |
+| Viajante | `viajante` | XP |
+| Pátio de Jade | `familia_jin` | XP |
+| Vanguarda | `associacao_cacadores` | Moedas |
+| Guarda de Aço | `guarda_aco` | Chefes |
+| Rota Âmbar | `manto_mercador` | Moedas |
+| Arquivo Astral | `sabio_abissal` | XP |
+| Presa Rubra | `presa_carmesim` | Chefes |
+| Forja Solar | `seita_rei_fogo` | Chefes |
+| Sentinela do Eclipse | `monarca_eternidade` | Moedas |
+| Horizonte de Jade | `espada_invisivel` | XP |
+
+Preços por estágio (moedas): 25, 90, 160, 260, 400, 600, 850, 1.100; recompensas e itens iniciais custam zero. O catálogo é a fonte de verdade para valores individuais.
 
 ## Direção visual
 
-As 104 peças fazem parte de famílias visuais com variantes. Cada família reaproveita encaixes e animações nos quatro slots do mascote. As variantes usam silhueta, materiais e acabamentos para diferenciar as peças, com arte original inspirada em caçadores e artes marciais. O Figma deve mostrar as famílias, suas variantes e exemplos de equipamento em conjunto no mascote.
+As 104 peças fazem parte de famílias visuais com variantes. Cada família reaproveita encaixes e animações nos quatro slots do mascote. As variantes usam silhueta, materiais e acabamentos para diferenciar as peças, com arte original inspirada em caçadores e artes marciais. O Figma documenta estudos de famílias, variantes e exemplos equipados; o código contém a implementação SVG.
 
-## Questões em aberto
+## Estado e pendências
 
-Nenhuma decisão de escopo em aberto. Os marcos e preços foram definidos; a simulação econômica e os testes completos ainda são necessários.
+Implementação publicada na main. Em 28/11/2026: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Validação visual em navegador, homologação real e confirmação do deployment ainda pendentes.
 
 
 ### Biblioteca visual V2
@@ -79,4 +95,17 @@ Base: sessões completas com 120 ou 220 XP base, moedas calculadas por 28% do XP
 | 4 | 220 | 1952 | 255 | 1 |
 | 5 | 220 | 2400 | 207 | 1 |
 
-Coleção completa: 87 compras por 29.335 moedas, mais 15 resgates e 2 iniciais. A coleção completa é opcional; não representa objetivo de treinamento. O modelo testa acessibilidade de alternativas, não prevê a velocidade real individual. A CI executa o script e testes de concorrência em PostgreSQL descartável. Validação visual e resultado da CI ainda precisam ser confirmados.
+Coleção completa: 87 compras por 29.335 moedas, mais 15 resgates e 2 iniciais. A coleção completa é opcional; não representa objetivo de treinamento. O modelo testa acessibilidade de alternativas, não prevê a velocidade real individual. A CI executa o script e testes de concorrência em PostgreSQL descartável. A simulação foi executada e aprovada na CI inicial; não substitui homologação visual, testes reais ou validação de toda a coleção em uso.
+
+## Mapa técnico
+
+| Área | Arquivo |
+| --- | --- |
+| Catálogo web | `src/utils/equipmentCatalog.ts` |
+| Catálogo API | `backend/app/data/equipment.json` |
+| Regras | `src/utils/rpgLogic.ts`, `backend/app/equipment.py`, `backend/app/arsenal.py` |
+| Interface | `frontend/components/arsenal.tsx`, `frontend/lib/rpg-api.ts` |
+| Arte | `frontend/lib/equipment-art.ts`, `frontend/components/equipment-art.tsx`, `frontend/components/avatar-equipment-layer.tsx`, `frontend/components/warrior-avatar.tsx` |
+| Testes | `scripts/check-fastapi-equipment.mjs`, `scripts/check-equipment-art.mjs`, `scripts/check-arsenal-economy.mjs`, `backend/tests/test_arsenal_postgres.py`, `backend/tests/test_equipment.py`, `frontend/tests/flow.spec.ts` |
+
+O contrato HTTP de aquisição permanece `POST /api/arsenal` com `action: "buy"` ou `"equip"`. O campo `acquisition` diferencia `starter`, `reward` e `purchase`. Nenhum novo endpoint de resgate, serviço externo ou revisão Alembic foi introduzido.

@@ -19,3 +19,10 @@ A arquitetura Next.js/FastAPI permanece inalterada. Correções de auditoria sã
 - Health Connect mantém a janela de 30 dias. Reconciliação de exclusões, alterações antigas, ausência explícita de medições e possíveis duplicatas entre todas as fontes requer etapa própria.
 
 - Relatórios não apresentam calorias GPX antigas estimadas como medições: excluem-nas dos agregados e preservam o registro original. Outros zeros legados ainda podem ser ambíguos.
+
+## Atualização Arsenal V2 — 28/11/2026
+
+- Frontend: inventário de até 104 IDs no utilitário de migração (antes 64), filtros e paginação, comparação dos bônus e miniaturas com silhuetas compartilhadas pelo mascote.
+- Backend: 15 recompensas gratuitas e 87 compras; preservação dos 52 IDs originais; aquisição por catálogo autoritativo e bloqueio de progresso por proprietário. Sem nova migração do schema.
+- Testes: verificações de paridade, arte, economia, concorrência, idempotência e fluxo de interface ampliadas. A falha B023 do Ruff no teste de concorrência foi corrigida no commit `cbee77b`, passando argumentos explicitamente ao worker. A primeira execução falhou no lint; não equivale à aprovação do aplicativo.
+- Estado da nova execução: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Não confundir CI com homologação real ou inspeção visual manual. Consulte [Arsenal V2](plano-arsenal.md) e [roteiro de homologação](homologacao.md).

@@ -42,6 +42,14 @@ Os tokens web são centralizados em `frontend/lib/theme-tokens.ts` e expostos ao
 - Tabelas podem rolar dentro de região nomeada com foco. Não criar rolagem horizontal na página.
 - Validar pelo menos 360/390 px e desktop 1280 px, textos longos e zoom. Não depender de hover no mobile.
 
+## Arsenal e mascote
+
+- Catálogo de 104 peças: miniaturas SVG locais, 33 famílias de silhueta, cores do catálogo, acabamento por raridade e marcador visual de trilha; nomes e rótulos não dependem da cor. Arte original estilizada, sem dependências externas.
+- `frontend/lib/equipment-art.ts` associa IDs às famílias e aos encaixes do mascote. `frontend/components/equipment-art.tsx`, `avatar-equipment-layer.tsx` e `warrior-avatar.tsx` reutilizam essas formas.
+- Mascote mantém respiração, olhos interativos, Qi, golpe, pausa e respeito a movimento reduzido. Prévia não altera posse ou equipamento persistido. Validar encaixes, legibilidade e sobreposição no navegador.
+- Arsenal usa filtros MUI, paginação de 24 itens, busca sem acentos e comparação em pontos percentuais (p.p.) para bônus e pontos para poder. Distinguir recompensa gratuita, bloqueio, saldo insuficiente, posse e equipamento ativo por texto; manter foco ao abrir/limpar prévia.
+- Conceitos: [Figma Arsenal V1/V2](https://www.figma.com/design/bV9gn518ngX5MZiSXepmak). São referências, não captura da implementação ou certificação de qualidade visual. Regras: [Arsenal V2](docs/plano-arsenal.md).
+
 ## Saúde e gráficos
 
 - Unidade explícita: kg, km, min, kcal, bpm, h; números no formato pt-BR e datas sem deslocamento por fuso.
