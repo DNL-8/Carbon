@@ -135,3 +135,7 @@ A CI Blender 46151888853 aprovou os dois modelos e os sete clips. A CI de navega
 - [ ] Aprovar integração e revisar capturas. Somente após sucesso o runner disponibiliza o pacote de integração com GLBs, lockfile, componentes e teste autenticado. Não há escrita automática na main.
 
 A geração e exportação Blender permanecem aprovadas para sete clips; o pipeline 46152071266 passou TypeScript e está em execução. A nova etapa não utiliza dados nem credenciais de produção.
+
+### Correção de acessibilidade dos controles de aparência
+
+CI 46152196486 e 46152071266: nas três variantes, os testes de movimento reduzido e de pausa/teclado/axe/recuperação passaram em desktop e mobile (4/6 por variante, 12/18 no total). A suíte de catálogo chegou aos campos de aparência, mas esperou pelo rótulo exato `Cabelo` até atingir 180 s. A etapa autenticada foi corretamente bloqueada. Corrigida a associação dos cinco campos com `htmlFor`/`id`, nome acessível explícito e busca por combobox; acrescentada verificação antecipada dos cinco controles e limite de 10 s por ação. Nenhum teste foi excluído. A próxima CI precisa confirmar a correção e completar a homologação.

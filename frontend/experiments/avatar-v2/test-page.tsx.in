@@ -26,7 +26,17 @@ export default function LabTestPage(){
     <label>Personagem<select value={style} onChange={e=>setStyle(e.target.value==='murim'?'murim':'cacador')}><option value="murim">Murim</option><option value="cacador">Caçador</option></select></label>
     <label>Peça<select value={id} onChange={e=>setId(e.target.value)}><option value="">Nenhuma</option>{EQUIPMENT_CATALOG.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
     <label><input type="checkbox" checked={full} onChange={e=>setFull(e.target.checked)}/>Conjunto completo</label>
-    {(Object.keys(appearanceOptions) as AppearanceKey[]).map(key=><label key={key}>{({hair:'Cabelo',face:'Rosto',skin:'Pele',hairColor:'Cor do cabelo',energy:'Energia'})[key]}<select value={appearance[style][key]} onChange={e=>{const value=Number(e.target.value);setAppearance(prev=>({...prev,[style]:{...prev[style],[key]:value}}))}}>{appearanceOptions[key].map((label,i)=><option key={label} value={i}>{label}</option>)}</select></label>)}
+    {(Object.keys(appearanceOptions) as AppearanceKey[]).map(key=>{
+      const label=({hair:'Cabelo',face:'Rosto',skin:'Pele',hairColor:'Cor do cabelo',energy:'Energia'})[key]
+      const fieldId='lab-appearance-'+key
+      return <div key={key}>
+        <label htmlFor={fieldId}>{label}</label>
+        <select id={fieldId} aria-label={label} value={appearance[style][key]} onChange={e=>{
+          const value=Number(e.target.value)
+          setAppearance(prev=>({...prev,[style]:{...prev[style],[key]:value}}))
+        }}>{appearanceOptions[key].map((option,i)=><option key={option} value={String(i)}>{option}</option>)}</select>
+      </div>
+    })}
     <AvatarGlbPreview preferences={preferences} gear={gear}/>
   </main>
 }

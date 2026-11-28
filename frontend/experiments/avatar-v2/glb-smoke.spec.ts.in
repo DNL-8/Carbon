@@ -12,6 +12,10 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
   const piece=page.getByLabel('Peça')
   const character=page.getByLabel('Personagem')
   expect(EQUIPMENT_CATALOG).toHaveLength(104)
+  // Fail immediately if an appearance control is not correctly named.
+  for(const name of ['Cabelo','Rosto','Pele','Cor do cabelo','Energia']){
+    await expect(page.getByRole('combobox',{name,exact:true})).toHaveCount(1)
+  }
   for(const style of ['murim','cacador']){
     await character.selectOption(style)
     await expect(canvas).toHaveAttribute('data-glb-character',style)
@@ -50,14 +54,14 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await expect(canvas).toHaveAttribute('data-glb-equipment','')
     await canvas.screenshot({path:info.outputPath(style+'-vestimenta-base.png')})
     for(const hair of ['0','1','2','3']){
-      await page.getByLabel('Cabelo',{exact:true}).selectOption(hair)
+      await page.getByRole('combobox',{name:'Cabelo',exact:true}).selectOption(hair)
       await expect.poll(async()=>(await canvas.getAttribute('data-glb-appearance'))?.slice(0,1)).toBe(hair)
     }
-    await page.getByLabel('Cabelo',{exact:true}).selectOption('2')
-    await page.getByLabel('Rosto',{exact:true}).selectOption('2')
-    await page.getByLabel('Pele',{exact:true}).selectOption('3')
-    await page.getByLabel('Cor do cabelo',{exact:true}).selectOption('1')
-    await page.getByLabel('Energia',{exact:true}).selectOption('4')
+    await page.getByRole('combobox',{name:'Cabelo',exact:true}).selectOption('2')
+    await page.getByRole('combobox',{name:'Rosto',exact:true}).selectOption('2')
+    await page.getByRole('combobox',{name:'Pele',exact:true}).selectOption('3')
+    await page.getByRole('combobox',{name:'Cor do cabelo',exact:true}).selectOption('1')
+    await page.getByRole('combobox',{name:'Energia',exact:true}).selectOption('4')
     await expect(canvas).toHaveAttribute('data-glb-appearance','22314')
     await canvas.screenshot({path:info.outputPath(style+'-aparencia-personalizada.png')})
     await page.getByRole('button',{name:'Girar GLB à direita'}).click()

@@ -6,6 +6,7 @@ export default defineConfig({
   timeout: 180_000,
   use: {
     baseURL: 'http://127.0.0.1:38220',
+    actionTimeout: 10000,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     launchOptions: {args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']},
