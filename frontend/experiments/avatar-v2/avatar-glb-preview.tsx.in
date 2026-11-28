@@ -175,7 +175,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
     if(!selected)return
     const action=mixer.clipAction(selected)
     action.reset().setLoop(clip==='idle'||clip==='rest'?THREE.LoopRepeat:THREE.LoopOnce,clip==='idle'||clip==='rest'?Infinity:1)
-    action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);invalidate()
+    action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);gl.domElement.dataset.glbTime='0';invalidate()
     return ()=>{action.stop();mixer.uncacheAction(selected)}
   },[gltf.animations,mixer,animation,invalidate,gl])
   useEffect(()=>{
@@ -186,7 +186,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
   useEffect(()=>{scene.rotation.y=yaw;gl.domElement.dataset.glbYaw=String(yaw);invalidate()},[scene,yaw,invalidate,gl])
   useEffect(()=>{onLoaded()},[onLoaded])
   useEffect(()=>{mixer.timeScale=paused?0:1;invalidate()},[paused,mixer,invalidate])
-  useFrame((_,dt)=>{if(!paused&&!document.hidden){mixer.update(Math.min(dt,.05));invalidate()}})
+  useEffect(()=>{const resume=()=>{if(!document.hidden)invalidate()};document.addEventListener('visibilitychange',resume);return ()=>document.removeEventListener('visibilitychange',resume)},[invalidate])
+  useFrame((_,dt)=>{if(!paused&&!document.hidden){mixer.update(Math.min(dt,.05));const action=mixer.existingAction(animation.clip);if(action)gl.domElement.dataset.glbTime=String(action.time);invalidate()}})
   return <primitive object={scene} dispose={null} />
 }
 

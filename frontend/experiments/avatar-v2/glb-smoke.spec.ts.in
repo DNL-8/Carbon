@@ -23,7 +23,12 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await page.getByLabel('Conjunto completo').check()
     for(const [set,id] of sets){
       await piece.selectOption(id)
-      await expect(canvas).toHaveAttribute('data-glb-equipment',EQUIPMENT_CATALOG.filter(item=>item.setId===set).map(item=>item.id).sort().join(','))
+      const selected=EQUIPMENT_CATALOG.find(item=>item.id===id)
+      if(!selected)throw Error('Peça de conjunto ausente: '+id)
+      const members=EQUIPMENT_CATALOG.filter(item=>item.setId===set)
+      const expected=(['elmo','armadura','capa','arma'] as const).map(slot=>selected.slot===slot?selected:members.find(item=>item.slot===slot))
+      expect(expected.every(Boolean),String(set)).toBe(true)
+      await expect(canvas).toHaveAttribute('data-glb-equipment',expected.flatMap(item=>item?[item.id]:[]).sort().join(','))
     }
     await page.getByLabel('Conjunto completo').uncheck()
     await piece.selectOption('')
@@ -42,8 +47,10 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await expect(canvas).toHaveAttribute('data-glb-equipment','')
     await page.getByRole('button',{name:'Exibir elmo'}).click()
     await expect(canvas).toHaveAttribute('data-glb-equipment',helmet.id)
+    await page.getByRole('button',{name:'Animar',exact:true}).click()
     await page.getByRole('button',{name:'Ataque',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-animation','attack')
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-time'))).toBeGreaterThan(0.1)
     const first=await canvas.getAttribute('data-glb-sequence')
     await page.getByRole('button',{name:'Ataque',exact:true}).click()
     await expect(canvas).not.toHaveAttribute('data-glb-sequence',first??'')
@@ -53,6 +60,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await expect(canvas).toHaveAttribute('data-glb-animation','rest')
     await page.getByRole('button',{name:'Repouso',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-animation','idle')
+    await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})
   }
   expect(errors).toEqual([])
