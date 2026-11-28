@@ -126,3 +126,12 @@ A CI do Blender 46151721448 aprovou a revisão das vestimentas. Os testes das tr
 ### Correção da homologação dos novos movimentos
 
 A CI Blender 46151888853 aprovou os dois modelos e os sete clips. A CI de navegador 46151888788 e 46151940801 falhou na sintaxe do fixture de teste, devido à expansão de um padrão de substituição no trecho de personalização. Reconstruído o trecho sem expressão regular e removida a duplicação, preservando os testes de equipamento, animação, teclado, acessibilidade e perda de contexto. Nova execução necessária para confirmar aprovação.
+
+## 11. Homologação autenticada antes da entrega
+
+- [x] Preparar etapa dependente da aprovação das três variantes, reutilizando o artefato Blender da mesma execução.
+- [x] Preparar teste de Arsenal autenticado com PostgreSQL descartável e identidades simuladas, verificando abertura sob demanda, troca de personagem, prévia de arma, preservação de posse/equipamento e persistência de estilo após recarregar.
+- [x] Preparar lint, TypeScript, build, auditoria de dependências e suíte web completa sem rota temporária de laboratório.
+- [ ] Aprovar integração e revisar capturas. Somente após sucesso o runner disponibiliza o pacote de integração com GLBs, lockfile, componentes e teste autenticado. Não há escrita automática na main.
+
+A geração e exportação Blender permanecem aprovadas para sete clips; o pipeline 46152071266 passou TypeScript e está em execução. A nova etapa não utiliza dados nem credenciais de produção.
