@@ -58,3 +58,8 @@ As 104 peças fazem parte de famílias visuais com variantes. Cada família reap
 ## Questões em aberto
 
 Nenhuma decisão de escopo em aberto. Os marcos e preços foram definidos; a simulação econômica e os testes completos ainda são necessários.
+
+
+### Biblioteca visual V2
+
+104 IDs mapeados para 33 silhuetas SVG originais, com cores do catálogo, detalhes por variante, marcador de trilha e acabamento de raridade. Miniaturas decorativas no catálogo e slots reutilizam a mesma biblioteca sem dependências externas. As formas de arte são estudos vetoriais implementados; validação de capturas e integração das formas ao mascote ainda pendentes.

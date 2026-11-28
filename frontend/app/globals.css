@@ -266,3 +266,8 @@ summary { cursor: pointer; color: #d4d4d8; }
 @keyframes warrior-aura { from { opacity: .9; transform: scale(.92); } to { opacity: 0; transform: scale(1.05); } }
 @keyframes warrior-strike { 25% { transform: rotate(-24deg); } 65% { transform: rotate(32deg); } }
 @media (prefers-reduced-motion: reduce) { .warrior-avatar svg * { animation: none !important; } }
+
+/* Arsenal: lightweight decorative vector illustrations. */
+.equipment-card-art { align-self: stretch; display: grid; place-items: center; min-height: 112px; border: 1px solid var(--border); border-radius: 6px; background: var(--inset); }
+.equipment-art { display: block; width: 112px; max-width: 100%; height: auto; }
+.equipment-art-compact { width: 44px; flex: none; }

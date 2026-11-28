@@ -11,6 +11,7 @@ import { calculateGearBonusSummary, EQUIPMENT_SETS } from '../../src/utils/rpgLo
 import { api, number, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar } from './warrior-avatar'
+import { EquipmentArt } from './equipment-art'
 import { idResult, itemsResult, loadoutsResult, refreshRpg, slots, type ArmoryInput } from '../lib/rpg-api'
 
 const preset = z.object({ name: z.string().trim().min(1, 'Informe o nome do conjunto.').max(60) })
@@ -135,6 +136,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
               requestAnimationFrame(() => document.getElementById('gear-filter-' + id)?.focus())
             }}>
               <span className="muted">{label}</span>
+              {item && <EquipmentArt id={item.id} compact />}
               <strong>{item?.name ?? (shownGear ? 'Sem peça' : '—')}</strong>
               {item && <span className={isPreview ? 'orange' : 'muted'}>{isPreview ? 'Prévia' : 'Equipado'}</span>}
             </ButtonBase>
@@ -209,6 +211,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
       <div className="workout-grid arsenal-cards">{filtered?.map(item => <article className={'surface workout-card' + (item.equipped ? ' fulfilled' : '')} aria-label={item.name} key={item.id}>
         <div className="arsenal-card-meta"><small className="gear-rarity mono">{slots[item.slot]} · {item.rarity}</small>
           {item.equipped && <span className="green">Equipado</span>}{item.acquisition === 'reward' && !item.owned && <Chip size="small" label="Recompensa de marco" color="success" variant="outlined" /> }</div><h2>{item.name}</h2>
+        <div className="equipment-card-art"><EquipmentArt id={item.id} /></div>
         <p>{item.description}</p><p className="orange">{item.powerBonusLabel}</p>
         {!item.owned && !item.unlock.met && <p>{item.unlock.progressText}</p>}
         <div className="row">
