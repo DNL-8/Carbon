@@ -93,6 +93,8 @@ def upgrade(name):
                 faces.extend([a,b,d,b,c,d])
         positions=np.array(pos,dtype="<f4")
         weights=np.array(weights,dtype="<f4")
+        assert np.isfinite(positions).all() and np.isfinite(weights).all()
+        assert np.all((weights>=0)&(weights<=1))
         assert np.allclose(weights.sum(axis=1),1) and np.any((weights[:,1]>0)&(weights[:,1]<1))
         primitive={"attributes":{
             "POSITION":acc(positions,"VEC3",5126,34962,True),
@@ -104,16 +106,23 @@ def upgrade(name):
         doc["meshes"].append({"name":label,"primitives":[primitive]})
         nodes.append({"name":label,"mesh":len(doc["meshes"])-1,"skin":0})
         nodes[root].setdefault("children",[]).append(len(nodes)-1)
-    def limb(label, a, b, c, radius, material):
+    def limb(label, a, b, c, radius, material, upper_fullness, lower_fullness, depth_ratio):
         A,B,C=(origin(j) for j in [a,b,c]);t1=unit(B-A);t2=unit(C-B);rings=[]
         for t,r,w in [(-.10,radius[0]*.93,0),(0,radius[0],0),(.45,radius[0]*.89,0),(.76,radius[1]*1.10,.035),(.84,radius[1]*1.06,.14),(.92,radius[1]*1.03,.30),(1,radius[1],.5),(1.08,radius[1]*.99,.70),(1.16,radius[1]*.98,.86),(1.24,radius[1]*.96,.965),(1.32,radius[1]*.94,1),(1.65,radius[2]*1.16,1),(2,radius[2],1)]:
             center=A+(B-A)*t if t<=1 else B+(C-B)*(t-1)
             tangent=t1 if t<.9 else t2 if t>1.1 else unit(t1+t2)
-            rings.append((center,tangent,r,r*.88,w))
+            # Add muscle volume between joints, not at the attachment points.
+            # Keep the original shoulder/elbow/knee/wrist/ankle envelopes and weights.
+            upper=math.sin(math.pi*t)**2 if 0<t<1 else 0
+            lower=math.sin(math.pi*(t-1))**2 if 1<t<2 else 0
+            fullness=1+upper_fullness*upper+lower_fullness*lower
+            depth=.88+(depth_ratio-.88)*max(upper,lower)
+            rings.append((center,tangent,r*fullness,r*depth*fullness,w))
         surface(label,rings,a,b,material)
+    martial=name=="murim"
     for side in ["L","R"]:
-        limb("DeformSleeve."+side,names["UpperArm."+side],names["Forearm."+side],names["Hand."+side],(.073,.056,.041),"BaseCloth")
-        limb("DeformLeg."+side,names["Thigh."+side],names["Shin."+side],names["Foot."+side],(.103,.067,.049),"DarkCloth")
+        limb("DeformSleeve."+side,names["UpperArm."+side],names["Forearm."+side],names["Hand."+side],(.073,.056,.041),"BaseCloth",.09 if martial else .14,.06 if martial else .09,.92)
+        limb("DeformLeg."+side,names["Thigh."+side],names["Shin."+side],names["Foot."+side],(.103,.067,.049),"DarkCloth",.07 if martial else .10,.12,.94)
         for piece in ["Sleeve","Forearm","Pants"]:
             nodes[names["Mesh_"+piece+"."+side]].pop("mesh",None)
     hips,spine=names["Hips"],names["Spine"]
