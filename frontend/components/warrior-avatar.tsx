@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { EQUIPMENT_CATALOG } from '../../src/utils/equipmentCatalog'
 import { getEquipmentArt } from '../lib/equipment-art'
 import { AvatarEquipmentLayer } from './avatar-equipment-layer'
+import { WarriorAvatar3D } from './warrior-avatar-3d'
 
 export type AvatarGear = { id: string; name: string; slot: string; rarity: string; equipped: boolean }
 type Props = { size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
@@ -43,6 +44,7 @@ export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory 
   }
   return <div className="warrior-avatar" data-paused={paused} data-resting={resting} data-hp={lowHp ? 'low' : 'normal'} data-victory={victory} data-attack={attack} data-level-up={Boolean(levelUp || milestone)} data-equipment={equipped.map(item => item.id).sort().join(',')}>
     <button type="button" className="warrior-avatar-trigger" aria-label="Interagir com guerreiro" onPointerMove={follow} onPointerLeave={() => setLook({ x: 0, y: 0 })} onClick={() => setPulse(value => value + 1)}>
+      <span style={{ position: 'relative', display: 'block', width: size, height: size }}>
       <svg width={size} height={size} viewBox="0 0 256 256" aria-hidden="true" focusable="false">
         <rect width="256" height="256" rx="40" fill="#111113"/>
 <circle cx="128" cy="122" r="99" fill="#241a15"/><circle cx="128" cy="122" r="90" fill="#18181b" stroke="#704522" strokeWidth="2"/>
@@ -85,6 +87,8 @@ export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory 
 <path d="m88 127 13 10h54l13-10-12 5h-56z" fill="#71717a"/><path d="M74 91h-5v17l8 4m105-21h5v17l-8 4" fill="#3f3f46" stroke="#09090b" strokeWidth="3" strokeLinejoin="round"/>
         </g>
       </svg>
+      <WarriorAvatar3D size={size} gear={gear} look={look} paused={paused} pulse={pulse} attack={attack} levelUp={levelUp} victory={victory} milestone={milestone} resting={resting} lowHp={lowHp} />
+      </span>
     </button>
     <button className="warrior-motion" type="button" aria-label="Pausar animações do guerreiro" aria-pressed={paused} onClick={() => {setPaused(value => !value); setLook({x: 0, y: 0})}}>{paused ? '▶' : 'Ⅱ'}</button>
     <span className="warrior-sr" role="status">{pulse > 0 ? 'Energia Qi ativada.' : ''}{lowHp ? ' HP baixo.' : ''}{victory ? ' Chefe derrotado.' : ''}{levelUp > 0 || milestone ? ' Novo nível alcançado.' : ''}</span>
