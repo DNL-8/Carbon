@@ -142,14 +142,14 @@ def test_concurrent_reward_and_purchase():
         for item in (reward, purchase):
             gate = Barrier(2)
 
-            def acquire():
+            def acquire(gate, item_id):
                 with engine.begin() as db:
                     db.execute(text(f'SET LOCAL search_path TO "{schema}"'))
                     gate.wait(timeout=10)
-                    return mutate_arsenal(db, "a", ArmoryAction(id=item["id"], action="buy"))
+                    return mutate_arsenal(db, "a", ArmoryAction(id=item_id, action="buy"))
 
             with ThreadPoolExecutor(max_workers=2) as pool:
-                futures = [pool.submit(acquire) for _ in range(2)]
+                futures = [pool.submit(acquire, gate, item['id']) for _ in range(2)]
                 assert [f.result(timeout=20) for f in futures] == [{"id": item["id"]}] * 2
         with engine.begin() as db:
             db.execute(text(f'SET LOCAL search_path TO "{schema}"'))
