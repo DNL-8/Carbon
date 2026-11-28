@@ -158,6 +158,8 @@ def test_oracle_http_respects_health_opt_in(client, monkeypatch):
     assert client.post("/api/oracle/ask", json=body, headers=headers).json() == {"reply": "Resposta."}
     read_health.assert_not_called()
     assert "recovery" not in reply.call_args.args[-1]
+    assert reply.call_args.args[-1]["currentDate"] == today_in_sao_paulo().isoformat()
+    assert reply.call_args.args[-1]["timezone"] == "America/Sao_Paulo"
     assert client.post("/api/oracle/ask", json={**body, "includeHealth": True}, headers=headers).status_code == 200
     read_health.assert_called_once_with(connection, dashboard_context("owner", today_in_sao_paulo()))
     assert reply.call_args.args[-1]["recovery"] == {"periodDays": 28, "acwr": None, "readiness": None}
@@ -189,3 +191,28 @@ def test_oracle_timeout_is_classified(monkeypatch):
     with pytest.raises(HTTPException) as exc:
         oracle.gemini_reply("fixture", "test-model", "Pergunta", {})
     assert exc.value.status_code == 504
+
+
+@pytest.mark.parametrize("question", ["q dia e hoje", "Que dia é hoje?", "Qual a data de hoje?", "data atual"])
+def test_oracle_date_answer_uses_server_date(question):
+    from datetime import date
+
+    assert oracle.date_reply(question, date(2026, 11, 28)) == "Hoje é 28 de novembro de 2026."
+    assert oracle.date_reply("Qual treino faço hoje?", date(2026, 11, 28)) is None
+
+
+def test_oracle_date_endpoint_does_not_call_provider(client, monkeypatch):
+    from datetime import date
+    from unittest.mock import MagicMock
+
+    from app.db import get_db
+
+    app.dependency_overrides[get_db] = lambda: MagicMock()
+    monkeypatch.setattr(oracle, "limit", lambda _user: None)
+    monkeypatch.setattr(oracle, "today_in_sao_paulo", lambda: date(2026, 11, 28))
+    reply = MagicMock()
+    monkeypatch.setattr(oracle, "gemini_reply", reply)
+    result = client.post("/api/oracle/ask", json={"question": "q dia e hoje"}, headers={"Origin": ORIGIN})
+    assert result.status_code == 200
+    assert result.json() == {"reply": "Hoje é 28 de novembro de 2026."}
+    reply.assert_not_called()
