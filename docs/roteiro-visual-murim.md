@@ -23,3 +23,14 @@ Os capítulos são orientação narrativa, não desbloqueios implementados. O gu
 ## Homologação
 
 O teste de geometria verifica os 104 itens individualmente em quatro orientações e duas poses. O teste visual também verifica o ID efetivamente desenhado no canvas quando WebGL está disponível. Ainda é necessário executar os testes, capturar as famílias, revisar combinações de equipamentos e conferir interseções em movimento. Limites de enquadramento não comprovam ausência de colisões entre malhas. Não aprovar a publicação na main sem a homologação.
+
+## Nomenclatura dos slots e identidade das trilhas
+
+| ID interno (inalterado) | Nome exibido | Murim | Caçador |
+| --- | --- | --- | --- |
+| elmo | Cabeça | Faixas, tiaras, máscaras e ornamentos | Capacetes, visores e máscaras |
+| armadura | Vestimenta | Túnicas, trajes, mantos e vestes | Coletes e armaduras táticas |
+| capa | Manto | Tecidos fluidos e ornamentos espirituais | Capas e acessórios táticos |
+| arma | Arma | Lanças, sabres, espadas, bastões e leques | Armas de mana e lâminas táticas |
+
+O avatar de Murim com adornos abertos recebe rosto visível e cabelo preso; vestes de tecido têm mangas, punhos e botas coerentes. Peças táticas mantêm sua geometria de proteção. Combinações entre trilhas são permitidas sem mudar requisitos. Os nomes individuais dos itens e contratos de API são preservados. A validação visual continua pendente.

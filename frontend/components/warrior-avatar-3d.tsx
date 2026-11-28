@@ -29,6 +29,7 @@ function color(hex: string): Color {
   const n=/^#[0-9a-f]{6}$/i.test(hex) ? parseInt(hex.slice(1),16) : 0x71717a
   return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]
 }
+const skin=color('#c99873'), hair=color('#252028')
 const dark=color('#24242b'), steel=color('#565963'), black=color('#101116'), gold=color('#fb923c'), light=color('#fff1d6')
 const TAU=Math.PI*2
 
@@ -169,10 +170,10 @@ function cape(m: Mesh,t: Transform,art: Art,wave:number) {
   }
   const narrow=f==='banner'||f==='ribbon'
   for(const s of [-1,1]){
-    const top=narrow?.20:.36, bottom=narrow?.30:.63
+    const top=narrow?.20:.36, bottom=narrow?.30:art.track==='reino_murim'?.67:.57
     const divided=f==='split'||f==='coatTail'||f==='ribbon'
     const panel=pose(joint,[s*(divided?.13:0),0,0],.12+wave*.30,0,s*.025)
-    const bottomY=f==='veil'?-1.06:-1.20
+    const bottomY=f==='veil'?-1.06:art.track==='reino_murim'?-1.27:-1.08
     const gap=divided?.10:0
     m.prism(panel,[[0,0],[s*top,.02],[s*bottom,bottomY],[s*gap,bottomY+.08]],.055,a)
     m.prism(pose(panel,[0,0,.032]),[[s*.05,-.10],[s*.11,-.10],[s*(bottom-.08),bottomY+.09],[s*(bottom-.15),bottomY+.09]],.012,b)
@@ -186,7 +187,7 @@ function weapon(m: Mesh,t: Transform,art: Art | null, family?: EquipmentFamily) 
   // Grip stays centered in the glove for every family; long poles extend both ways.
   const qi=art?.track==='reino_murim'&&art.tier>=4
   const mana=art?.track==='rank_cacador'&&art.tier>=4
-  const energy=qi||mana?.20:0
+  const energy=(qi||mana) ? .20 : 0
   m.rod(t,[0,long?.21:0,0],long?.067:.075,long?1.55:.36,black)
   if(art)for(let i=0;i<1+art.detail%3;i++)m.rod(t,[0,-.10+i*.08,0],.079,.027,b)
   m.rod(t,[0,-.17,0],.093,.08,b)
@@ -222,6 +223,10 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   const bySlot=(slot:string)=>{const item=props.gear?.find(g=>g.equipped&&g.slot===slot);return item?getEquipmentArt(item.id):null}
   const helm=bySlot('elmo'), body=bySlot('armadura'), cloak=bySlot('capa'), blade=bySlot('arma')
   const [armorTint,armorTrim]=palette(body)
+  // Presentation only: mixed builds retain the actual family of each equipped piece.
+  const martial=helm?.track==='reino_murim'||(!helm&&body?.track==='reino_murim')
+  const clothBody=body?.family==='tunic'||body?.family==='robe'||body?.family==='coat'
+  const bareHead=martial&&(!helm||['band','diadem','crown','halo'].includes(helm.family))
   const idle=Math.sin(time*(props.resting?1.6:2.5))*.035
   const rig=pose(I,[0,idle+celebrate*.13,0],0,0,Math.sin(time*1.25)*.025+strike*.08)
   const torso=pose(rig,[0,-.12,0],props.resting?.08:0)
@@ -230,7 +235,7 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   for(const s of [-1,1]){
     const leg=pose(rig,[s*.23,-.55,0],0,0,s*.04)
     m.box(leg,[0,-.31,0],[.29,.64,.34],dark)
-    m.box(leg,[0,-.52,.025],[.33,.24,.41],steel)
+    m.box(leg,[0,-.52,.025],[.33,.24,.41],clothBody?armorTint:steel)
     m.box(leg,[0,-.71,.085],[.38,.26,.55],black)
     m.box(leg,[0,-.65,.31],[.29,.07,.06],gold,.02)
   }
@@ -244,11 +249,12 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
     const heavy=!body||body.family==='plate'||body.family==='exo'
     m.orb(arm,[0,-.07,0],heavy?[.25,.23,.25]:[.19,.20,.19],armorTint)
     m.box(arm,[0,-.12,.22],[.24,.12,.07],armorTrim,.025)
-    m.box(arm,[0,-.31,0],[.23,.34,.24],dark)
+    m.box(arm,[0,-.31,0],clothBody?[.28,.36,.29]:[.23,.34,.24],clothBody?armorTint:dark)
     const elbow=pose(arm,[0,-.43,0],-.30-swing*.25)
-    m.box(elbow,[0,-.15,.02],[.24,.28,.25],steel)
+    m.box(elbow,[0,-.15,.02],clothBody?[.27,.28,.27]:[.24,.28,.25],clothBody?armorTint:steel)
+    if(clothBody)m.box(elbow,[0,-.26,.02],[.28,.07,.28],armorTrim,.025)
     const hand=pose(elbow,[0,-.31,.04])
-    m.orb(hand,[0,0,0],[.14,.15,.14],dark)
+    m.orb(hand,[0,0,0],[.14,.15,.14],clothBody?skin:dark)
     if((blade||props.gear===undefined)&&(s===1||blade?.family==='twin'))
       weapon(m,pose(hand,[0,0,0],.15,-s*.06,-s*(.65+swing*.58)),blade)
     else if(s===-1){
@@ -256,19 +262,30 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
       m.orb(hand,[-.18,.12,.18],[qi,qi,qi],props.lowHp?color('#f87171'):gold,.5)
     }
   }
-  m.orb(head,[0,0,0],[.51,.51,.43],dark)
-  m.box(head,[0,-.09,.38],[.82,.38,.18],black,.12)
-  helmet(m,head,helm)
+  m.orb(head,[0,0,0],[.51,.51,.43],bareHead?skin:dark)
+  if(bareHead){
+    // Original martial artist silhouette: visible face, tied hair and topknot.
+    m.ringBody(head,[0,0,-.015],[[.14,.51,.44],[.32,.47,.42],[.49,.30,.29],[.53,0,0]],hair)
+    m.orb(head,[0,.53,-.10],[.15,.14,.14],hair)
+    m.box(head,[0,.43,-.10],[.22,.075,.20],armorTrim,.025)
+    m.box(head,[0,-.12,.43],[.09,.12,.10],skin,.035)
+    for(const side of [-1,1])m.box(head,[side*.17,.025,.41],[.20,.045,.045],hair,.015)
+  }else m.box(head,[0,-.09,.38],[.82,.38,.18],black,.12)
+  if(helm||!bareHead)helmet(m,head,helm)
   const blink=moving&&time%4.8>4.66?.12:1
   const family=helm?.family??'helm'
   const faceCover=family==='visor'||family==='mask'||family==='lens'
   const shell=family==='hood'||family==='helm'||family==='horn'
-  const eyeDepth=faceCover?.563:shell?.533:.493
+  const eyeDepth=bareHead?.408:faceCover?.563:shell?.533:.493
   for(const sign of [-1,1]){
     if(family==='lens'&&sign===1)continue // the monóculo covers this eye
-    m.box(head,[sign*.19,-.06,eyeDepth],[.24,.085*blink,.045],props.lowHp?color('#f87171'):light,.02,.45)
+    if(bareHead){
+      m.box(head,[sign*.17,-.055,eyeDepth],[.16,.055*blink,.038],hair,.015)
+      if(blink>.5)m.box(head,[sign*.17,-.055,eyeDepth+.023],[.045,.044,.014],props.lowHp?color('#f87171'):gold,.008)
+    }else m.box(head,[sign*.19,-.06,eyeDepth],[.24,.085*blink,.045],props.lowHp?color('#f87171'):light,.02,.45)
   }
-  if(family!=='mask')m.box(head,[0,-.27,.48],[.28,.055,.05],gold,.02)
+  if(bareHead)m.box(head,[0,-.24,.36],[.14,.025,.04],hair,.01)
+  else if(family!=='mask')m.box(head,[0,-.27,.48],[.28,.055,.05],gold,.02)
   if(celebrate>0.02) m.hoop(rig,[0,0,-.65],1.56+celebrate*.12,.04,props.victory?color('#34d399'):gold)
   // Keep large weapons and wings inside the square preview at all orientations.
   let extent=1

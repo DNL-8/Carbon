@@ -26,7 +26,8 @@ export const achievementsResult = z.array(z.object({
   unlockedAt: z.string().nullable(),
 }))
 
-export const slots = { elmo: 'Elmo', armadura: 'Armadura', capa: 'Capa', arma: 'Arma' }
+// Stable API slot keys; labels describe both the martial and hunter tracks.
+export const slots = { elmo: 'Cabeça', armadura: 'Vestimenta', capa: 'Manto', arma: 'Arma' }
 const slot = z.enum(['elmo', 'armadura', 'capa', 'arma'])
 
 export const itemsResult = z.array(z.object({

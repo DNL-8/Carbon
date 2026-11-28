@@ -21,6 +21,9 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
   const canvas = avatar.locator('canvas[data-avatar-renderer]')
   await expect(canvas).toHaveCount(1)
   await expect(canvas).toHaveAttribute('data-avatar-renderer', /^(webgl|fallback)$/)
+  for (const [id, label] of Object.entries({elmo: 'Cabeça', armadura: 'Vestimenta', capa: 'Manto', arma: 'Arma'})) {
+    await expect(page.locator('#gear-filter-' + id)).toHaveText(label)
+  }
   const search = page.getByRole('textbox', { name: 'Buscar equipamento' })
   const captured = new Set<string>()
   for (const item of items) {

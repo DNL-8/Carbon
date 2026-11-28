@@ -3,9 +3,9 @@ import type { EquipmentItem, EquipmentSetDefinition, EquipmentSlot, EquipmentRar
 export const ARSENAL_CONFIG = {
   maxPresets: 4,
   slots: [
-    { id: 'elmo' as EquipmentSlot, nome: 'Elmo', icone: 'Crown' as const },
-    { id: 'armadura' as EquipmentSlot, nome: 'Armadura', icone: 'Shield' as const },
-    { id: 'capa' as EquipmentSlot, nome: 'Capa', icone: 'Wind' as const },
+    { id: 'elmo' as EquipmentSlot, nome: 'Cabeça', icone: 'Crown' as const },
+    { id: 'armadura' as EquipmentSlot, nome: 'Vestimenta', icone: 'Shield' as const },
+    { id: 'capa' as EquipmentSlot, nome: 'Manto', icone: 'Wind' as const },
     { id: 'arma' as EquipmentSlot, nome: 'Arma', icone: 'Sword' as const },
   ],
   raridades: {
