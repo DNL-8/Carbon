@@ -17,7 +17,7 @@ def check(path):
     doc,buf=load(path)
     nodes=doc["nodes"]
     names=Counter(n.get("name") for n in nodes)
-    for slot in ("elmo","armadura","capa","arma"):
+    for slot in ("elmo","armadura","capa","arma","arma_esquerda"):
         assert names["slot_"+slot]==1,(path,slot,names)
     for clip in ("idle","attack","victory","rest","guard","dodge","channel"):
         assert clip in {a["name"] for a in doc["animations"]},(path,clip,[a["name"] for a in doc["animations"]])
@@ -65,9 +65,12 @@ def check_roundtrip(name):
     before,_=load(HERE/"skinned"/(name+".glb"))
     after,_=load(HERE/"blender-output"/(name+".glb"))
     a,b=world_transforms(before),world_transforms(after)
-    for key in ("slot_elmo","slot_armadura","slot_capa","slot_arma","Head","Hand.L","Hand.R"):
+    for key in ("slot_elmo","slot_armadura","slot_capa","slot_arma","slot_arma_esquerda","Head","Hand.L","Hand.R"):
         assert key in a and key in b,(name,key)
         assert np.allclose(a[key],b[key],atol=1e-4,rtol=0),(name,key,"socket rest transform changed",a[key],b[key])
+    for transforms in (a,b):
+        left,right=(transforms[key][:3,3] for key in ("slot_arma_esquerda","slot_arma"))
+        assert np.allclose(left,right*[-1,1,1],atol=1e-4,rtol=0),(name,"grip asymmetry",left,right)
     assert {m["name"] for m in before["materials"]}=={m["name"] for m in after["materials"]}
     print(name,"roundtrip: sockets, head, hands and named materials preserved")
 

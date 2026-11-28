@@ -59,3 +59,8 @@ Inspeção das capturas desktop do artefato Blender 15267916971 (run 46156191078
 ### Validação de encaixes em movimento (laboratório)
 
 Alinhamento vertical de visores e lentes corrigido pela referência do socket do elmo e a altura dos olhos do modelo procedural. Adicionados testes dos sete clips com um conjunto completo, verificação da estabilidade das matrizes locais dos acessórios e capturas por pose. Não substitui uma análise de interseção entre malhas, especialmente nas armas, cabelo e armadura; a revisão visual continua necessária. Nesta fase não promover para main nem disparar deploy manual. Configuração git.deploymentEnabled desabilita o deploy automático exclusivamente da branch feature/avatar-v2-glb; não alterar produção.
+
+
+### Encaixe bilateral e ajuste de armadura
+
+As armas duplas usam um socket explícito `slot_arma_esquerda`, espelhado ao socket original, e preservado na exportação Blender. É uma âncora interna, não um quinto slot do inventário. Os testes verificam a hierarquia dos encaixes, a simetria em repouso e a compatibilidade com as peças duplas do catálogo. A armadura do Caçador recebe escala horizontal proporcional ao torso base. O ajuste é aproximado, não uma certificação de ausência de colisões. Alterações restritas ao laboratório, sem deploy.

@@ -40,6 +40,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       if(!art)throw Error('Arte ausente: '+item.id)
       const signature=item.slot+':'+art.detail.toString(2).padStart(5,'0')
       await expect(canvas).toHaveAttribute('data-glb-design',signature)
+      await expect(canvas).toHaveAttribute('data-glb-dual-grip',String(item.slot==='arma'&&art.family==='twin'))
       designs.add(signature)
     }
     expect(designs.size).toBe(104)

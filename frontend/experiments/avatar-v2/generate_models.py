@@ -260,6 +260,8 @@ def build(martial):
         for finger in range(4):
             P('Hand.Knuckle.'+side,h,ell((s*(.003+finger*.011),-.060+abs(finger-1.5)*.005,.022),(.009,.014,.010),1),skin)
         leg=m.node('Thigh.'+side,pelvis,(s*.095,0,0));legs.append(leg);k=m.node('Shin.'+side,leg,(0,-.43,0));f=m.node('Foot.'+side,k,(0,-.38,0));P('Pants.'+side,leg,loft([(-.43,.065,.066,0),(-.20,.09,.087,0),(0,.102,.10,0)],10),dark);P('Boot.'+side,k,loft([(-.38,.052,.06,0),(-.15,.067,.073,0),(0,.071,.073,0)],10),cloth);P('Greave.'+side,k,panel([(-.055,-.03,.075),(.055,-.03,.075),(.045,-.27,.067),(-.045,-.27,.067)],.025),metal);P('Foot.'+side,f,ell((0,-.025,.043),(.060,.045,.108),2),dark);P('Foot.Sole.'+side,f,ell((0,-.061,.043),(.063,.015,.110),2),dark)
+    # Explicit mirrored grip anchor survives bone-axis changes during Blender export.
+    m.node('slot_arma_esquerda',hands[0],(-.035,-.026,.02))
     weapon=m.node('slot_arma',hands[1],(.035,-.026,.02));
     if martial:
         P('SpearShaft',weapon,rod((0,-.75,0),(0,.8,0),.018),dark);P('SpearGrip',weapon,rod((0,-.14,0),(0,.14,0),.023),inner);P('SpearBlade',weapon,panel([(0,.76,0),(.077,.88,0),(0,1.12,0),(-.077,.88,0)],.028),metal);P('SpearCore',weapon,panel([(0,.83,.019),(.021,.9,.019),(0,1.08,.019),(-.021,.9,.019)],.006),energy)

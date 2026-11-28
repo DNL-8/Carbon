@@ -289,6 +289,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const designs: string[] = []
     const capeMeshes: THREE.Mesh[] = []
     gl.domElement.dataset.glbVisorOffset='not-applicable'
+    gl.domElement.dataset.glbDualGrip='false'
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
@@ -314,11 +315,17 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
         if(bits.length!==5 || ![...bounds.min.toArray(),...bounds.max.toArray()].every(Number.isFinite))throw new Error('Geometria de equipamento inválida: '+selected.id)
         designs.push(slot+':'+bits)
       }
+      // Preserve catalog geometry and add clearance for the wider Caçador base torso.
+      if(slot==='armadura'&&art&&style==='cacador')group.scale.x=1.08/.93
       if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
-        const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
-        if(left&&art){const second=makeAttachment(art,slot);second.position.set(-.035,-.026,.02);second.rotation.z=.30;left.add(second);attached.push({parent:left,object:second,children:[]})}
+        const left=scene.getObjectByName('slot_arma_esquerda')
+        if(!left||!art)throw new Error('Socket GLB da mão esquerda ausente')
+        const second=makeAttachment(art,slot)
+        second.rotation.z=.30
+        left.add(second);attached.push({parent:left,object:second,children:[]})
+        gl.domElement.dataset.glbDualGrip=String(second.parent===left)
       }
     }
     attachmentAnchors.current=attached.map(entry=>{
