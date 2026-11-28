@@ -106,7 +106,7 @@ def upgrade(name):
         nodes[root].setdefault("children",[]).append(len(nodes)-1)
     def limb(label, a, b, c, radius, material):
         A,B,C=(origin(j) for j in [a,b,c]);t1=unit(B-A);t2=unit(C-B);rings=[]
-        for t,r,w in [(0,radius[0],0),(.45,radius[0]*.89,0),(.78,radius[1]*1.05,.08),(.92,radius[1],.28),(1,radius[1],.5),(1.10,radius[1]*.98,.75),(1.25,radius[1]*.95,1),(1.65,radius[2]*1.16,1),(2,radius[2],1)]:
+        for t,r,w in [(-.10,radius[0]*.93,0),(0,radius[0],0),(.45,radius[0]*.89,0),(.78,radius[1]*1.05,.08),(.92,radius[1],.28),(1,radius[1],.5),(1.10,radius[1]*.98,.75),(1.25,radius[1]*.95,1),(1.65,radius[2]*1.16,1),(2,radius[2],1)]:
             center=A+(B-A)*t if t<=1 else B+(C-B)*(t-1)
             tangent=t1 if t<.9 else t2 if t>1.1 else unit(t1+t2)
             rings.append((center,tangent,r,r*.88,w))
@@ -119,7 +119,7 @@ def upgrade(name):
     hips,spine=names["Hips"],names["Spine"]
     S=origin(spine);wide=.93 if name=="murim" else 1.08
     rings=[(S+np.array([0,y,0]),np.array([0,1,0]),rx*wide,rz,w)
-           for y,rx,rz,w in [(-.12,.15,.105,0),(-.06,.15,.105,.18),(0,.15,.105,.5),(.08,.17,.11,.9),(.17,.19,.115,1),(.32,.235,.12,1),(.39,.19,.105,1),(.43,.075,.075,1)]]
+           for y,rx,rz,w in [(-.17,.159,.109,0),(-.12,.16,.112,0),(-.06,.15,.105,.18),(0,.15,.105,.5),(.08,.17,.11,.9),(.17,.19,.115,1),(.32,.235,.12,1),(.39,.19,.105,1),(.43,.075,.075,1)]]
     surface("DeformTorso",rings,hips,spine,"BaseCloth")
     nodes[names["Mesh_BaseTorso"]].pop("mesh",None)
     # Add bending channels so the new weights are exercised by actual clips.

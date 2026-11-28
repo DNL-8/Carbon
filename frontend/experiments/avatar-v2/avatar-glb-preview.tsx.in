@@ -45,13 +45,15 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       if(f==='band'){box(.05,.035,.017,trim,0,-.01,.105);for(const s of [-1,1])box(.022,.095,.012,main,s*.027,-.075,-.105)}
       else for(let i=-2;i<=2;i++)plate([[-.022,0],[.022,0],[0,f==='crown'?.075:.045]],.018,trim,i*.043,.055,.095-Math.abs(i)*.014)
     }else if(f==='visor'||f==='mask'||f==='lens'){
-      box(.205,f==='mask'?.12:.055,.028,main,0,-.027,.103)
-      box(.17,.02,.013,dark,0,-.026,.123)
-      if(f==='lens')ring(.035,.007,glow,.048,-.025,.14)
+      const mask=f==='mask'
+      box(.222,mask?.088:.039,.024,main,0,mask?-.077:-.032,.124)
+      if(mask){box(.142,.018,.012,dark,0,-.092,.142)}
+      else{box(.18,.016,.013,dark,0,-.032,.141);if(f==='lens')ring(.029,.006,glow,.048,-.032,.154)}
     }else{
-      const shell=add(new THREE.SphereGeometry(.127,12,8,0,Math.PI*2,0,Math.PI*.79),main,0,-.015,-.012)
-      shell.scale.set(1,1.08,1)
-      box(.18,.035,.03,trim,0,.015,.10)
+      const shell=add(new THREE.SphereGeometry(.138,16,12,0,Math.PI*2,0,Math.PI*.55),main,0,.027,-.006)
+      shell.scale.set(1,1.12,1.04)
+      box(.19,.026,.025,trim,0,.012,.125)
+      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)}
       if(f==='horn')for(const s of [-1,1]){const horn=add(new THREE.ConeGeometry(.033,.12,8),trim,s*.105,.11,0);horn.rotation.z=-s*.5}
     }
   } else if(slot==='armadura'){

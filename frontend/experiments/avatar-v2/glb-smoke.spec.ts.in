@@ -47,6 +47,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await page.getByLabel('Conjunto completo').uncheck()
     await piece.selectOption('')
     await expect(canvas).toHaveAttribute('data-glb-equipment','')
+    await canvas.screenshot({path:info.outputPath(style+'-vestimenta-base.png')})
     await page.getByRole('button',{name:'Girar GLB à direita'}).click()
     await page.getByRole('button',{name:'Rosto',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-zoom','true')

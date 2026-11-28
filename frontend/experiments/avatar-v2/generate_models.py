@@ -78,6 +78,22 @@ def build(martial):
     skin=m.material('Skin','C99873');hair=m.material('Hair','292027');cloth=m.material('BaseCloth','30282A' if martial else '252B35');dark=m.material('DarkCloth','17191E');accent=m.material('Trim','B7833B' if martial else '527898',.4);metal=m.material('Metal','8E673C' if martial else '7E8797',.7,.36);inner=m.material('Lining','9C3F28' if martial else '234F76');energy=m.material('Energy','FFAB42' if martial else '55C8FF',.1,.35,.8);white=m.material('Eyes','F4E5CF');iris=m.material('Iris','50301F');
     P=m.part;w=.93 if martial else 1.08
     P('BaseTorso',spine,loft([(0,.15*w,.105,0),(.17,.19*w,.115,0),(.32,.235*w,.12,0),(.39,.19*w,.105,0),(.43,.075,.075,0)],12),cloth)
+    # Base clothing is independent of equipment sockets: no item or bonus is implied.
+    P('BaseHip',pelvis,loft([(-.105,.172,.105,0),(-.055,.189,.115,0),(.045,.174,.112,0),(.095,.153,.104,0)],16),dark)
+    P('BaseWaist',pelvis,loft([(.055,.163,.114,0),(.096,.162,.116,0),(.135,.156,.110,0)],16),inner if martial else dark)
+    P('BaseWaistClasp',pelvis,box((0,.087,.122),(.065,.039,.021)),accent)
+    if martial:
+        for s in (-1,1):
+            P('BaseRobeLapel',spine,panel([(s*.018,.33,.126),(s*.092,.392,.111),(s*.156,.10,.131),(s*.07,.065,.13)],.013),inner)
+            P('BaseRobeTrim',spine,rod((s*.085,.385,.126),(s*.153,.10,.143),.009,.007),accent)
+            P('BaseRobeSkirt',pelvis,panel([(s*.024,.08,.116),(s*.147,.08,.105),(s*.222,-.26,.106),(s*.045,-.30,.14)],.018),cloth)
+            P('BaseRobeHem',pelvis,rod((s*.045,-.294,.151),(s*.222,-.254,.117),.008),accent)
+    else:
+        P('BaseChestPanel',spine,panel([(-.18,.29,.126),(0,.34,.137),(.18,.29,.126),(.145,.11,.132),(0,.075,.136),(-.145,.11,.132)],.018),dark)
+        P('BaseChestMark',spine,panel([(-.024,.23,.15),(0,.27,.15),(.024,.23,.15),(0,.20,.15)],.008),energy)
+        for s in (-1,1):
+            P('BaseHarness',spine,panel([(s*.078,.386,.121),(s*.128,.373,.122),(s*.165,.09,.137),(s*.116,.087,.139)],.014),accent)
+            P('BaseHipPouch',pelvis,box((s*.14,-.025,.101),(.074,.114,.055)),cloth)
     P('Neck',spine,rod((0,.38,0),(0,.49,0),.055),skin)
     P('HeadMesh',head,loft([(0,.056,.058,.012),(.045,.091,.088,.008),(.12,.104,.098,0),(.19,.098,.092,-.005),(.225,.065,.065,-.015),(.242,.008,.012,-.02)],16),skin)
     for s in (-1,1):
@@ -106,6 +122,8 @@ def build(martial):
     arms=[];legs=[];hands=[]
     for s in (-1,1):
         side='L' if s<0 else 'R';a=m.node('UpperArm.'+side,spine,(s*.225*w,.32,0));arms.append(a);e=m.node('Forearm.'+side,a,(s*.16,-.15,0));h=m.node('Hand.'+side,e,(s*.10,-.19,0));hands.append(h)
+        P('BaseShoulder.'+side,a,ell((s*.017,-.014,0),(.087 if martial else .103,.076,.092),1),cloth if martial else dark)
+        P('BaseShoulderTrim.'+side,a,rod((s*.034,-.025,.071),(s*.080,-.070,.057),.009 if martial else .014),accent)
         P('Sleeve.'+side,a,rod((0,0,0),(s*.16,-.15,0),.075,.057),cloth);P('Forearm.'+side,e,rod((0,0,0),(s*.10,-.17,0),.052,.041),skin);P('Bracer.'+side,e,rod((s*.025,-.045,0),(s*.083,-.145,0),.059,.048),metal);P('Hand.'+side,h,ell((s*.018,-.027,.006),(.039,.066,.03),1),skin)
         leg=m.node('Thigh.'+side,pelvis,(s*.095,0,0));legs.append(leg);k=m.node('Shin.'+side,leg,(0,-.43,0));f=m.node('Foot.'+side,k,(0,-.38,0));P('Pants.'+side,leg,loft([(-.43,.065,.066,0),(-.20,.09,.087,0),(0,.102,.10,0)],10),dark);P('Boot.'+side,k,loft([(-.38,.052,.06,0),(-.15,.067,.073,0),(0,.071,.073,0)],10),cloth);P('Greave.'+side,k,panel([(-.055,-.03,.075),(.055,-.03,.075),(.045,-.27,.067),(-.045,-.27,.067)],.025),metal);P('Foot.'+side,f,box((0,-.035,.045),(.12,.11,.22)),dark)
     weapon=m.node('slot_arma',hands[1],(.035,-.026,.02));

@@ -77,7 +77,7 @@ Runner Blender 46150966375: os modelos ponderados passaram na validação estrut
 
 - [x] Preparar clonagem do esqueleto com SkeletonUtils, evitando compartilhamento de juntas entre avatares.
 - [x] Preparar CI comparativa dos GLB rígidos e dos GLB ponderados originais, com verificação de cinco malhas skinned e ligação dos ossos à própria instância do personagem.
-- [ ] Aprovar os testes de catálogo, conjuntos, câmera e animações nos modelos ponderados.
+- [x] Aprovar os testes de catálogo, conjuntos, câmera e animações nos modelos ponderados (CI 46151382324, variantes rígida e skinned).
 - [x] Configurar terceira variante de CI para executar o Blender e testar seus GLB reexportados no navegador, sem reutilizar os GLB ponderados de entrada.
 - [ ] Confirmar aprovação da variante Blender em desktop e mobile.
 
@@ -93,3 +93,12 @@ As duas variantes são somente experimentais. O pipeline de Blender e a matriz d
 ### Validação adicional de exportação
 
 Inspeção dos arquivos reais do artefato Blender 15266265163: GLB Murim 266104 bytes e Caçador 266964 bytes. A comparação das matrizes globais de repouso confirmou a conservação dos quatro sockets, cabeça e mão esquerda (diferenças inferiores a 0,0001). Nomes de materiais preservados. Acrescentada verificação automatizada de roundtrip de matrizes dos quatro sockets, cabeça, ambas as mãos e materiais. A próxima CI deve confirmar a nova asserção. Não equivale a validação de colisão nas poses animadas.
+
+## 8. Refinamento visual inicial
+
+Inspeção direta das quatro capturas de navegador da variante skinned (artefato 15266057622): as formas base ainda são simples, com descontinuidade visual na cintura, ombros pouco naturais e pouca distinção dos personagens sem armadura. O elmo testado também encobria olhos e intersectava o rosto. Revisão: vestimenta base permanente sem bônus (manto curto, lapelas e faixa de Murim; painel tático, alças e bolsos de Caçador), conexão do quadril, ombros arredondados, extensão da malha ponderada e casco aberto com proteção lateral. Os slots e IDs continuam inalterados.
+
+- [x] Inspecionar capturas reais anteriores (Murim e Caçador).
+- [x] Implementar revisão de geometria da vestimenta base e elmos.
+- [ ] Validar nova versão em todas as variantes e revisar capturas sem equipamento e com conjuntos completos.
+- [ ] Refinar rosto, cabelo, tecidos, materiais e poses até atingir a referência artística. O modelo continua procedural e low-poly.
