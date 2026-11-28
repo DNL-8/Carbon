@@ -8,7 +8,7 @@
 
 [![Murim CI](https://github.com/DNL-8/Carbon/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DNL-8/Carbon/actions/workflows/ci.yml)
 
-[Funcionalidades](#funcionalidades) · [Arquitetura](#arquitetura) · [Como rodar](#como-rodar-localmente) · [Testes](#testes-e-qualidade) · [Status](#status-do-projeto) · [Documentação](#documentação)
+[Acessar aplicativo](https://carbon-web-nine.vercel.app) · [Funcionalidades](#funcionalidades) · [Arquitetura](#arquitetura) · [Como rodar](#como-rodar-localmente) · [Testes](#testes-e-qualidade) · [Status](#status-do-projeto) · [Documentação](#documentação)
 
 </div>
 
@@ -24,7 +24,7 @@ O projeto é de uso privado, feito para duas pessoas, com foco em simplicidade, 
 | --- | --- |
 | 🏋️ **Treinos** | Catálogo e treinos personalizados, séries, cargas, repetições, cronômetro de descanso e histórico. |
 | ⚔️ **Progressão RPG** | XP, Qi, níveis, atributos, batalhas contra chefes, missões, votos e conquistas. |
-| 🛡️ **Arsenal** | 104 equipamentos em dez conjuntos, com bônus, prévia animada no mascote e extrato de compras. |
+| 🛡️ **Arsenal** | 104 equipamentos em dez conjuntos, com bônus, prévia interativa no avatar 3D e extrato de compras. |
 | ❤️ **Saúde** | Atividades, passos, sono, frequência cardíaca, calorias, peso, IMC e indicadores de carga e recuperação. |
 | 📈 **Relatórios** | Gráficos de evolução do peso e tendência de atividades, filtros por período e fonte e valores em texto. |
 | 📥 **Importação** | Arquivos do Apple Health e Samsung Health, GPX e CSV, além de integração OAuth com o Strava. |
@@ -41,11 +41,12 @@ O Oráculo envia ao Gemini a pergunta, dados de progressão e perfil de jogo e u
 
 <br>
 
-- **Peças:** quatro slots (elmo, armadura, capa e arma), com 26 peças cada. São 51 de Caçador, 51 de Murim e duas iniciais.
+- **Peças:** quatro slots (Cabeça, Vestimenta, Manto e Arma), com 26 peças cada. São 51 de Caçador, 51 de Murim e duas iniciais.
 - **Aquisição:** 15 recompensas de marco, resgatadas sem custo (inclusive por progresso anterior), e 87 compras com moedas. Adquirir e equipar são ações separadas.
 - **Bônus:** especializados em XP, moedas ou dano contra chefes. Os conjuntos dão +4% com 2 peças ou +10% com 4 peças (não acumulam).
 - **Catálogo:** busca que ignora acentos, filtros, ordenação, 24 peças por página e comparação com o equipamento ativo.
-- **Mascote:** SVG interativo com 33 famílias visuais, animação de golpe e pausa.
+- **Avatar:** geometria 3D low-poly em WebGL nativo, com 33 famílias visuais e 104 variantes do catálogo, rotação por interação, respiração, piscadas, golpe, celebração, pausa e preferência de movimento reduzido. O SVG anterior permanece como alternativa quando WebGL não está disponível.
+- **Identidade visual:** vestes e adornos marciais, equipamentos táticos de Caçador e efeitos de Qi/mana. Os encaixes 3D ainda exigem homologação visual em navegador e celular.
 
 A coleção completa é opcional e não exige uma rotina específica de treino. Detalhes em [Arsenal V2](docs/plano-arsenal.md).
 
@@ -84,6 +85,7 @@ A web e o Android falam com a API pelo proxy do Next.js. O FastAPI concentra aut
 | --- | --- |
 | Web | Next.js (App Router), React, TypeScript |
 | Interface | Material UI, Emotion, MUI X Charts Community |
+| Avatar 3D | WebGL nativo, geometria procedural e SVG como fallback |
 | Estado e formulários | TanStack Query, React Hook Form, Zod |
 | API | Python, FastAPI, Pydantic, Uvicorn |
 | Autenticação | Google OAuth2/OIDC com Authlib e sessões próprias |
@@ -109,7 +111,7 @@ Carbon/
 
 ## Hospedagem
 
-A hospedagem utiliza Vercel (Next.js e FastAPI) e PostgreSQL Neon.
+A hospedagem utiliza Vercel (Next.js e FastAPI) e PostgreSQL Neon. [Aplicativo web](https://carbon-web-nine.vercel.app).
 
 ## Como rodar localmente
 
@@ -271,7 +273,7 @@ Ainda falta confirmar:
 - [ ] Restauração de um backup real em ambiente isolado
 - [ ] Compatibilidade do banco de destino (há um [schema legado](docs/neon-postgresql.md) documentado)
 - [ ] Correspondência entre o deployment de produção e esta versão
-- [ ] Validação visual manual do Arsenal e dos encaixes do mascote
+- [ ] Validação visual manual do Arsenal, dos encaixes 3D e do fallback SVG em desktop e mobile
 
 Antes de usar dados reais, siga o [roteiro de homologação](docs/homologacao.md).
 
@@ -282,5 +284,5 @@ Antes de usar dados reais, siga o [roteiro de homologação](docs/homologacao.md
 | Aplicações | [Frontend](frontend/README.md) · [Backend](backend/README.md) · [Android](android/README.md) |
 | Configuração e dados | [Autenticação Google](docs/python-auth-cutover.md) · [PostgreSQL / Neon](docs/neon-postgresql.md) · [Migração legada](docs/migracao-legado.md) |
 | Qualidade | [CI](docs/ci.md) · [Homologação](docs/homologacao.md) · [Auditoria](docs/auditoria.md) |
-| Produto e design | [Arsenal V2](docs/plano-arsenal.md) · [Design system](DESIGN.md) |
+| Produto e design | [Arsenal V2](docs/plano-arsenal.md) · [Avatar 3D](docs/avatar-3d.md) · [Roteiro visual](docs/roteiro-visual-murim.md) · [Design system](DESIGN.md) |
 | Contribuição com agentes | [AGENTS.md](AGENTS.md) |

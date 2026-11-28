@@ -315,6 +315,7 @@ function renderer(canvas: HTMLCanvasElement) {
   } catch {
     gl.deleteProgram(program);gl.deleteBuffer(buffer);return null
   } finally {if(vert)gl.deleteShader(vert);if(frag)gl.deleteShader(frag)}
+  // biome-ignore lint/correctness/useHookAtTopLevel: WebGLRenderingContext.useProgram is a native graphics API, not a React hook.
   gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buffer)
   const p=gl.getAttribLocation(program,'p'), c=gl.getAttribLocation(program,'c')
   gl.enableVertexAttribArray(p);gl.vertexAttribPointer(p,3,gl.FLOAT,false,24,0)
