@@ -22,8 +22,6 @@ jobs:
         style: [murim, cacador]
     env:
       STYLE: ${{ matrix.style }}
-      PIP_CACHE_DIR: ${{ runner.temp }}/avatar-pip
-      npm_config_cache: ${{ runner.temp }}/avatar-npm
     steps:
       - uses: actions/checkout@v7
         with:
@@ -37,6 +35,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.5
+      - name: Configurar caminhos de cache no runner
+        run: |
+          echo "PIP_CACHE_DIR=$RUNNER_TEMP/avatar-pip" >> "$GITHUB_ENV"
+          echo "npm_config_cache=$RUNNER_TEMP/avatar-npm" >> "$GITHUB_ENV"
       - name: Identificar ambiente apt
         id: apt
         run: |
@@ -59,7 +61,7 @@ jobs:
         run: |
           sudo cp "$RUNNER_TEMP/avatar-debs/"*.deb /var/cache/apt/archives/ 2>/dev/null || true
           sudo apt-get -o Binary::apt-get::APT::Keep-Downloaded-Packages=true --download-only install -y blender python3-numpy
-          cp /var/cache/apt/archives/*.deb "$RUNNER_TEMP/avatar-debs/"
+          find /var/cache/apt/archives -maxdepth 1 -type f -name '*.deb' -exec cp -t "$RUNNER_TEMP/avatar-debs/" {} +
           sudo apt-get install -y blender python3-numpy
           env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python-expr "import numpy; print('NUMPY_OK', numpy.__version__)"
       - run: python -m pip install numpy==2.3.5 trimesh==4.11.1
