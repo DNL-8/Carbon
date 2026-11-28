@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { writeFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { EQUIPMENT_CATALOG } from '../../../src/utils/equipmentCatalog'
 import { getEquipmentArt } from '../../lib/equipment-art'
@@ -42,6 +43,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       await expect(canvas).toHaveAttribute('data-glb-design',signature)
       await expect(canvas).toHaveAttribute('data-glb-dual-grip',String(item.slot==='arma'&&art.family==='twin'))
       if(item.slot==='elmo')await expect(canvas).toHaveAttribute('data-glb-hair-covered',String(['hood','helm','horn'].includes(art.family)))
+      if(item.slot==='armadura')await expect(canvas).toHaveAttribute('data-glb-shoulders',['plate','exo'].includes(art.family)?'2':'0')
       designs.add(signature)
     }
     expect(designs.size).toBe(104)
@@ -169,7 +171,18 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       poseDiagnostics.push(sample)
       await canvas.screenshot({path:info.outputPath(style+'-pose-'+clip+'.png')})
     }
-    await info.attach(style+'-diagnostico-poses',{body:JSON.stringify(poseDiagnostics,null,2),contentType:'application/json'})
+    const report=JSON.stringify(poseDiagnostics,null,2)
+    await writeFile(info.outputPath(style+'-diagnostico-poses.json'),report)
+    await info.attach(style+'-diagnostico-poses',{body:report,contentType:'application/json'})
+    const heavy=EQUIPMENT_CATALOG.find(item=>item.slot==='armadura'&&['plate','exo'].includes(getEquipmentArt(item.id)?.family??''))
+    if(!heavy)throw Error('Armadura pesada ausente')
+    await page.getByLabel('Conjunto completo').uncheck()
+    await piece.selectOption(heavy.id)
+    await expect(canvas).toHaveAttribute('data-glb-shoulders','2')
+    await page.getByRole('button',{name:'Ataque',exact:true}).click()
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-shoulder-lift'))).toBeGreaterThan(.02)
+    await canvas.screenshot({path:info.outputPath(style+'-ombreiras-ataque.png')})
+    await page.getByLabel('Conjunto completo').check()
     await page.getByLabel('Conjunto completo').uncheck()
     await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})

@@ -69,3 +69,8 @@ As armas duplas usam um socket explícito `slot_arma_esquerda`, espelhado ao soc
 ### Diagnóstico de interseções e desempenho no laboratório
 
 Na rota isolada de testes, a cada janela de pelo menos 250 ms são amostrados vértices de acessórios (armas e tecido) em relação a três volumes elipsoidais aproximados associados a Spine, Hips e Head. Os relatórios JSON por personagem/clip registram contagem de amostras internas, FPS da janela, draw calls, triângulos e contagens de geometrias/texturas do renderizador. Estes indicadores são diagnósticos, não detecção exata de interseção de triângulos, nem medição de VRAM; FPS no Chromium SwiftShader não representa um celular físico. Não reprovar um teste pela mera proximidade aproximada, mas exigir amostras válidas e finitas. Verificar também a política de cabelo oculto para as 26 peças de cabeça. Sem dependências novas e sem deploy.
+
+
+### Ombreiras articuladas e relatórios persistentes
+
+A execução 46166544187 aprovou os três jobs de laboratório, mas o ZIP Blender recuperado continha apenas PNGs; os anexos JSON não estavam presentes. Agora os relatórios são também escritos explicitamente no diretório de saída do Playwright. Ombreiras de plate/exo ganham deslocamento limitado proporcional à diferença angular entre o braço atual e a pose de referência do GLB; mantêm o socket da armadura e não dependem de um solver de colisão. Testes verificam as famílias e o movimento em ataque. A eficácia visual e as medições dependem da próxima execução. Sem deploy.

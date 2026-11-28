@@ -109,7 +109,7 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     const chest=add(new THREE.CylinderGeometry(heavy?.25:.22,.17,.35,10),main,0,.19,0)
     chest.scale.z=.62
     for(const s of [-1,1]){
-      if(heavy){const shoulder=ball(f==='exo'?.095:.08,trim,s*.24,.33,0);shoulder.scale.set(1,.7,1.15)}
+      if(heavy){const shoulder=ball(f==='exo'?.095:.08,trim,s*.24,.33,0);shoulder.scale.set(1,.7,1.15);shoulder.name=s<0?'CarbonShoulder.L':'CarbonShoulder.R'}
       else{const lapel=box(.045,.29,.025,trim,s*.07,.21,.135);lapel.rotation.z=s*.42}
       if(f==='robe'||f==='coat')plate([[-.065,0],[.065,0],[.10,-.36],[-.055,-.33]],.018,main,s*.09,0,.13)
       if(f==='vest')box(.065,.07,.035,trim,s*.10,.12,.14)
@@ -220,6 +220,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     return {proxies,point:new THREE.Vector3(),local:new THREE.Vector3()}
   },[scene,style])
   const drapes=useRef<THREE.Mesh[]>([])
+  const shoulders=useRef<{mesh:THREE.Mesh;arm:THREE.Object3D;restArm:THREE.Quaternion;restMesh:THREE.Quaternion;restPosition:THREE.Vector3;side:number}[]>([])
   const attachmentAnchors=useRef<{object:THREE.Object3D;socket:THREE.Object3D;rest:THREE.Matrix4}[]>([])
   const effects=useRef<THREE.Group|null>(null)
   const hairMotion=useRef<{node:THREE.Object3D;rotation:THREE.Quaternion}[]>([])
@@ -298,6 +299,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const ids: string[] = []
     const designs: string[] = []
     const capeMeshes: THREE.Mesh[] = []
+    const shoulderMeshes: typeof shoulders.current = []
     gl.domElement.dataset.glbVisorOffset='not-applicable'
     gl.domElement.dataset.glbDualGrip='false'
     for(const slot of slots){
@@ -327,6 +329,16 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       }
       // Preserve catalog geometry and add clearance for the wider Caçador base torso.
       if(slot==='armadura'&&art&&style==='cacador')group.scale.x=1.08/.93
+      if(slot==='armadura')for(const side of [-1,1]){
+        const suffix=side<0?'L':'R'
+        const mesh=group.getObjectByName('CarbonShoulder.'+suffix)
+        const arm=scene.getObjectByName('UpperArm.'+suffix)
+        if(mesh instanceof THREE.Mesh&&arm){
+          // Capture bind pose from the immutable loaded model, not an active clip.
+          const bindArm=gltf.scene.getObjectByName('UpperArm.'+suffix)
+          if(bindArm)shoulderMeshes.push({mesh,arm,restArm:bindArm.quaternion.clone(),restMesh:mesh.quaternion.clone(),restPosition:mesh.position.clone(),side})
+        }
+      }
       if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
@@ -346,11 +358,14 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
     drapes.current=capeMeshes
+    shoulders.current=shoulderMeshes
+    gl.domElement.dataset.glbShoulders=String(shoulderMeshes.length)
+    gl.domElement.dataset.glbShoulderLift='0'
     gl.domElement.dataset.glbDrapes=String(capeMeshes.length)
     gl.domElement.dataset.glbDesign=designs.sort().join(',')
     invalidate()
-    return ()=>{drapes.current=[];attachmentAnchors.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
-  },[scene,gear,invalidate,gl,style])
+    return ()=>{drapes.current=[];shoulders.current=[];attachmentAnchors.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
+  },[scene,gltf.scene,gear,invalidate,gl,style])
   useEffect(()=>{
     const group=new THREE.Group();group.name='CarbonEnergyEffects'
     const color=energyColor(style,appearance)
@@ -398,6 +413,19 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const time=action.time
     const active=animation.clip==='attack'||animation.clip==='dodge'||animation.clip==='channel'||animation.clip==='victory'
     const strength=active?.065:.018
+    // Limited secondary movement based on the arm's angular deviation from bind pose.
+    // Do not rotate the entire chest or detach equipment from the original socket.
+    let shoulderLift=0
+    for(const entry of shoulders.current){
+      const lift=Math.min(1,entry.arm.quaternion.angleTo(entry.restArm)/.8)
+      entry.mesh.position.copy(entry.restPosition)
+      entry.mesh.position.x+=entry.side*.018*lift
+      entry.mesh.position.y+=.024*lift
+      entry.mesh.quaternion.copy(entry.restMesh)
+      entry.mesh.rotateZ(-entry.side*.20*lift)
+      shoulderLift=Math.max(shoulderLift,lift)
+    }
+    gl.domElement.dataset.glbShoulderLift=String(shoulderLift)
     // Geometry-only eye motion; no facial rig or extra textures required.
     const blinkPhase=Math.abs(time-1.45)/.14
     const blink=animation.clip==='idle'?Math.min(1,blinkPhase):1
