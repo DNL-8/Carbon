@@ -16,7 +16,7 @@
 
 Aplicação web e Android de treinos, saúde e progressão de personagem, inspirada no universo Murim. As atividades físicas alimentam duas trilhas de evolução, a de **Caçador (XP)** e a de **cultivo (Qi)**, com batalhas, missões e acompanhamento de recuperação.
 
-O projeto é de uso privado, feito para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. Só entram contas Google previamente autorizadas: não há cadastro público, login por senha nem modo visitante.
+O projeto é de uso privado, feito para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. O cadastro é fechado por padrão; GOOGLE_OPEN_SIGNUP=true permite cadastro automático com Google verificado, sem lista manual. Não há login por senha nem modo visitante.
 
 ## Funcionalidades
 
@@ -166,7 +166,9 @@ Remove-Item Env:MURIM_MIGRATION_DATABASE_URL
 
 Substitua os valores de exemplo pela conexão privada de desenvolvimento e confirme o sucesso de cada comando. Em um banco **existente** com o schema compatível, não defina `MURIM_BOOTSTRAP_EMPTY`. Para o schema antigo, siga a [migração legada](docs/migracao-legado.md).
 
-### 3. Provisionar o usuário
+### 3. Provisionar o usuário (modo fechado)
+
+No modo aberto, configure GOOGLE_OPEN_SIGNUP=true; o primeiro login cria a conta.
 
 O login não cria contas. Em um banco de desenvolvimento novo, após confirmar a identidade e o e-mail verificado de cada conta Google, insira o usuário com o mesmo e-mail:
 

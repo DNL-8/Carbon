@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     database_url: str = ""
     enable_writes: bool = False
     python_auth_secret: str = ""
+    google_open_signup: bool = False
     google_users: dict[str, str] = Field(default_factory=dict)
     app_origin: str = ""
     strava_client_id: str = ""

@@ -148,3 +148,47 @@ def test_session_lifecycle_postgres(client, monkeypatch):
             conn.execute(text("DELETE FROM auth_verification WHERE id=:id"),
                          {"id": "murim-native:" + hashlib.sha256(raw_token.encode()).hexdigest()})
         db.dispose()
+
+
+def test_open_signup_without_manual_list():
+    configured = settings().model_copy(update={"google_users": {}, "google_open_signup": True})
+    assert python_auth.config(configured) == (ORIGIN, {})
+
+
+def test_open_signup_postgres(monkeypatch):
+    import os
+    import secrets
+
+    from fastapi import Response
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.engine import make_url
+
+    raw = os.environ.get("MURIM_TEST_DATABASE_URL")
+    if not raw:
+        pytest.skip("requires disposable local PostgreSQL")
+    url = make_url(raw)
+    assert url.host in {"127.0.0.1", "localhost"} and url.database == "murim_fastapi_test"
+    db = create_engine(url.set(drivername="postgresql+psycopg"))
+    monkeypatch.setattr(python_auth, "engine", lambda: db)
+    suffix = secrets.token_hex(8)
+    claims = {"sub": "new-" + suffix, "email": suffix + "@example.test", "name": "Test"}
+    second = {"sub": "second-" + suffix, "email": "second-" + suffix + "@example.test"}
+    configured = settings().model_copy(update={"google_users": {}, "google_open_signup": True})
+    try:
+        first = python_auth.issue(claims, configured, Response())
+        again = python_auth.issue(claims, configured, Response())
+        other = python_auth.issue(second, configured, Response())
+        assert first["id"] == again["id"] != other["id"]
+        with pytest.raises(HTTPException) as exc:
+            python_auth.issue({**claims, "sub": "unrelated-" + suffix}, configured, Response())
+        assert exc.value.status_code == 403
+        with db.connect() as conn:
+            assert conn.execute(text("SELECT count(*) FROM auth_account WHERE account_id=:sub"),
+                                {"sub": claims["sub"]}).scalar_one() == 1
+            assert conn.execute(text("SELECT count(*) FROM auth_session WHERE user_id=:uid"),
+                                {"uid": first["id"]}).scalar_one() == 2
+    finally:
+        with db.begin() as conn:
+            conn.execute(text("DELETE FROM auth_user WHERE email IN (:first,:second)"),
+                         {"first": claims["email"], "second": second["email"]})
+        db.dispose()

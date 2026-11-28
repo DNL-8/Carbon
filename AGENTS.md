@@ -47,8 +47,8 @@ Execute cada comando em seu diretório. As versões abaixo seguem a CI e os READ
 
 ## 4. Autenticação e segurança (obrigatório)
 
-- Use Google OAuth2/OIDC com Authlib no FastAPI; preserve o fluxo documentado em [python-auth-cutover.md](docs/python-auth-cutover.md). Não permita cadastro público, senha ou modo visitante.
-- Autorize exclusivamente as identidades cadastradas, vinculadas pelo `sub` do provedor a IDs internos distintos. Não associe contas automaticamente pelo e-mail.
+- Use Google OAuth2/OIDC com Authlib no FastAPI; preserve o fluxo documentado em [python-auth-cutover.md](docs/python-auth-cutover.md). Mantenha o cadastro fechado por padrão; permita cadastro Google automático apenas com GOOGLE_OPEN_SIGNUP=true, conforme decisão do proprietário. Não permita senha ou modo visitante.
+- Autorize identidades verificadas, cadastradas manualmente ou pelo primeiro login no modo aberto, vinculadas pelo `sub` do provedor a IDs internos distintos. Não associe contas automaticamente pelo e-mail.
 - Diferencie autenticação (identidade) de autorização (acesso). Valide sessão, proprietário e permissões no servidor em toda operação protegida; não confie em IDs fornecidos pelo cliente. Teste isolamento entre as contas.
 - Preserve tokens de sessão aleatórios, armazenamento de hash no servidor, expiração e revogação. Mantenha o prazo documentado (sete dias), logout efetivo e invalidação de sessões comprometidas. Authlib não substitui a implementação de sessões da aplicação.
 - Web: use cookies `HttpOnly`, `Secure` em produção HTTPS e `SameSite` adequado ao fluxo. Restringir domínio/caminho conforme necessário. Não armazene tokens no `localStorage` ou `sessionStorage`.
