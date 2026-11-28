@@ -17,11 +17,11 @@
       "description": "Capuz inicial de couro leve para manter o foco durante a sessão.",
       "accentHex": "#64748B",
       "secondaryHex": "#9CA3AF",
-      "powerBonusLabel": "+1% XP · +1% Moedas · +1% Chefe",
+      "powerBonusLabel": "+1% XP",
       "xpBonusPercent": 1,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 1,
-      "powerScore": 8,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 2,
       "setId": "viajante"
     },
     {
@@ -41,11 +41,11 @@
       "description": "Faixa tradicional dos discípulos de Taiyuan para disciplinar a respiração.",
       "accentHex": "#475569",
       "secondaryHex": "#94A3B8",
-      "powerBonusLabel": "+2% XP · +1% Moedas · +1% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 1,
-      "powerScore": 10,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "familia_jin"
     },
     {
@@ -65,11 +65,11 @@
       "description": "Visor padrão emitido pela Associação para leitura básica de portões.",
       "accentHex": "#334155",
       "secondaryHex": "#60A5FA",
-      "powerBonusLabel": "+1% XP · +3% Moedas · +1% Chefe",
-      "xpBonusPercent": 1,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 1,
-      "powerScore": 11,
+      "powerBonusLabel": "+4% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 4,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "associacao_cacadores"
     },
     {
@@ -89,11 +89,11 @@
       "description": "Tecido amarrado na testa dos praticantes iniciantes de 3ª Classe para conter o suor.",
       "accentHex": "#64748B",
       "secondaryHex": "#38BDF8",
-      "powerBonusLabel": "+2% XP · +1% Moedas · +2% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 12,
+      "powerBonusLabel": "+4% Chefe",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 4,
+      "powerScore": 8,
       "setId": "guarda_aco"
     },
     {
@@ -113,11 +113,11 @@
       "description": "Lente encantada para enxergar tesouros ocultos ao final de cada incursão.",
       "accentHex": "#2563EB",
       "secondaryHex": "#EAB308",
-      "powerBonusLabel": "+2% XP · +8% Moedas · +2% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 8,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 24,
+      "powerBonusLabel": "+6% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 6,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 12,
       "setId": "manto_mercador"
     },
     {
@@ -137,11 +137,11 @@
       "description": "Tiara metálica de 2ª Classe que estabiliza o fluxo de Qi durante golpes.",
       "accentHex": "#EA580C",
       "secondaryHex": "#FDBA74",
-      "powerBonusLabel": "+3% XP · +3% Moedas · +7% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 7,
-      "powerScore": 29,
+      "powerBonusLabel": "+6% Chefe",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 6,
+      "powerScore": 12,
       "setId": "seita_rei_fogo"
     },
     {
@@ -161,11 +161,11 @@
       "description": "Proteção reforçada usada por líderes de esquadrões Rank D em fendas.",
       "accentHex": "#1D4ED8",
       "secondaryHex": "#93C5FD",
-      "powerBonusLabel": "+4% XP · +6% Moedas · +4% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 6,
-      "bossDamageBonusPercent": 4,
-      "powerScore": 32,
+      "powerBonusLabel": "+8% Moedas · +1% Chefe",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 8,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 18,
       "setId": "associacao_cacadores"
     },
     {
@@ -185,11 +185,11 @@
       "description": "Diadema rúnica dos Caçadores Rank B que converte foco em ganho acelerado de XP.",
       "accentHex": "#7E22CE",
       "secondaryHex": "#38BDF8",
-      "powerBonusLabel": "+10% XP · +3% Moedas · +4% Chefe",
-      "xpBonusPercent": 10,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 4,
-      "powerScore": 52,
+      "powerBonusLabel": "+12% XP · +1% Moedas · +1% Chefe",
+      "xpBonusPercent": 12,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 28,
       "setId": "sabio_abissal"
     },
     {
@@ -209,11 +209,11 @@
       "description": "Elmo feroz com chifres flamejantes forjado para especialistas no reino Pico.",
       "accentHex": "#DC2626",
       "secondaryHex": "#FCA5A5",
-      "powerBonusLabel": "+4% XP · +2% Moedas · +11% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 2,
-      "bossDamageBonusPercent": 11,
-      "powerScore": 58,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +10% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 10,
+      "powerScore": 24,
       "setId": "presa_carmesim"
     },
     {
@@ -233,11 +233,11 @@
       "description": "Máscara ritual de mestres no reino Pico que amplifica o Qi da Espada.",
       "accentHex": "#C2410C",
       "secondaryHex": "#FB923C",
-      "powerBonusLabel": "+6% XP · +4% Moedas · +12% Chefe",
-      "xpBonusPercent": 6,
-      "coinBonusPercent": 4,
-      "bossDamageBonusPercent": 12,
-      "powerScore": 62,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +10% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 10,
+      "powerScore": 24,
       "setId": "seita_rei_fogo"
     },
     {
@@ -257,11 +257,11 @@
       "description": "Coroa suprema da eternidade concedida aos guerreiros do Rank S.",
       "accentHex": "#F59E0B",
       "secondaryHex": "#F97316",
-      "powerBonusLabel": "+14% XP · +12% Moedas · +16% Chefe",
-      "xpBonusPercent": 14,
-      "coinBonusPercent": 12,
-      "bossDamageBonusPercent": 16,
-      "powerScore": 110,
+      "powerBonusLabel": "+1% XP · +16% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 16,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 38,
       "setId": "monarca_eternidade"
     },
     {
@@ -281,11 +281,11 @@
       "description": "Relíquia do Reino Sem Restrições inspirada no mestre Jeok Cheon-gang.",
       "accentHex": "#EA580C",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+12% XP · +10% Moedas · +22% Chefe",
-      "xpBonusPercent": 12,
-      "coinBonusPercent": 10,
-      "bossDamageBonusPercent": 22,
-      "powerScore": 118,
+      "powerBonusLabel": "+2% XP · +1% Moedas · +14% Chefe",
+      "xpBonusPercent": 2,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 14,
+      "powerScore": 34,
       "setId": "seita_rei_fogo"
     },
     {
@@ -305,11 +305,11 @@
       "description": "Coroa etérea de um mestre do Reino Profundo, onde mente e Qi são um só.",
       "accentHex": "#06B6D4",
       "secondaryHex": "#E0F2FE",
-      "powerBonusLabel": "+18% XP · +12% Moedas · +18% Chefe",
-      "xpBonusPercent": 18,
-      "coinBonusPercent": 12,
-      "bossDamageBonusPercent": 18,
-      "powerScore": 126,
+      "powerBonusLabel": "+16% XP · +2% Moedas · +1% Chefe",
+      "xpBonusPercent": 16,
+      "coinBonusPercent": 2,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 38,
       "setId": "espada_invisivel"
     },
     {
@@ -329,11 +329,11 @@
       "description": "Proteção leve e flexível emitida para Caçadores iniciantes de Rank F.",
       "accentHex": "#78716C",
       "secondaryHex": "#D6D3D1",
-      "powerBonusLabel": "+2% XP · +1% Moedas · +2% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 12,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "viajante"
     },
     {
@@ -353,11 +353,11 @@
       "description": "Uniforme clássico da família Jin para artistas marciais iniciantes de 3ª Classe.",
       "accentHex": "#475569",
       "secondaryHex": "#CBD5E1",
-      "powerBonusLabel": "+3% XP · +2% Moedas · +1% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 2,
-      "bossDamageBonusPercent": 1,
-      "powerScore": 14,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "familia_jin"
     },
     {
@@ -377,11 +377,11 @@
       "description": "Colete reforçado distribuído a Caçadores que superaram o Rank F.",
       "accentHex": "#1E40AF",
       "secondaryHex": "#93C5FD",
-      "powerBonusLabel": "+2% XP · +4% Moedas · +2% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 4,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 16,
+      "powerBonusLabel": "+6% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 6,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 12,
       "setId": "associacao_cacadores"
     },
     {
@@ -401,11 +401,11 @@
       "description": "Couraça temperada usada por vanguardas de incursão a partir do Rank D.",
       "accentHex": "#3B82F6",
       "secondaryHex": "#CBD5E1",
-      "powerBonusLabel": "+4% XP · +3% Moedas · +6% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 6,
-      "powerScore": 30,
+      "powerBonusLabel": "+1% XP · +8% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 8,
+      "powerScore": 18,
       "setId": "guarda_aco"
     },
     {
@@ -425,11 +425,11 @@
       "description": "Veste bordada da Chama do Sul tecida para resistir ao calor do Qi interno.",
       "accentHex": "#C2410C",
       "secondaryHex": "#FDBA74",
-      "powerBonusLabel": "+4% XP · +3% Moedas · +8% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 8,
-      "powerScore": 33,
+      "powerBonusLabel": "+6% Chefe",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 6,
+      "powerScore": 12,
       "setId": "seita_rei_fogo"
     },
     {
@@ -449,11 +449,11 @@
       "description": "Armadura da escolta de elite de Taiyuan para mestres de 1ª Classe.",
       "accentHex": "#334155",
       "secondaryHex": "#E2E8F0",
-      "powerBonusLabel": "+7% XP · +4% Moedas · +4% Chefe",
-      "xpBonusPercent": 7,
-      "coinBonusPercent": 4,
-      "bossDamageBonusPercent": 4,
-      "powerScore": 34,
+      "powerBonusLabel": "+8% XP · +1% Moedas",
+      "xpBonusPercent": 8,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 18,
       "setId": "familia_jin"
     },
     {
@@ -473,11 +473,11 @@
       "description": "Liga metálica derivada de minério de masmorra para veteranos Rank C.",
       "accentHex": "#2563EB",
       "secondaryHex": "#60A5FA",
-      "powerBonusLabel": "+5% XP · +7% Moedas · +5% Chefe",
-      "xpBonusPercent": 5,
-      "coinBonusPercent": 7,
-      "bossDamageBonusPercent": 5,
-      "powerScore": 36,
+      "powerBonusLabel": "+1% XP · +10% Moedas · +1% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 10,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 24,
       "setId": "associacao_cacadores"
     },
     {
@@ -497,11 +497,11 @@
       "description": "Armadura escarlate de elite Rank B que transforma esforço em dano em chefes.",
       "accentHex": "#BE123C",
       "secondaryHex": "#FB7185",
-      "powerBonusLabel": "+7% XP · +5% Moedas · +12% Chefe",
-      "xpBonusPercent": 7,
-      "coinBonusPercent": 5,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +12% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
       "bossDamageBonusPercent": 12,
-      "powerScore": 56,
+      "powerScore": 28,
       "setId": "presa_carmesim"
     },
     {
@@ -521,11 +521,11 @@
       "description": "Traje bordado a ouro de guildas do Pico que multiplica recompensas de treino.",
       "accentHex": "#A855F7",
       "secondaryHex": "#EAB308",
-      "powerBonusLabel": "+4% XP · +14% Moedas · +4% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 14,
-      "bossDamageBonusPercent": 4,
-      "powerScore": 50,
+      "powerBonusLabel": "+1% XP · +10% Moedas · +1% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 10,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 24,
       "setId": "manto_mercador"
     },
     {
@@ -545,11 +545,11 @@
       "description": "Veste dos líderes de seita no Pico Supremo, imbuída com Força da Arma.",
       "accentHex": "#0891B2",
       "secondaryHex": "#67E8F9",
-      "powerBonusLabel": "+11% XP · +6% Moedas · +11% Chefe",
-      "xpBonusPercent": 11,
-      "coinBonusPercent": 6,
-      "bossDamageBonusPercent": 11,
-      "powerScore": 68,
+      "powerBonusLabel": "+12% XP · +1% Moedas · +1% Chefe",
+      "xpBonusPercent": 12,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 28,
       "setId": "espada_invisivel"
     },
     {
@@ -569,11 +569,11 @@
       "description": "Couraça abissal digna de um Caçador Rank A de poder incomparável.",
       "accentHex": "#EA580C",
       "secondaryHex": "#FBBF24",
-      "powerBonusLabel": "+15% XP · +15% Moedas · +20% Chefe",
-      "xpBonusPercent": 15,
-      "coinBonusPercent": 15,
-      "bossDamageBonusPercent": 20,
-      "powerScore": 125,
+      "powerBonusLabel": "+1% XP · +14% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 14,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 34,
       "setId": "monarca_eternidade"
     },
     {
@@ -593,11 +593,11 @@
       "description": "Conjunto blindado exclusivo dos Caçadores Rank S de poder nacional.",
       "accentHex": "#1D4ED8",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+16% XP · +18% Moedas · +16% Chefe",
-      "xpBonusPercent": 16,
-      "coinBonusPercent": 18,
-      "bossDamageBonusPercent": 16,
-      "powerScore": 128,
+      "powerBonusLabel": "+1% XP · +16% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 16,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 38,
       "setId": "associacao_cacadores"
     },
     {
@@ -617,11 +617,11 @@
       "description": "Traje lendário tecido com fios de Qi puro para mestres além das restrições.",
       "accentHex": "#0E7490",
       "secondaryHex": "#A5F3FC",
-      "powerBonusLabel": "+20% XP · +14% Moedas · +20% Chefe",
-      "xpBonusPercent": 20,
-      "coinBonusPercent": 14,
-      "bossDamageBonusPercent": 20,
-      "powerScore": 136,
+      "powerBonusLabel": "+16% XP · +2% Moedas · +1% Chefe",
+      "xpBonusPercent": 16,
+      "coinBonusPercent": 2,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 38,
       "setId": "espada_invisivel"
     },
     {
@@ -641,11 +641,11 @@
       "description": "Manto simples de tecido leve usado por Caçadores Rank F em sua primeira fenda.",
       "accentHex": "#6B7280",
       "secondaryHex": "#D1D5DB",
-      "powerBonusLabel": "+2% XP · +2% Moedas",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 2,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
       "bossDamageBonusPercent": 0,
-      "powerScore": 9,
+      "powerScore": 8,
       "setId": "viajante"
     },
     {
@@ -665,11 +665,11 @@
       "description": "Capa leve usada pelos iniciantes de 3ª Classe nos pátios da família Jin.",
       "accentHex": "#475569",
       "secondaryHex": "#CBD5E1",
-      "powerBonusLabel": "+3% XP · +1% Moedas · +1% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 1,
-      "powerScore": 13,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "familia_jin"
     },
     {
@@ -689,11 +689,11 @@
       "description": "Casaco tático impermeável para incursões em portões instáveis.",
       "accentHex": "#1E3A8A",
       "secondaryHex": "#93C5FD",
-      "powerBonusLabel": "+2% XP · +3% Moedas · +2% Chefe",
-      "xpBonusPercent": 2,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 15,
+      "powerBonusLabel": "+6% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 6,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 12,
       "setId": "associacao_cacadores"
     },
     {
@@ -713,11 +713,11 @@
       "description": "Capa inscrita com runas azuis de Rank D que aceleram a absorção de XP.",
       "accentHex": "#0284C7",
       "secondaryHex": "#38BDF8",
-      "powerBonusLabel": "+8% XP · +2% Moedas · +2% Chefe",
+      "powerBonusLabel": "+8% XP · +1% Moedas",
       "xpBonusPercent": 8,
-      "coinBonusPercent": 2,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 28,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 18,
       "setId": "sabio_abissal"
     },
     {
@@ -737,11 +737,11 @@
       "description": "Capa com insígnia oficial de resposta rápida da Associação de Caçadores.",
       "accentHex": "#2563EB",
       "secondaryHex": "#DBEAFE",
-      "powerBonusLabel": "+4% XP · +6% Moedas · +4% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 6,
-      "bossDamageBonusPercent": 4,
-      "powerScore": 31,
+      "powerBonusLabel": "+8% Moedas · +1% Chefe",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 8,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 18,
       "setId": "associacao_cacadores"
     },
     {
@@ -761,11 +761,11 @@
       "description": "Capa escarlate de 1ª Classe aquecida pelo fluxo constante de Qi.",
       "accentHex": "#DC2626",
       "secondaryHex": "#FDBA74",
-      "powerBonusLabel": "+4% XP · +4% Moedas · +8% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 4,
+      "powerBonusLabel": "+1% XP · +8% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 0,
       "bossDamageBonusPercent": 8,
-      "powerScore": 35,
+      "powerScore": 18,
       "setId": "seita_rei_fogo"
     },
     {
@@ -785,11 +785,11 @@
       "description": "Manto nobre de Caçador Rank B com forro dourado de alta recompensa.",
       "accentHex": "#9333EA",
       "secondaryHex": "#FACC15",
-      "powerBonusLabel": "+3% XP · +13% Moedas · +3% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 13,
-      "bossDamageBonusPercent": 3,
-      "powerScore": 48,
+      "powerBonusLabel": "+1% XP · +12% Moedas · +1% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 12,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 28,
       "setId": "manto_mercador"
     },
     {
@@ -809,11 +809,11 @@
       "description": "Asas escarlates de mestres do Pico Supremo que intensificam golpes em chefes.",
       "accentHex": "#B91C1C",
       "secondaryHex": "#F87171",
-      "powerBonusLabel": "+5% XP · +3% Moedas · +11% Chefe",
-      "xpBonusPercent": 5,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 11,
-      "powerScore": 54,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +12% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 12,
+      "powerScore": 28,
       "setId": "presa_carmesim"
     },
     {
@@ -833,11 +833,11 @@
       "description": "Manto de comando usado por Caçadores Rank B em portões de alto risco.",
       "accentHex": "#7C3AED",
       "secondaryHex": "#93C5FD",
-      "powerBonusLabel": "+8% XP · +9% Moedas · +7% Chefe",
-      "xpBonusPercent": 8,
-      "coinBonusPercent": 9,
-      "bossDamageBonusPercent": 7,
-      "powerScore": 60,
+      "powerBonusLabel": "+1% XP · +12% Moedas · +1% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 12,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 28,
       "setId": "associacao_cacadores"
     },
     {
@@ -857,11 +857,11 @@
       "description": "Capa flamejante tecida para artistas marciais no reino Pico.",
       "accentHex": "#EA580C",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+6% XP · +5% Moedas · +13% Chefe",
-      "xpBonusPercent": 6,
-      "coinBonusPercent": 5,
-      "bossDamageBonusPercent": 13,
-      "powerScore": 64,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +10% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 10,
+      "powerScore": 24,
       "setId": "seita_rei_fogo"
     },
     {
@@ -881,11 +881,11 @@
       "description": "Manto etéreo dos Caçadores Rank A forjado após dominar o retorno de Murim.",
       "accentHex": "#F59E0B",
       "secondaryHex": "#FB923C",
-      "powerBonusLabel": "+16% XP · +14% Moedas · +15% Chefe",
-      "xpBonusPercent": 16,
+      "powerBonusLabel": "+1% XP · +14% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
       "coinBonusPercent": 14,
-      "bossDamageBonusPercent": 15,
-      "powerScore": 115,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 34,
       "setId": "monarca_eternidade"
     },
     {
@@ -905,11 +905,11 @@
       "description": "Asas de fogo vivo erguidas pelos cem guerreiros do Reino Sem Restrições.",
       "accentHex": "#DC2626",
       "secondaryHex": "#FACC15",
-      "powerBonusLabel": "+13% XP · +11% Moedas · +23% Chefe",
-      "xpBonusPercent": 13,
-      "coinBonusPercent": 11,
-      "bossDamageBonusPercent": 23,
-      "powerScore": 124,
+      "powerBonusLabel": "+2% XP · +1% Moedas · +14% Chefe",
+      "xpBonusPercent": 2,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 14,
+      "powerScore": 34,
       "setId": "seita_rei_fogo"
     },
     {
@@ -929,11 +929,11 @@
       "description": "Manto silencioso do Reino da Vida e da Morte que acompanha a Espada Invisível.",
       "accentHex": "#0891B2",
       "secondaryHex": "#E0F2FE",
-      "powerBonusLabel": "+21% XP · +15% Moedas · +22% Chefe",
-      "xpBonusPercent": 21,
-      "coinBonusPercent": 15,
-      "bossDamageBonusPercent": 22,
-      "powerScore": 142,
+      "powerBonusLabel": "+18% XP · +2% Moedas · +2% Chefe",
+      "xpBonusPercent": 18,
+      "coinBonusPercent": 2,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 44,
       "setId": "espada_invisivel"
     },
     {
@@ -953,11 +953,11 @@
       "description": "Espada de madeira do recruta das sombras para os primeiros combates.",
       "accentHex": "#B45309",
       "secondaryHex": "#FCD39F",
-      "powerBonusLabel": "+2% Chefe",
-      "xpBonusPercent": 0,
+      "powerBonusLabel": "+1% XP",
+      "xpBonusPercent": 1,
       "coinBonusPercent": 0,
-      "bossDamageBonusPercent": 2,
-      "powerScore": 10,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 2,
       "setId": "viajante"
     },
     {
@@ -977,11 +977,11 @@
       "description": "Adaga de aço simples que Taekyung carregava nos primeiros portões Rank F.",
       "accentHex": "#475569",
       "secondaryHex": "#93C5FD",
-      "powerBonusLabel": "+1% XP · +2% Moedas · +3% Chefe",
-      "xpBonusPercent": 1,
-      "coinBonusPercent": 2,
-      "bossDamageBonusPercent": 3,
-      "powerScore": 12,
+      "powerBonusLabel": "+4% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 4,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "associacao_cacadores"
     },
     {
@@ -1001,11 +1001,11 @@
       "description": "Lâmina pesada de treinamento para praticantes iniciantes de 3ª Classe da família Jin.",
       "accentHex": "#64748B",
       "secondaryHex": "#E2E8F0",
-      "powerBonusLabel": "+3% XP · +1% Moedas · +3% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 1,
-      "bossDamageBonusPercent": 3,
-      "powerScore": 15,
+      "powerBonusLabel": "+4% XP",
+      "xpBonusPercent": 4,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 8,
       "setId": "familia_jin"
     },
     {
@@ -1025,11 +1025,11 @@
       "description": "Lâmina ágil de 2ª Classe que extrai moedas extras de cada missão concluída.",
       "accentHex": "#3B82F6",
       "secondaryHex": "#FACC15",
-      "powerBonusLabel": "+3% XP · +10% Moedas · +5% Chefe",
-      "xpBonusPercent": 3,
-      "coinBonusPercent": 10,
-      "bossDamageBonusPercent": 5,
-      "powerScore": 34,
+      "powerBonusLabel": "+6% Moedas",
+      "xpBonusPercent": 0,
+      "coinBonusPercent": 6,
+      "bossDamageBonusPercent": 0,
+      "powerScore": 12,
       "setId": "manto_mercador"
     },
     {
@@ -1049,11 +1049,11 @@
       "description": "Lança de 1ª Classe cuja haste conduz Qi direto para a ponta de aço.",
       "accentHex": "#EA580C",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+4% XP · +3% Moedas · +10% Chefe",
-      "xpBonusPercent": 4,
-      "coinBonusPercent": 3,
-      "bossDamageBonusPercent": 10,
-      "powerScore": 38,
+      "powerBonusLabel": "+1% XP · +8% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 0,
+      "bossDamageBonusPercent": 8,
+      "powerScore": 18,
       "setId": "seita_rei_fogo"
     },
     {
@@ -1073,11 +1073,11 @@
       "description": "Lâmina com núcleo de mana usada pela linha de frente da Associação.",
       "accentHex": "#2563EB",
       "secondaryHex": "#38BDF8",
-      "powerBonusLabel": "+5% XP · +8% Moedas · +6% Chefe",
-      "xpBonusPercent": 5,
-      "coinBonusPercent": 8,
-      "bossDamageBonusPercent": 6,
-      "powerScore": 40,
+      "powerBonusLabel": "+1% XP · +10% Moedas · +1% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 10,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 24,
       "setId": "associacao_cacadores"
     },
     {
@@ -1097,11 +1097,11 @@
       "description": "Cajado arcano de Caçador Rank B que amplia fortemente todo XP conquistado.",
       "accentHex": "#7C3AED",
       "secondaryHex": "#38BDF8",
-      "powerBonusLabel": "+12% XP · +4% Moedas · +7% Chefe",
+      "powerBonusLabel": "+12% XP · +1% Moedas · +1% Chefe",
       "xpBonusPercent": 12,
-      "coinBonusPercent": 4,
-      "bossDamageBonusPercent": 7,
-      "powerScore": 60,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 28,
       "setId": "sabio_abissal"
     },
     {
@@ -1121,11 +1121,11 @@
       "description": "Espada rubra de mestres do Pico Supremo forjada para romper defesas de chefes.",
       "accentHex": "#EF4444",
       "secondaryHex": "#FCA5A5",
-      "powerBonusLabel": "+5% XP · +4% Moedas · +16% Chefe",
-      "xpBonusPercent": 5,
-      "coinBonusPercent": 4,
-      "bossDamageBonusPercent": 16,
-      "powerScore": 68,
+      "powerBonusLabel": "+1% XP · +1% Moedas · +12% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 12,
+      "powerScore": 28,
       "setId": "presa_carmesim"
     },
     {
@@ -1145,11 +1145,11 @@
       "description": "Sabre do reino Pico capaz de projetar lâminas de Qi da Espada à distância.",
       "accentHex": "#0284C7",
       "secondaryHex": "#67E8F9",
-      "powerBonusLabel": "+11% XP · +6% Moedas · +13% Chefe",
-      "xpBonusPercent": 11,
-      "coinBonusPercent": 6,
-      "bossDamageBonusPercent": 13,
-      "powerScore": 72,
+      "powerBonusLabel": "+10% XP · +1% Moedas · +1% Chefe",
+      "xpBonusPercent": 10,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 1,
+      "powerScore": 24,
       "setId": "espada_invisivel"
     },
     {
@@ -1169,11 +1169,11 @@
       "description": "Arma da categoria Rank A+ usada quando Taekyung retorna do Murim.",
       "accentHex": "#2563EB",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+15% XP · +16% Moedas · +19% Chefe",
-      "xpBonusPercent": 15,
-      "coinBonusPercent": 16,
-      "bossDamageBonusPercent": 19,
-      "powerScore": 122,
+      "powerBonusLabel": "+1% XP · +14% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
+      "coinBonusPercent": 14,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 34,
       "setId": "associacao_cacadores"
     },
     {
@@ -1193,11 +1193,11 @@
       "description": "Lança lendária que canaliza a técnica secreta das Dez Mil Chamas do Rei do Fogo.",
       "accentHex": "#DC2626",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+14% XP · +12% Moedas · +28% Chefe",
-      "xpBonusPercent": 14,
-      "coinBonusPercent": 12,
-      "bossDamageBonusPercent": 28,
-      "powerScore": 138,
+      "powerBonusLabel": "+2% XP · +1% Moedas · +14% Chefe",
+      "xpBonusPercent": 2,
+      "coinBonusPercent": 1,
+      "bossDamageBonusPercent": 14,
+      "powerScore": 34,
       "setId": "seita_rei_fogo"
     },
     {
@@ -1217,11 +1217,11 @@
       "description": "Relíquia suprema dupla dos Caçadores Rank S com dano abissal máximo em chefes.",
       "accentHex": "#F97316",
       "secondaryHex": "#FDE047",
-      "powerBonusLabel": "+18% XP · +16% Moedas · +25% Chefe",
-      "xpBonusPercent": 18,
+      "powerBonusLabel": "+1% XP · +16% Moedas · +2% Chefe",
+      "xpBonusPercent": 1,
       "coinBonusPercent": 16,
-      "bossDamageBonusPercent": 25,
-      "powerScore": 140,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 38,
       "setId": "monarca_eternidade"
     },
     {
@@ -1241,11 +1241,11 @@
       "description": "Manifestação pura de Qi sem forma física: o pináculo absoluto da arte marcial.",
       "accentHex": "#06B6D4",
       "secondaryHex": "#FFFFFF",
-      "powerBonusLabel": "+22% XP · +18% Moedas · +28% Chefe",
-      "xpBonusPercent": 22,
-      "coinBonusPercent": 18,
-      "bossDamageBonusPercent": 28,
-      "powerScore": 158,
+      "powerBonusLabel": "+18% XP · +2% Moedas · +2% Chefe",
+      "xpBonusPercent": 18,
+      "coinBonusPercent": 2,
+      "bossDamageBonusPercent": 2,
+      "powerScore": 44,
       "setId": "espada_invisivel"
     },
     {
@@ -2500,176 +2500,182 @@
   "sets": [
     {
       "id": "viajante",
-      "name": "Conjunto do Viajante",
+      "name": "Conjunto Viajante",
       "themeColorHex": "#fbbf24",
-      "description": "Peças de treino e couro para os primeiros portais.",
+      "description": "Especialização: ganho de XP.",
       "twoPieceBonus": {
-        "xpBonusPercent": 2,
-        "coinBonusPercent": 3,
-        "bossDamageBonusPercent": 2,
-        "label": "+2% XP · +3% Moedas · +2% Chefe"
+        "xpBonusPercent": 4,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% XP"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 6,
-        "coinBonusPercent": 8,
-        "bossDamageBonusPercent": 5,
-        "label": "+6% XP · +8% Moedas · +5% Chefe"
+        "xpBonusPercent": 10,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% XP"
       }
     },
     {
       "id": "guarda_aco",
-      "name": "Conjunto da Guarda de Aço",
+      "name": "Conjunto Guarda de Aço",
       "themeColorHex": "#a5b4fc",
-      "description": "A bandana de Murim e a placa reforçada aumentam o dano contra chefes.",
+      "description": "Especialização: dano contra chefes.",
       "twoPieceBonus": {
-        "xpBonusPercent": 3,
-        "coinBonusPercent": 2,
-        "bossDamageBonusPercent": 9,
-        "label": "+3% XP · +2% Moedas · +9% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 4,
+        "label": "+4% Chefe"
+      },
+      "fourPieceBonus": {
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 10,
+        "label": "+10% Chefe"
       }
     },
     {
       "id": "presa_carmesim",
-      "name": "Conjunto Presa Carmesim",
+      "name": "Conjunto Presa Rubra",
       "themeColorHex": "#ef4444",
-      "description": "Dano em Chefes e Força Bruta.",
+      "description": "Especialização: dano contra chefes.",
       "twoPieceBonus": {
-        "xpBonusPercent": 4,
-        "coinBonusPercent": 4,
-        "bossDamageBonusPercent": 12,
-        "label": "+4% XP · +4% Moedas · +12% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 4,
+        "label": "+4% Chefe"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 10,
-        "coinBonusPercent": 8,
-        "bossDamageBonusPercent": 28,
-        "label": "+10% XP · +8% Moedas · +28% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 10,
+        "label": "+10% Chefe"
       }
     },
     {
       "id": "manto_mercador",
-      "name": "Conjunto do Mercador Sombrio",
+      "name": "Conjunto Rota Âmbar",
       "themeColorHex": "#eab308",
-      "description": "Farm de Moedas e Recompensas.",
+      "description": "Especialização: ganho de moedas.",
       "twoPieceBonus": {
-        "xpBonusPercent": 3,
-        "coinBonusPercent": 12,
-        "bossDamageBonusPercent": 2,
-        "label": "+3% XP · +12% Moedas · +2% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 4,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% Moedas"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 8,
-        "coinBonusPercent": 30,
-        "bossDamageBonusPercent": 6,
-        "label": "+8% XP · +30% Moedas · +6% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 10,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% Moedas"
       }
     },
     {
       "id": "sabio_abissal",
-      "name": "Conjunto do Sábio Abissal",
+      "name": "Conjunto Arquivo Astral",
       "themeColorHex": "#38bdf8",
-      "description": "Aceleração de XP e Evolução Rápida.",
+      "description": "Especialização: ganho de XP.",
       "twoPieceBonus": {
-        "xpBonusPercent": 12,
-        "coinBonusPercent": 3,
-        "bossDamageBonusPercent": 3,
-        "label": "+12% XP · +3% Moedas · +3% Chefe"
+        "xpBonusPercent": 4,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% XP"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 28,
-        "coinBonusPercent": 8,
-        "bossDamageBonusPercent": 8,
-        "label": "+28% XP · +8% Moedas · +8% Chefe"
+        "xpBonusPercent": 10,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% XP"
       }
     },
     {
       "id": "monarca_eternidade",
-      "name": "Conjunto do Monarca da Eternidade",
+      "name": "Conjunto Sentinela do Eclipse",
       "themeColorHex": "#f97316",
-      "description": "Híbrido Supremo End-Game.",
+      "description": "Especialização: ganho de moedas.",
       "twoPieceBonus": {
-        "xpBonusPercent": 8,
-        "coinBonusPercent": 8,
-        "bossDamageBonusPercent": 10,
-        "label": "+8% XP · +8% Moedas · +10% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 4,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% Moedas"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 20,
-        "coinBonusPercent": 20,
-        "bossDamageBonusPercent": 25,
-        "label": "+20% XP · +20% Moedas · +25% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 10,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% Moedas"
       }
     },
     {
       "id": "familia_jin",
-      "name": "Conjunto da Família Jin de Taiyuan",
+      "name": "Conjunto Pátio de Jade",
       "themeColorHex": "#64748b",
-      "description": "Fundamentos de Murim: Disciplina Inicial e Ganho de XP.",
+      "description": "Especialização: ganho de XP.",
       "twoPieceBonus": {
-        "xpBonusPercent": 5,
-        "coinBonusPercent": 4,
-        "bossDamageBonusPercent": 3,
-        "label": "+5% XP · +4% Moedas · +3% Chefe"
+        "xpBonusPercent": 4,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% XP"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 14,
-        "coinBonusPercent": 10,
-        "bossDamageBonusPercent": 8,
-        "label": "+14% XP · +10% Moedas · +8% Chefe"
+        "xpBonusPercent": 10,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% XP"
       }
     },
     {
       "id": "seita_rei_fogo",
-      "name": "Conjunto da Seita do Rei do Fogo",
+      "name": "Conjunto Forja Solar",
       "themeColorHex": "#f97316",
-      "description": "Chama do Sul e Poder Destrutivo contra Chefes.",
+      "description": "Especialização: dano contra chefes.",
       "twoPieceBonus": {
-        "xpBonusPercent": 6,
-        "coinBonusPercent": 5,
-        "bossDamageBonusPercent": 14,
-        "label": "+6% XP · +5% Moedas · +14% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 4,
+        "label": "+4% Chefe"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 16,
-        "coinBonusPercent": 12,
-        "bossDamageBonusPercent": 32,
-        "label": "+16% XP · +12% Moedas · +32% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 10,
+        "label": "+10% Chefe"
       }
     },
     {
       "id": "associacao_cacadores",
-      "name": "Conjunto Força-Tarefa da Associação",
+      "name": "Conjunto Vanguarda",
       "themeColorHex": "#3b82f6",
-      "description": "Equipamento Tático de Incursão do Mundo Real.",
+      "description": "Especialização: ganho de moedas.",
       "twoPieceBonus": {
-        "xpBonusPercent": 5,
-        "coinBonusPercent": 9,
-        "bossDamageBonusPercent": 6,
-        "label": "+5% XP · +9% Moedas · +6% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 4,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% Moedas"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 14,
-        "coinBonusPercent": 24,
-        "bossDamageBonusPercent": 16,
-        "label": "+14% XP · +24% Moedas · +16% Chefe"
+        "xpBonusPercent": 0,
+        "coinBonusPercent": 10,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% Moedas"
       }
     },
     {
       "id": "espada_invisivel",
-      "name": "Conjunto da Espada Invisível",
+      "name": "Conjunto Horizonte de Jade",
       "themeColorHex": "#06b6d4",
-      "description": "Ápice do Qi em Murim: Vida e Morte.",
+      "description": "Especialização: ganho de XP.",
       "twoPieceBonus": {
-        "xpBonusPercent": 11,
-        "coinBonusPercent": 8,
-        "bossDamageBonusPercent": 12,
-        "label": "+11% XP · +8% Moedas · +12% Chefe"
+        "xpBonusPercent": 4,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+4% XP"
       },
       "fourPieceBonus": {
-        "xpBonusPercent": 26,
-        "coinBonusPercent": 20,
-        "bossDamageBonusPercent": 30,
-        "label": "+26% XP · +20% Moedas · +30% Chefe"
+        "xpBonusPercent": 10,
+        "coinBonusPercent": 0,
+        "bossDamageBonusPercent": 0,
+        "label": "+10% XP"
       }
     }
   ],

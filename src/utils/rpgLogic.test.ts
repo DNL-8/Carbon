@@ -25,6 +25,7 @@ import {
   getMurimRealmProgress,
   isEquipmentMilestoneUnlocked,
   migrateEquippedGear,
+  migrateOwnedEquipmentIds,
 } from './rpgLogic';
 
 export function runGameLogicTests(): TestCaseResult[] {
@@ -207,7 +208,7 @@ export function runGameLogicTests(): TestCaseResult[] {
   };
   const monarchSummary = calculateGearBonusSummary(monarchGear);
   assertEqual(
-    'Conjunto Monarca da Eternidade 4/4 soma peças + sinergia 4/4 (+83% XP, +77% Moedas, +101% Chefe)',
+    'Sentinela do Eclipse 4/4 soma peças + sinergia (+4% XP, +70% Moedas, +8% Chefe)',
     {
       xp: monarchSummary.xpBonusPercent,
       coins: monarchSummary.coinBonusPercent,
@@ -216,9 +217,9 @@ export function runGameLogicTests(): TestCaseResult[] {
       auraMultiplier: monarchSummary.auraMultiplier,
     },
     {
-      xp: 83,
-      coins: 77,
-      bossDmg: 101,
+      xp: 4,
+      coins: 70,
+      bossDmg: 8,
       dominant: 'Lendário',
       auraMultiplier: 2.0,
     }
@@ -241,9 +242,9 @@ export function runGameLogicTests(): TestCaseResult[] {
   );
 
   assertEqual(
-    'XP proporcional aplica bônus real do Arsenal (+83% sobre 100 = 183)',
+    'XP proporcional aplica bônus real do Arsenal (+4% sobre 100 = 104)',
     calculateProportionalXp(100, 4, 4, monarchSummary.xpBonusPercent),
-    183
+    104
   );
 
   assertEqual(
@@ -315,14 +316,16 @@ export function runGameLogicTests(): TestCaseResult[] {
     arma: EQUIPMENT_CATALOG.filter((i) => i.slot === 'arma').length,
   };
   assertEqual(
-    'Arsenal possui 52 itens: 13 de cada raridade e 13 de cada slot',
+    'Arsenal possui 104 itens: 26 de cada slot',
     { total: EQUIPMENT_CATALOG.length, rarityCounts, slotCounts },
     {
-      total: 52,
-      rarityCounts: { Comum: 13, Raro: 13, Épico: 13, Lendário: 13 },
-      slotCounts: { elmo: 13, armadura: 13, capa: 13, arma: 13 },
+      total: 104,
+      rarityCounts: { Comum: 28, Raro: 30, Épico: 19, Lendário: 27 },
+      slotCounts: { elmo: 26, armadura: 26, capa: 26, arma: 26 },
     }
   );
+
+  assertEqual('Migração preserva inventário completo de 104 itens', migrateOwnedEquipmentIds(EQUIPMENT_CATALOG.map(item => item.id)).length, 104);
 
   const rankBItem = EQUIPMENT_CATALOG.find((i) => i.id === 'capa_elite_rank_b')!;
   const murimPeakItem = EQUIPMENT_CATALOG.find((i) => i.id === 'elmo_mascara_pico')!;
@@ -331,9 +334,9 @@ export function runGameLogicTests(): TestCaseResult[] {
       i.requirement.tipo === 'rank_cacador' || i.requirement.tipo === 'reino_murim'
   ).length;
   assertEqual(
-    'Todos os 50 itens desbloqueáveis usam requisitos de Rank de Caçador (F-S) ou Reino de Murim',
+    'Todos os 102 itens desbloqueáveis usam requisitos de Rank de Caçador (F-S) ou Reino de Murim',
     nonStarterDualReqCount,
-    50
+    102
   );
   assertEqual(
     'Requisitos duais: Rank B bloqueia Nv.1 e libera Nv.11; Pico bloqueia 0 Qi e libera 4150 Qi',

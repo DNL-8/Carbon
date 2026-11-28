@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from app.equipment import DEFAULT_GEAR, gear_bonus, migrate_gear
+from app.equipment import CATALOG, DEFAULT_GEAR, SETS, gear_bonus, migrate_gear
 
 
 def test_legacy_and_wrong_slot():
@@ -22,3 +22,17 @@ def test_typescript_equipment_oracle():
     for case in cases:
         assert migrate_gear(case["input"]) == case["migrated"]
         assert gear_bonus(case["input"]) == case["bonus"], case["input"]
+
+
+def test_specialized_sets_and_complete_catalog():
+    assert len(CATALOG) == len({item["id"] for item in CATALOG}) == 104
+    slots = ("elmo", "armadura", "capa", "arma")
+    for slot in slots:
+        assert sum(item["slot"] == slot for item in CATALOG) == 26
+    keys = ("xpBonusPercent", "coinBonusPercent", "bossDamageBonusPercent")
+    for definition in SETS:
+        two = [definition["twoPieceBonus"][key] for key in keys]
+        four = [definition["fourPieceBonus"][key] for key in keys]
+        assert sorted(two) == [0, 0, 4]
+        assert four == [value * 10 // 4 for value in two]
+        assert {item["slot"] for item in CATALOG if item["setId"] == definition["id"]} == set(slots)
