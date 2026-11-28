@@ -74,3 +74,8 @@ Na rota isolada de testes, a cada janela de pelo menos 250 ms são amostrados v�
 ### Ombreiras articuladas e relatórios persistentes
 
 A execução 46166544187 aprovou os três jobs de laboratório, mas o ZIP Blender recuperado continha apenas PNGs; os anexos JSON não estavam presentes. Agora os relatórios são também escritos explicitamente no diretório de saída do Playwright. Ombreiras de plate/exo ganham deslocamento limitado proporcional à diferença angular entre o braço atual e a pose de referência do GLB; mantêm o socket da armadura e não dependem de um solver de colisão. Testes verificam as famílias e o movimento em ataque. A eficácia visual e as medições dependem da próxima execução. Sem deploy.
+
+
+### Correção da CI das ombreiras
+
+A execução 46167072184 reprovou as três variantes porque a contagem das ombreiras articuladas permaneceu em zero. A causa provável é a sanitização dos nomes de nós pelo GLTFLoader para os bindings de animação (`UpperArm.L` torna-se `UpperArmL`). O renderer resolve o nome sanitizado pela função PropertyBinding.sanitizeNodeName, com fallback ao nome original; uma armadura pesada sem ambos os vínculos agora produz erro explícito. O teste mantém a exigência de duas ombreiras e verifica os nomes dos braços, sem relaxar o teste de movimento. A correção aguarda nova CI; sem deploy.

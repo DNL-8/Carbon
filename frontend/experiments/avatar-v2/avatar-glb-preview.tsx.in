@@ -329,15 +329,17 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       }
       // Preserve catalog geometry and add clearance for the wider Caçador base torso.
       if(slot==='armadura'&&art&&style==='cacador')group.scale.x=1.08/.93
-      if(slot==='armadura')for(const side of [-1,1]){
+      if(slot==='armadura'&&art&&['plate','exo'].includes(art.family))for(const side of [-1,1]){
         const suffix=side<0?'L':'R'
         const mesh=group.getObjectByName('CarbonShoulder.'+suffix)
-        const arm=scene.getObjectByName('UpperArm.'+suffix)
-        if(mesh instanceof THREE.Mesh&&arm){
-          // Capture bind pose from the immutable loaded model, not an active clip.
-          const bindArm=gltf.scene.getObjectByName('UpperArm.'+suffix)
-          if(bindArm)shoulderMeshes.push({mesh,arm,restArm:bindArm.quaternion.clone(),restMesh:mesh.quaternion.clone(),restPosition:mesh.position.clone(),side})
-        }
+        // GLTFLoader sanitizes animation binding names (e.g. UpperArm.L -> UpperArmL).
+        // Resolve the identical binding in the immutable source and its cloned scene.
+        const rawName='UpperArm.'+suffix
+        const sanitized=THREE.PropertyBinding.sanitizeNodeName(rawName)
+        const arm=scene.getObjectByName(sanitized)??scene.getObjectByName(rawName)
+        const bindArm=gltf.scene.getObjectByName(sanitized)??gltf.scene.getObjectByName(rawName)
+        if(!(mesh instanceof THREE.Mesh)||!arm||!bindArm)throw new Error('Encaixe de ombreira ausente: '+rawName)
+        shoulderMeshes.push({mesh,arm,restArm:bindArm.quaternion.clone(),restMesh:mesh.quaternion.clone(),restPosition:mesh.position.clone(),side})
       }
       if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
@@ -360,6 +362,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     drapes.current=capeMeshes
     shoulders.current=shoulderMeshes
     gl.domElement.dataset.glbShoulders=String(shoulderMeshes.length)
+    gl.domElement.dataset.glbShoulderBindings=shoulderMeshes.map(entry=>entry.arm.name).sort().join(',')
     gl.domElement.dataset.glbShoulderLift='0'
     gl.domElement.dataset.glbDrapes=String(capeMeshes.length)
     gl.domElement.dataset.glbDesign=designs.sort().join(',')
