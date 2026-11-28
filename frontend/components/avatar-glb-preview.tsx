@@ -1,0 +1,305 @@
+'use client'
+
+import { Component, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Alert, Button, ButtonGroup } from '@mui/material'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js'
+import { getEquipmentArt } from '../lib/equipment-art'
+import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
+import type { AvatarGear } from './warrior-avatar'
+
+type Clip = 'idle' | 'attack' | 'victory' | 'rest' | 'guard' | 'dodge' | 'channel'
+type AnimationRequest = { clip: Clip; sequence: number }
+type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
+const slots = ['elmo', 'armadura', 'capa', 'arma'] as const
+
+// The catalog is authoritative. These are prototype attachments, not final sculpted assets.
+function makeAttachment(art: Art, slot: typeof slots[number]) {
+  const group = new THREE.Group()
+  const main = new THREE.MeshStandardMaterial({ color: art.accent, roughness: slot === 'arma' ? .32 : .74, metalness: slot === 'arma' ? .7 : .2, side: THREE.DoubleSide })
+  const trim = new THREE.MeshStandardMaterial({ color: art.trim, roughness: .42, metalness: .45, side: THREE.DoubleSide })
+  const dark = new THREE.MeshStandardMaterial({ color: '#17191e', roughness: .8 })
+  const glow = new THREE.MeshStandardMaterial({ color: art.trim, emissive: art.trim, emissiveIntensity: art.tier >= 4 ? .8 : .1 })
+  const f = art.family
+  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x=0, y=0, z=0) => {
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(x,y,z); group.add(mesh); return mesh
+  }
+  const box = (w:number,h:number,d:number,m:THREE.Material,x=0,y=0,z=0) => add(new THREE.BoxGeometry(w,h,d),m,x,y,z)
+  const ring = (radius:number,tube:number,m:THREE.Material,x=0,y=0,z=0) => add(new THREE.TorusGeometry(radius,tube,6,24),m,x,y,z)
+  const rod = (r1:number,r2:number,h:number,m:THREE.Material,x=0,y=0,z=0) => add(new THREE.CylinderGeometry(r1,r2,h,10),m,x,y,z)
+  const ball = (r:number,m:THREE.Material,x=0,y=0,z=0) => add(new THREE.IcosahedronGeometry(r,1),m,x,y,z)
+  function plate(points: [number,number][], depth:number,m:THREE.Material,x=0,y=0,z=0) {
+    const shape=new THREE.Shape()
+    points.forEach(([px,py],i)=>{ if(i===0)shape.moveTo(px,py);else shape.lineTo(px,py) })
+    shape.closePath()
+    const mesh=add(new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false}),m,x,y,z-depth/2)
+    return mesh
+  }
+  if(slot==='elmo'){
+    if(f==='halo'){ring(.17,.012,glow,0,.03,-.12);ball(.022,trim,0,.20,-.12)}
+    else if(f==='band'||f==='diadem'||f==='crown'){
+      const circlet=ring(.11,.012,main,0,f==='band'?-.01:.055,0);circlet.rotation.x=Math.PI/2
+      if(f==='band'){box(.05,.035,.017,trim,0,-.01,.105);for(const s of [-1,1])box(.022,.095,.012,main,s*.027,-.075,-.105)}
+      else for(let i=-2;i<=2;i++)plate([[-.022,0],[.022,0],[0,f==='crown'?.075:.045]],.018,trim,i*.043,.055,.095-Math.abs(i)*.014)
+    }else if(f==='visor'||f==='mask'||f==='lens'){
+      const mask=f==='mask'
+      box(.222,mask?.088:.039,.024,main,0,mask?-.077:-.032,.124)
+      if(mask){box(.142,.018,.012,dark,0,-.092,.142)}
+      else{box(.18,.016,.013,dark,0,-.032,.141);if(f==='lens')ring(.029,.006,glow,.048,-.032,.154)}
+    }else{
+      const shell=add(new THREE.SphereGeometry(.138,16,12,0,Math.PI*2,0,Math.PI*.55),main,0,.027,-.006)
+      shell.scale.set(1,1.12,1.04)
+      box(.19,.026,.025,trim,0,.012,.125)
+      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)}
+      if(f==='horn')for(const s of [-1,1]){const horn=add(new THREE.ConeGeometry(.033,.12,8),trim,s*.105,.11,0);horn.rotation.z=-s*.5}
+    }
+  } else if(slot==='armadura'){
+    const heavy=f==='plate'||f==='exo'
+    const chest=add(new THREE.CylinderGeometry(heavy?.25:.22,.17,.35,10),main,0,.19,0)
+    chest.scale.z=.62
+    for(const s of [-1,1]){
+      if(heavy){const shoulder=ball(f==='exo'?.095:.08,trim,s*.24,.33,0);shoulder.scale.set(1,.7,1.15)}
+      else{const lapel=box(.045,.29,.025,trim,s*.07,.21,.135);lapel.rotation.z=s*.42}
+      if(f==='robe'||f==='coat')plate([[-.065,0],[.065,0],[.10,-.36],[-.055,-.33]],.018,main,s*.09,0,.13)
+      if(f==='vest')box(.065,.07,.035,trim,s*.10,.12,.14)
+    }
+    box(.27,.045,.24,dark,0,0,0);box(.075,.052,.024,trim,0,0,.132)
+    if(heavy)plate([[-.15,.08],[0,.13],[.15,.08],[.10,-.11],[0,-.15],[-.10,-.11]],.03,trim,0,.19,.15)
+  }else if(slot==='capa'){
+    for(const s of [-1,1]){
+      if(f==='wings')plate([[0,0],[s*.40,.12],[s*.36,-.24],[s*.10,-.36],[0,-.18]],.025,main,s*.04,-.02,-.05)
+      else {
+        const narrow=f==='banner'||f==='ribbon'
+        const split=f==='split'||f==='coatTail'||f==='ribbon'
+        const w=narrow?.10:.23,h=f==='veil'?.48:.65
+        const tail=plate([[0,0],[s*w,0],[s*w*1.28,-h],[0,-h*.88]],.017,main,s*(split?.035:0),0,-.045)
+        tail.rotation.x=.18
+        const border=box(.019,h*.83,.018,trim,s*w*.85,-h*.43,-.055);border.rotation.x=.18
+      }
+    }
+  }else{
+    const long=['wood','spear','staff'].includes(f),short=f==='dagger'||f==='twin'
+    rod(.019,.019,long?1.40:.27,dark,0,long?.16:0)
+    rod(.023,.023,.15,trim)
+    if(f==='wood')rod(.022,.025,.9,main,0,.43)
+    else if(f==='spear')plate([[-.065,.77],[0,1.10],[.065,.77],[0,.70]],.026,main)
+    else if(f==='staff')ball(.07,glow,0,.93)
+    else if(f==='hammer')box(.26,.17,.13,main,0,.43)
+    else if(f==='fan')plate([[0,.08],[-.20,.35],[-.12,.44],[.12,.44],[.20,.35]],.025,main)
+    else{
+      const len=short?.43:.87,bend=f==='sabre'?.10:0
+      box(.20,.04,.045,trim,0,.16)
+      plate([[-.048,.19],[.048,.19],[bend+.04,len-.09],[bend,len],[bend-.04,len-.09]],.035,f==='spirit'?glow:main)
+      plate([[-.008,.22],[.008,.22],[bend,len-.05]],.008,glow,0,0,.022)
+    }
+    if(f==='twin')group.userData.dual=true
+    group.rotation.z=-.30
+  }
+  for(let i=0;i<1+art.detail%3;i++){
+    if(slot==='armadura')box(.012,.035,.009,glow,(i-art.detail%3/2)*.026,.12,.17)
+    if(slot==='arma')rod(.025,.025,.012,trim,0,-.08+i*.04)
+  }
+  return group
+}
+
+function disposeAttachment(group: THREE.Object3D) {
+  const materials=new Set<THREE.Material>()
+  group.traverse(node=>{
+    if(node instanceof THREE.Mesh){node.geometry.dispose();for(const mat of Array.isArray(node.material)?node.material:[node.material])materials.add(mat)}
+  })
+  for(const material of materials)material.dispose()
+}
+
+function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onContextLost}: {
+  style: 'murim'|'cacador'; preferences: AvatarPreferences; gear: AvatarGear[]; animation: AnimationRequest; paused:boolean; yaw:number; zoom:boolean; onLoaded:()=>void; onContextLost:()=>void
+}) {
+  const gltf=useLoader(GLTFLoader,'/assets/avatar-v2/'+style+'.glb')
+  const {camera,invalidate,gl}=useThree()
+  useEffect(()=>{
+    const lost=(event:Event)=>{event.preventDefault();onContextLost()}
+    const canvas=gl.domElement
+    canvas.addEventListener('webglcontextlost',lost)
+    return ()=>canvas.removeEventListener('webglcontextlost',lost)
+  },[gl,onContextLost])
+  const scene=useMemo(()=>cloneSkeleton(gltf.scene),[gltf.scene])
+  useEffect(()=>{
+    const descendants=new Set<THREE.Object3D>()
+    scene.traverse(node=>descendants.add(node))
+    let skins=0
+    scene.traverse(node=>{
+      if(node instanceof THREE.SkinnedMesh){
+        skins++
+        if(!node.skeleton.bones.every(bone=>descendants.has(bone)))throw new Error('Esqueleto GLB fora da instância do avatar')
+      }
+    })
+    gl.domElement.dataset.glbSkins=String(skins)
+    invalidate()
+  },[scene,gl,invalidate])
+  const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
+  const appearance=preferences[style]
+  const helmet=gear.find(item=>item.equipped&&item.slot==='elmo')
+  const helmetArt=helmet?getEquipmentArt(helmet.id):null
+  const coveredHair=Boolean(helmetArt&&['hood','helm','horn'].includes(helmetArt.family))
+  useEffect(()=>{
+    const clones=new Map<THREE.Material,THREE.Material>()
+    scene.traverse(node=>{
+      if(!(node instanceof THREE.Mesh))return
+      const clone=(m:THREE.Material)=>{
+        const copy=clones.get(m)??m.clone();clones.set(m,copy)
+        if(copy instanceof THREE.MeshStandardMaterial){
+          if(m.name==='Skin')copy.color.set(skinColors[appearance.skin])
+          if(m.name==='Hair')copy.color.set(hairColors[appearance.hairColor])
+          if(m.name==='Energy'){const color=energyColor(style,appearance);copy.color.set(color);copy.emissive.set(color)}
+        }
+        return copy
+      }
+      node.userData.originalMaterial=node.material
+      node.material=Array.isArray(node.material)?node.material.map(clone):clone(node.material)
+      // Hair and face are evaluated separately, including helmet coverage.
+    })
+    invalidate()
+    return ()=>{scene.traverse(node=>{if(node instanceof THREE.Mesh&&node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}});for(const m of clones.values())m.dispose()}
+  },[scene,appearance,style,invalidate])
+  useEffect(()=>{
+    const head=scene.getObjectByName('Head')
+    if(!head)return
+    const changed:{node:THREE.Object3D;scale:THREE.Vector3;visible:boolean}[]=[]
+    const defaultHair=style==='murim'?0:1
+    const hairPattern=/^Mesh_(Hair|Fringe|Topknot|Ponytail)/
+    scene.traverse(node=>{
+      if(!(node instanceof THREE.Mesh))return
+      const isHair=hairPattern.test(node.name)
+      const isFace=/^Mesh_(HeadMesh|Ear|EyeWhite|Iris|EyeGlint|Brow|UpperLid|Nose|Mouth)/.test(node.name)
+      if(!isHair&&!isFace)return
+      changed.push({node,scale:node.scale.clone(),visible:node.visible})
+      if(isHair)node.visible=!coveredHair&&appearance.hair===defaultHair
+      if(isFace)node.scale.x*= [1,.94,1.04][appearance.face]??1
+      if(node.name.startsWith('Mesh_Brow'))node.scale.y*= [1,1.08,.95][appearance.face]??1
+    })
+    const custom=new THREE.Group();custom.name='AvatarCustomHair'
+    if(!coveredHair&&appearance.hair!==3&&appearance.hair!==defaultHair){
+      const material=new THREE.MeshStandardMaterial({color:hairColors[appearance.hairColor],roughness:.85})
+      const add=(size:[number,number,number],pos:[number,number,number])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);m.scale.set(...size);m.position.set(...pos);custom.add(m);return m}
+      // Attach to a rest-space socket rather than the bone axes, which Blender may reorient.
+      const anchor=scene.getObjectByName('slot_elmo')
+      if(anchor){
+        add([.108,.078,.105],[0,.035,-.018]);
+        if(appearance.hair===0){add([.050,.053,.049],[0,.115,-.055]);add([.030,.13,.032],[0,-.025,-.125])}
+        if(appearance.hair===1){for(let i=-2;i<=2;i++){const tuft=add([.037,.047,.042],[i*.038,.066,-.010]);tuft.rotation.z=-i*.18}}
+        if(appearance.hair===2){for(const side of [-1,1]){const lock=add([.035,.156,.047],[side*.088,-.080,-.058]);lock.rotation.z=side*.13}add([.083,.19,.039],[0,-.105,-.109])}
+        anchor.add(custom)
+      }else material.dispose()
+    }
+    gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
+    gl.domElement.dataset.glbHairCovered=String(coveredHair)
+    invalidate()
+    return ()=>{custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
+  },[scene,appearance,style,coveredHair,gl,invalidate])
+  useEffect(()=>{
+    const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
+    const ids: string[] = []
+    for(const slot of slots){
+      const socket=scene.getObjectByName('slot_'+slot)
+      if(!socket)throw new Error('Socket GLB ausente: '+slot)
+      const originals=socket.children.filter(node=>node.name!=='AvatarCustomHair').map(node=>({node,visible:node.visible}))
+      for(const entry of originals)entry.node.visible=false
+      const selected=gear.find(item=>item.equipped&&item.slot===slot)
+      const art=selected?getEquipmentArt(selected.id):null
+      const group=art?makeAttachment(art,slot):new THREE.Group()
+      if(slot==='elmo'&&art){
+        group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
+        // Hair coverage is handled by the appearance effect.
+      }
+      if(selected&&art&&group.children.length>0)ids.push(selected.id)
+      socket.add(group);attached.push({parent:socket,object:group,children:originals})
+      if(group.userData.dual){
+        const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
+        if(left&&art){const second=makeAttachment(art,slot);second.position.set(-.035,-.026,.02);second.rotation.z=.30;left.add(second);attached.push({parent:left,object:second,children:[]})}
+      }
+    }
+    gl.domElement.dataset.glbCharacter=style
+    gl.domElement.dataset.glbEquipment=ids.sort().join(',')
+    invalidate()
+    return ()=>{for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
+  },[scene,gear,invalidate,gl,style])
+  useEffect(()=>{
+    const clip=animation.clip
+    const selected=gltf.animations.find(item=>item.name===clip)
+    if(!selected)return
+    const action=mixer.clipAction(selected)
+    action.reset().setLoop(clip==='idle'||clip==='rest'?THREE.LoopRepeat:THREE.LoopOnce,clip==='idle'||clip==='rest'?Infinity:1)
+    action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);gl.domElement.dataset.glbTime='0';invalidate()
+    return ()=>{action.stop();mixer.uncacheAction(selected)}
+  },[gltf.animations,mixer,animation,invalidate,gl])
+  useEffect(()=>{
+    camera.position.set(0,zoom?1.58:1.02,zoom?1.25:3.85)
+    camera.lookAt(0,zoom?1.58:.95,0)
+    camera.updateMatrixWorld();gl.domElement.dataset.glbZoom=String(zoom);invalidate()
+  },[camera,zoom,invalidate,gl])
+  useEffect(()=>{scene.rotation.y=yaw;gl.domElement.dataset.glbYaw=String(yaw);invalidate()},[scene,yaw,invalidate,gl])
+  useEffect(()=>{onLoaded()},[onLoaded])
+  useEffect(()=>{mixer.timeScale=paused?0:1;invalidate()},[paused,mixer,invalidate])
+  useEffect(()=>{const resume=()=>{if(!document.hidden)invalidate()};document.addEventListener('visibilitychange',resume);return ()=>document.removeEventListener('visibilitychange',resume)},[invalidate])
+  useFrame((_,dt)=>{if(!paused&&!document.hidden){const clip=gltf.animations.find(item=>item.name===animation.clip);const action=clip?mixer.existingAction(clip):null;if(action?.isRunning()){mixer.update(Math.min(dt,.05));gl.domElement.dataset.glbTime=String(action.time);if(action.isRunning())invalidate()}}})
+  return <primitive object={scene} dispose={null} />
+}
+
+class PreviewBoundary extends Component<{children:ReactNode},{failed:boolean}>{
+  state={failed:false}
+  static getDerivedStateFromError(){return {failed:true}}
+  render(){return this.state.failed?<Alert severity="warning">Prévia GLB indisponível. O avatar original permanece acima.</Alert>:this.props.children}
+}
+
+export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferences;gear:AvatarGear[]}){
+  const [animation,setAnimation]=useState<AnimationRequest>({clip:'idle',sequence:0})
+  const [paused,setPaused]=useState(false)
+  const [reduced,setReduced]=useState(false)
+  const [yaw,setYaw]=useState(0)
+  const [zoom,setZoom]=useState(false)
+  const [loaded,setLoaded]=useState<'murim'|'cacador'|null>(null)
+  const [hideHelmet,setHideHelmet]=useState(false)
+  const [contextFailed,setContextFailed]=useState(false)
+  const loseContext=useCallback(()=>{setContextFailed(true);setLoaded(null)},[])
+  const style=resolveAvatarStyle(preferences.style,gear)
+  const markLoaded=useCallback(()=>setLoaded(style),[style])
+  const visibleGear=useMemo(()=>hideHelmet?gear.filter(item=>item.slot!=='elmo'):gear,[gear,hideHelmet])
+  useEffect(()=>{
+    const media=window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync=()=>setReduced(media.matches)
+    sync();media.addEventListener('change',sync)
+    return ()=>media.removeEventListener('change',sync)
+  },[])
+  const play=(next:Clip)=>setAnimation(value=>({clip:next,sequence:value.sequence+1}))
+  return <section aria-label="Laboratório Avatar V2" className="surface inset" style={{width:'100%',padding:12}}>
+    <p><strong>Prévia GLB experimental</strong></p>
+    <p className="muted">Modelos articulados e encaixes protótipos. O avatar original continua oficial; não altera inventário.</p>
+    <div style={{height:320,width:'100%',background:'#111113',borderRadius:8,overflow:'hidden'}}>
+      {contextFailed?<Alert severity="warning" action={<Button color="inherit" onClick={()=>setContextFailed(false)}>Tentar novamente</Button>}>Contexto 3D indisponível. Use o avatar original.</Alert>:<PreviewBoundary key={style}>
+        <Canvas frameloop="demand" dpr={[1,1.5]} camera={{position:[0,1.02,3.85],fov:34,near:.01,far:20}} fallback={<p role="status">WebGL indisponível. Use o avatar original.</p>}>
+          <color attach="background" args={['#111113']}/>
+          <ambientLight intensity={1.15}/>
+          <directionalLight position={[3,5,4]} intensity={2.1}/>
+          <directionalLight position={[-3,2,-3]} intensity={1.4} color={style==='murim'?'#fb923c':'#60a5fa'}/>
+          <Suspense fallback={null}>
+            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={markLoaded} onContextLost={loseContext}/>
+          </Suspense>
+        </Canvas>
+      </PreviewBoundary>}
+    </div>
+    <p role="status">{contextFailed?'Prévia indisponível':loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
+    <div className="row" style={{flexWrap:'wrap',gap:8}} aria-label="Controles do avatar" role="group">
+      <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental" sx={{flexWrap:"wrap","& .MuiButton-root":{minHeight:44}}}>
+        <Button aria-label="Girar GLB à esquerda" onClick={()=>setYaw(v=>v-Math.PI/4)}>Esquerda</Button>
+        <Button aria-label="Girar GLB à direita" onClick={()=>setYaw(v=>v+Math.PI/4)}>Direita</Button>
+        <Button onClick={()=>{setYaw(0);setZoom(false)}}>Restaurar</Button>
+      </ButtonGroup>
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={zoom} onClick={()=>setZoom(v=>!v)}>{zoom?'Corpo inteiro':'Rosto'}</Button>
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={hideHelmet} onClick={()=>setHideHelmet(v=>!v)}>{hideHelmet?'Exibir elmo':'Ocultar elmo'}</Button>
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Animar':'Pausar'}</Button>
+      {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso'],['guard','Defesa'],['dodge','Esquiva'],['channel',style==='murim'?'Canalizar Qi':'Canalizar mana']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" sx={{minHeight:44}} disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
+    </div>
+  </section>
+}

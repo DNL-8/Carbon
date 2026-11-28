@@ -11,6 +11,9 @@ import { calculateGearBonusSummary, EQUIPMENT_CATALOG, EQUIPMENT_SETS } from '..
 import { api, number, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar } from './warrior-avatar'
+import dynamic from 'next/dynamic'
+const AvatarGlbPreview = dynamic(() => import('./avatar-glb-preview').then(m => m.AvatarGlbPreview), { ssr: false })
+const EMPTY_GLB_GEAR: never[] = []
 import { resolveAvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 import { EquipmentArt } from './equipment-art'
 import { idResult, itemsResult, loadoutsResult, refreshRpg, slots, type ArmoryInput } from '../lib/rpg-api'
@@ -44,6 +47,7 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
   const [tab, setTab] = useState<'catalog' | 'sets'>('catalog')
   const [previewId, setPreviewId] = useState<string>()
   const [attack, setAttack] = useState(0)
+  const [showGlb, setShowGlb] = useState(false)
   const [message, setMessage] = useState('')
   const draft = useRef<{ id: string; name: string }>(null)
   const equipmentHeading = useRef<HTMLHeadingElement>(null)
@@ -172,6 +176,8 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
       <div className="active-gear">
         <div className="arsenal-stage">
           <WarriorAvatar cameraControls size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences} />
+          <Button variant="outlined" aria-expanded={showGlb} onClick={() => setShowGlb(value => !value)}>{showGlb ? "Fechar laboratório GLB" : "Abrir laboratório GLB"}</Button>
+          {showGlb && <AvatarGlbPreview preferences={preferences} gear={shownGear ?? EMPTY_GLB_GEAR} />}
           <Button variant="outlined" onClick={onSettings} startIcon={<span aria-hidden="true">⚙</span>}>Personalizar personagem</Button>
           <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}
