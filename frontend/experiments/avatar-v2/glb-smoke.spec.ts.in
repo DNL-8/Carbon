@@ -41,6 +41,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       const signature=item.slot+':'+art.detail.toString(2).padStart(5,'0')
       await expect(canvas).toHaveAttribute('data-glb-design',signature)
       await expect(canvas).toHaveAttribute('data-glb-dual-grip',String(item.slot==='arma'&&art.family==='twin'))
+      if(item.slot==='elmo')await expect(canvas).toHaveAttribute('data-glb-hair-covered',String(['hood','helm','horn'].includes(art.family)))
       designs.add(signature)
     }
     expect(designs.size).toBe(104)
@@ -141,6 +142,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-displacement'))).toBeGreaterThan(.001)
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-inward'))).toBeLessThan(.00001)
     const equippedSet=EQUIPMENT_CATALOG.find(item=>item.setId&&item.slot==='arma')
+    const poseDiagnostics:unknown[]=[]
     if(!equippedSet)throw Error('Conjunto de combate ausente')
     await page.getByLabel('Conjunto completo').check()
     await piece.selectOption(equippedSet.id)
@@ -150,8 +152,24 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       await expect(canvas).toHaveAttribute('data-glb-animation',clip)
       await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-time'))).toBeGreaterThan(.2)
       await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-attachment-drift'))).toBeLessThan(.00001)
+      const sequence=Number(await canvas.getAttribute('data-glb-sequence'))
+      await expect.poll(async()=>{
+        const raw=await canvas.getAttribute('data-glb-diagnostics')
+        if(!raw)return false
+        const sample=JSON.parse(raw)
+        return sample.clip===clip&&sample.sequence===sequence&&sample.proxyCount===3&&sample.weaponSamples>0
+      }).toBe(true)
+      const raw=await canvas.getAttribute('data-glb-diagnostics')
+      if(!raw)throw Error('Diagnóstico de pose ausente')
+      const sample=JSON.parse(raw)
+      for(const key of ['fps','drawCalls','triangles','geometries','textures'])expect(Number.isFinite(sample[key])&&sample[key]>0,key).toBe(true)
+      expect(sample.weaponInside).toBeGreaterThanOrEqual(0)
+      expect(sample.weaponInside).toBeLessThanOrEqual(sample.weaponSamples)
+      expect(sample.capeInside).toBeLessThanOrEqual(sample.capeSamples)
+      poseDiagnostics.push(sample)
       await canvas.screenshot({path:info.outputPath(style+'-pose-'+clip+'.png')})
     }
+    await info.attach(style+'-diagnostico-poses',{body:JSON.stringify(poseDiagnostics,null,2),contentType:'application/json'})
     await page.getByLabel('Conjunto completo').uncheck()
     await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})

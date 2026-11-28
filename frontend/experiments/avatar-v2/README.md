@@ -64,3 +64,8 @@ Alinhamento vertical de visores e lentes corrigido pela referência do socket do
 ### Encaixe bilateral e ajuste de armadura
 
 As armas duplas usam um socket explícito `slot_arma_esquerda`, espelhado ao socket original, e preservado na exportação Blender. É uma âncora interna, não um quinto slot do inventário. Os testes verificam a hierarquia dos encaixes, a simetria em repouso e a compatibilidade com as peças duplas do catálogo. A armadura do Caçador recebe escala horizontal proporcional ao torso base. O ajuste é aproximado, não uma certificação de ausência de colisões. Alterações restritas ao laboratório, sem deploy.
+
+
+### Diagnóstico de interseções e desempenho no laboratório
+
+Na rota isolada de testes, a cada janela de pelo menos 250 ms são amostrados vértices de acessórios (armas e tecido) em relação a três volumes elipsoidais aproximados associados a Spine, Hips e Head. Os relatórios JSON por personagem/clip registram contagem de amostras internas, FPS da janela, draw calls, triângulos e contagens de geometrias/texturas do renderizador. Estes indicadores são diagnósticos, não detecção exata de interseção de triângulos, nem medição de VRAM; FPS no Chromium SwiftShader não representa um celular físico. Não reprovar um teste pela mera proximidade aproximada, mas exigir amostras válidas e finitas. Verificar também a política de cabelo oculto para as 26 peças de cabeça. Sem dependências novas e sem deploy.
