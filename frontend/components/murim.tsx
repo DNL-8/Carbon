@@ -49,6 +49,7 @@ export function Murim({ owner }: { owner: string }) {
   const [localAppearance, setLocalAppearance] = useState<AvatarPreferences>(defaultAvatarPreferences)
   const [avatarDraft, setAvatarDraft] = useState<AvatarPreferences>(defaultAvatarPreferences)
   const [avatarSaving, setAvatarSaving] = useState(false)
+  const [previewWithoutHelmet, setPreviewWithoutHelmet] = useState(false)
   const [avatarError, setAvatarError] = useState('')
   useEffect(() => { setLocalAppearance(loadAvatarPreferences(owner)); setAvatarSettings(false); setAvatarError('') }, [owner])
   const main = useRef<HTMLElement>(null)
@@ -58,7 +59,7 @@ export function Murim({ owner }: { owner: string }) {
   const avatarPreferences = decodeAvatarPreferences(profile.data?.profile?.avatar) ?? localAppearance
   const ready = Boolean(profile.data?.profile)
   function openAvatarSettings() {
-    setAvatarDraft(avatarPreferences); setAvatarError(''); setAvatarSettings(true)
+    setAvatarDraft(avatarPreferences); setAvatarError(''); setPreviewWithoutHelmet(false); setAvatarSettings(true)
   }
   async function saveAvatarSettings() {
     setAvatarSaving(true); setAvatarError('')
@@ -291,10 +292,12 @@ export function Murim({ owner }: { owner: string }) {
             <FormControlLabel value="auto" control={<Radio />} label="Automático · pelo equipamento" />
           </RadioGroup>
         </FormControl>
-        <FormControlLabel control={<Switch checked={avatarDraft.mixed} onChange={(_, mixed) => setAvatarDraft(value => ({ ...value, mixed }))} />} label="Equipamentos dos dois mundos" />
+        <FormControlLabel control={<Switch slotProps={{ input: { role: 'switch', 'aria-label': 'Equipamentos dos dois mundos' } }} checked={avatarDraft.mixed} onChange={(_, mixed) => setAvatarDraft(value => ({ ...value, mixed }))} />} label="Equipamentos dos dois mundos" />
         <p className="muted">Ative para escolher peças de Murim e Caçador no mesmo catálogo. Desative para mostrar a trilha do personagem e os itens iniciais. As peças já equipadas e os bônus permanecem.</p>
         <div style={{ display: 'grid', justifyItems: 'center', marginBlock: 12 }}>
-          <WarriorAvatar size={180} avatarStyle={editingStyle} appearances={avatarDraft} gear={gear.data} />
+          <WarriorAvatar cameraControls size={180} avatarStyle={editingStyle} appearances={avatarDraft} gear={previewWithoutHelmet ? (gear.data??[]).filter(item => item.slot !== 'elmo') : gear.data} />
+          <FormControlLabel control={<Switch checked={previewWithoutHelmet} onChange={(_, value) => setPreviewWithoutHelmet(value)} slotProps={{ input: { 'aria-label': 'Visualizar sem elmo', role: 'switch' } }} />} label="Visualizar sem elmo" />
+          <Button size="small" disabled={avatarSaving} onClick={() => setAvatarDraft(value => ({ ...value, [editingStyle]: { ...defaultAvatarPreferences[editingStyle] } }))}>Restaurar aparência deste personagem</Button>
         </div>
         <h3>Aparência de {editingStyle === 'murim' ? 'Murim' : 'Caçador'}</h3>
         <div className="profile-form">

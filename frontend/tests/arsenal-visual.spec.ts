@@ -35,14 +35,26 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
   await settings.click()
   const dialog = page.getByRole('dialog', { name: 'Personalizar personagem' })
   await dialog.getByRole('radio', { name: 'Murim · artista marcial' }).check()
-  await dialog.getByRole('checkbox', { name: 'Equipamentos dos dois mundos' }).uncheck()
+  await dialog.getByRole('switch', { name: 'Visualizar sem elmo' }).check()
+  const editorAvatar = dialog.locator('.warrior-avatar')
+  await expect(editorAvatar).toHaveAttribute('data-character', 'murim')
+  await expect(editorAvatar.locator('[data-avatar-slot="elmo"]')).toHaveCount(0)
+  if (webglAvailable) {
+    await dialog.getByRole('button', { name: 'Girar personagem à direita' }).click()
+    await expect(editorAvatar.locator('canvas')).toHaveAttribute('data-camera-yaw', String(Math.PI/4))
+    await dialog.getByRole('button', { name: 'Aproximar rosto' }).click()
+    await expect(editorAvatar.locator('canvas')).toHaveAttribute('data-camera-zoom', '1.65')
+    await dialog.getByRole('button', { name: 'Restaurar câmera' }).click()
+    await expect(editorAvatar.locator('canvas')).toHaveAttribute('data-camera-zoom', '1')
+  }
+  await dialog.getByRole('switch', { name: 'Equipamentos dos dois mundos' }).uncheck()
   await dialog.getByRole('button', { name: 'Concluir' }).click()
   await expect(avatar).toHaveAttribute('data-character', 'murim')
   await expect(page.getByText('53 de 104 equipamentos', { exact: true })).toBeVisible()
   await expect(avatar).toHaveAttribute('data-equipment', original.join(','))
   await settings.click()
   await dialog.getByRole('radio', { name: 'Caçador · guerreiro tático' }).check()
-  await dialog.getByRole('checkbox', { name: 'Equipamentos dos dois mundos' }).check()
+  await dialog.getByRole('switch', { name: 'Equipamentos dos dois mundos' }).check()
   await dialog.getByRole('button', { name: 'Concluir' }).click()
   await expect(avatar).toHaveAttribute('data-character', 'cacador')
   await expect(page.getByText('104 de 104 equipamentos', { exact: true })).toBeVisible()
@@ -124,4 +136,16 @@ test('geometria 3D: dez conjuntos completos em rotação e ataque', () => {
       expect(data.every((value,i)=>Number.isFinite(value)&&(i%6>=3||Math.abs(value)<=1)),id).toBe(true)
     }
   }
+})
+
+// Both characters share sockets, but their silhouette and attack pose must differ.
+test('geometria 3D: identidade dos personagens e câmera', () => {
+  const props = {size: 256, gear: [], look: {x:0,y:0}, paused: false, pulse: 0, attack: 1, levelUp: 0, victory: false, milestone: false, resting: false, lowHp: false}
+  const martial = drawModel({...props, avatarStyle:'murim'}, 1, 0, 1, 0, 0, 0, true)
+  const hunter = drawModel({...props, avatarStyle:'cacador'}, 1, 0, 1, 0, 0, 0, true)
+  expect(Array.from(martial)).not.toEqual(Array.from(hunter))
+  const rotated = drawModel({...props, avatarStyle:'murim', cameraYaw: Math.PI/2}, 1, 0, 1, 0, 0, 0, true)
+  expect(Array.from(rotated)).not.toEqual(Array.from(martial))
+  const zoomed = drawModel({...props, avatarStyle:'murim', cameraZoom:1.65}, 1, 0, 1, 0, 0, 0, true)
+  expect(zoomed.every(Number.isFinite)).toBe(true)
 })

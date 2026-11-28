@@ -283,3 +283,7 @@ summary { cursor: pointer; color: #d4d4d8; }
 
 .oracle-reply b { font-weight: 700; color: inherit; }
 .oracle-reply code { font-size: .9em; overflow-wrap: anywhere; }
+
+/* Avatar V2: keep keyboard-accessible camera controls within the preview width. */
+.avatar-camera { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; max-width: 260px; }
+.avatar-camera .MuiButton-root { min-width: 44px; min-height: 44px; }

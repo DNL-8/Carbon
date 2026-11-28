@@ -171,7 +171,7 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
       </header>
       <div className="active-gear">
         <div className="arsenal-stage">
-          <WarriorAvatar size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences} />
+          <WarriorAvatar cameraControls size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences} />
           <Button variant="outlined" onClick={onSettings} startIcon={<span aria-hidden="true">⚙</span>}>Personalizar personagem</Button>
           <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}

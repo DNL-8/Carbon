@@ -10,7 +10,7 @@ type Color = V
 type Transform = (v: V) => V
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 type Props = {
-  avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; size: number; gear?: AvatarGear[]; look: { x: number; y: number }
+  avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; cameraYaw?: number; cameraZoom?: number; onRendererChange?: (ready: boolean) => void; size: number; gear?: AvatarGear[]; look: { x: number; y: number }
   paused: boolean; pulse: number; attack: number; levelUp: number
   victory: boolean; milestone: boolean; resting: boolean; lowHp: boolean
 }
@@ -219,7 +219,7 @@ function weapon(m: Mesh,t: Transform,art: Art | null, family?: EquipmentFamily) 
   m.prism(pose(t,[0,0,.054]),[[-.025,.27],[.025,.27],[bend,length-.07]],.018,b,.08+energy)
 }
 export function drawModel(props: Props, time: number, turn: number, strike: number, celebrate: number, lookX:number,lookY:number, moving: boolean) {
-  const yaw=lookX*.09+turn+Math.sin(time*1.05)*.045
+  const yaw=(props.cameraYaw??0)+lookX*.09+turn+Math.sin(time*1.05)*.045
   const camera=pose(I,[0,-.02,0],-.10+lookY*.025,yaw)
   const m=new Mesh(camera)
   const bySlot=(slot:string)=>{const item=props.gear?.find(g=>g.equipped&&g.slot===slot);return item?getEquipmentArt(item.id):null}
@@ -232,13 +232,16 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   const [armorTint,armorTrim]=palette(body,martial?color('#633c2b'):steel)
   const clothBody=(!body&&martial)||body?.family==='tunic'||body?.family==='robe'||body?.family==='coat'
   const bareHead=(martial||Boolean(props.appearances))&&(!helm||['band','diadem','crown','halo'].includes(helm.family))
-  const idle=Math.sin(time*(props.resting?1.6:2.5))*.035
-  const rig=pose(I,[0,idle+celebrate*.13,0],0,0,Math.sin(time*1.25)*.025+strike*.08)
-  const torso=pose(rig,[0,-.12,0],props.resting?.08:0)
-  const head=pose(torso,[0,.80,0],-lookY*.035,lookX*.035,0)
+  // Share attachment coordinates; scale each character's full rig and its head as a unit.
+  const idle=Math.sin(time*(props.resting?1.6:2.5))*(martial?.022:.035)
+  const proportions: Transform = ([x,y,z]) => [x*(martial?.90:1.06), y*(martial?1.08:1.02), z*(martial?.94:1.03)]
+  const rig=pose(proportions,[0,idle+celebrate*.13,0],0,martial?strike*.18:-strike*.12,Math.sin(time*1.25)*.018+strike*(martial?.15:.08))
+  const torso=pose(rig,[0,-.12,0],props.resting?(martial?.04:.15):0)
+  const headJoint=pose(torso,[0,.80,0],-lookY*.035,lookX*.035,0)
+  const head: Transform = ([x,y,z]) => headJoint([x*.88,y*.90,z*.90])
   // Boots and legs are real volumes, not billboards.
   for(const s of [-1,1]){
-    const leg=pose(rig,[s*.23,-.55,0],0,0,s*.04)
+    const leg=pose(rig,[s*(martial?.27:.24),-.55,martial?s*.045:0],0,0,s*(martial?.12:.06))
     m.box(leg,[0,-.31,0],[.29,.64,.34],dark)
     m.box(leg,[0,-.52,.025],[.33,.24,.41],clothBody?armorTint:steel)
     m.box(leg,[0,-.71,.085],[.38,.26,.55],black)
@@ -250,12 +253,12 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   for(const s of [-1,1]){
     const armed=s===1||blade?.family==='twin'
     const swing=armed?strike:0
-    const arm=pose(torso,[s*.48,.22,0],-.10-swing*.60,0,s*(.26+Math.sin(time*2.5)*.035+swing*.25))
+    const arm=pose(torso,[s*.48,.22,0],(martial?-.20:-.10)-swing*(martial?.88:.60),martial?swing*.22:0,s*((martial?.36:.24)+Math.sin(time*2.5)*.025+swing*(martial?.42:.25)))
     const heavy=(!body&&!martial)||body?.family==='plate'||body?.family==='exo'
     m.orb(arm,[0,-.07,0],heavy?[.25,.23,.25]:[.19,.20,.19],armorTint)
     m.box(arm,[0,-.12,.22],[.24,.12,.07],armorTrim,.025)
     m.box(arm,[0,-.31,0],clothBody?[.28,.36,.29]:[.23,.34,.24],clothBody?armorTint:dark)
-    const elbow=pose(arm,[0,-.43,0],-.30-swing*.25)
+    const elbow=pose(arm,[0,-.43,0],(martial?-.50:-.30)-swing*.25)
     m.box(elbow,[0,-.15,.02],clothBody?[.27,.28,.27]:[.24,.28,.25],clothBody?armorTint:steel)
     if(clothBody)m.box(elbow,[0,-.26,.02],[.28,.07,.28],armorTrim,.025)
     const hand=pose(elbow,[0,-.31,.04])
@@ -301,6 +304,9 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   let extent=1
   for(let i=0;i<m.data.length;i+=6)extent=Math.max(extent,Math.abs(m.data[i])/.94,Math.abs(m.data[i+1])/.94)
   if(extent>1)for(let i=0;i<m.data.length;i+=6){m.data[i]/=extent;m.data[i+1]/=extent}
+  // Deliberate portrait zoom; normal framing remains intact by default.
+  const zoom=props.cameraZoom??1
+  if(zoom!==1)for(let i=0;i<m.data.length;i+=6){m.data[i]*=zoom;m.data[i+1]=(m.data[i+1]-.32)*(zoom-1)+m.data[i+1]}
   return new Float32Array(m.data)
 }
 
@@ -351,6 +357,7 @@ export function WarriorAvatar3D(props: Props) {
   const wakeRef=useRef<(()=>void)|null>(null)
   const [ready,setReady]=useState(false)
   useEffect(()=>{latest.current=props;wakeRef.current?.()},[props])
+  useEffect(()=>{props.onRendererChange?.(ready)},[ready,props.onRendererChange])
   useEffect(()=>{
     const target=ref.current
     if(!target) return
@@ -399,6 +406,8 @@ export function WarriorAvatar3D(props: Props) {
       const equipped=p.gear?.filter(g=>g.equipped).map(g=>g.id).sort().join(',')??''
       if(canvas.dataset.renderedEquipment!==equipped)canvas.dataset.renderedEquipment=equipped
       canvas.dataset.renderedCharacter=resolveAvatarStyle(p.avatarStyle??'auto',p.gear)
+      canvas.dataset.cameraYaw=String(p.cameraYaw??0)
+      canvas.dataset.cameraZoom=String(p.cameraZoom??1)
       if(!presented){presented=true;setReady(true)}
       if(motion)wake();else prev=0
     }
