@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Component, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Alert, Button, ButtonGroup } from '@mui/material'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -139,15 +139,22 @@ function Scene({style,preferences,gear,clip,sequence,paused,yaw,zoom,onLoaded}: 
     return ()=>{scene.traverse(node=>{if(node instanceof THREE.Mesh&&node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}});for(const m of clones.values())m.dispose()}
   },[scene,appearance,style,invalidate])
   useEffect(()=>{
-    const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:THREE.Object3D[]}[]=[]
+    const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)continue
-      const originals=[...socket.children]
-      for(const node of originals)node.visible=false
+      const originals=socket.children.map(node=>({node,visible:node.visible}))
+      for(const entry of originals)entry.node.visible=false
       const selected=gear.find(item=>item.equipped&&item.slot===slot)
       const art=selected?getEquipmentArt(selected.id):null
       const group=art?makeAttachment(art,slot):new THREE.Group()
+      if(slot==='elmo'&&art){
+        group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
+        if(['hood','helm','horn'].includes(art.family)){
+          const head=scene.getObjectByName('Head')
+          if(head)for(const child of head.children)if(/^Mesh_(Hair|Fringe|Topknot|Ponytail)/.test(child.name)){ originals.push({node:child,visible:child.visible});child.visible=false }
+        }
+      }
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
         const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
@@ -155,7 +162,7 @@ function Scene({style,preferences,gear,clip,sequence,paused,yaw,zoom,onLoaded}: 
       }
     }
     invalidate()
-    return ()=>{for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.visible=true}}
+    return ()=>{for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
   },[scene,gear,invalidate])
   useEffect(()=>{
     const selected=gltf.animations.find(item=>item.name===clip)
@@ -191,6 +198,7 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
   const [yaw,setYaw]=useState(0)
   const [zoom,setZoom]=useState(false)
   const [loaded,setLoaded]=useState(false)
+  const markLoaded=useCallback(()=>setLoaded(true),[])
   const [hideHelmet,setHideHelmet]=useState(false)
   const style=resolveAvatarStyle(preferences.style,gear)
   const visibleGear=useMemo(()=>hideHelmet?gear.filter(item=>item.slot!=='elmo'):gear,[gear,hideHelmet])
@@ -212,7 +220,7 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
           <directionalLight position={[3,5,4]} intensity={2.1}/>
           <directionalLight position={[-3,2,-3]} intensity={1.4} color={style==='murim'?'#fb923c':'#60a5fa'}/>
           <Suspense fallback={null}>
-            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} clip={clip} sequence={sequence} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={()=>setLoaded(true)}/>
+            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} clip={clip} sequence={sequence} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={markLoaded}/>
           </Suspense>
         </Canvas>
       </PreviewBoundary>

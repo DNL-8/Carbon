@@ -7,7 +7,7 @@ Branch isolada, sem alterar o deploy de produção. Os GLB são gerados pelo scr
 1. Instalar dependências existentes: `bun install --frozen-lockfile`.
 2. `bun add --exact three@0.186.0 @react-three/fiber@9.8.2`
 3. `bun add -d --exact @types/three@0.186.0`
-4. Em venv Python separada: `python -m pip install numpy==2.3.5 trimesh==4.11.1 scipy`.
+4. Em venv Python separada: `python -m pip install numpy==2.3.5 trimesh==4.11.1 scipy networkx==3.5`.
 5. `python experiments/avatar-v2/generate_models.py`
 6. `python experiments/avatar-v2/validate_models.py`
 7. `node experiments/avatar-v2/prepare.mjs`
@@ -15,3 +15,7 @@ Branch isolada, sem alterar o deploy de produção. Os GLB são gerados pelo scr
 9. Validar desktop/mobile com Playwright e fixtures existentes, incluindo troca de personagem, 104 peças, animações, visibilidade, câmera e fallback. Não promover antes de aprovação.
 
 O workflow de laboratório gera o lockfile e os ativos num runner descartável, faz lint/typecheck/build e exporta os arquivos preparados como artefato. Ele não usa credenciais de produção e não faz push/merge. A branch guarda fontes e template, não o lockfile ainda não validado. O preparo aplica o patch apenas ao Arsenal esperado; em caso de alteração concorrente, recusa em vez de sobrescrever. Para reverter localmente use checkout limpo da branch. A main permanece independente. Não usar dados reais.
+
+## Revisão do laboratório
+
+O primeiro runner instalou Three.js/R3F e produziu o lockfile, mas a geração GLB parou em `ModuleNotFoundError: networkx`. Incluída dependência explícita; ataques agora usam curvas distintas para Murim e Caçador. O resultado do build e do navegador ainda precisa ser conferido.
