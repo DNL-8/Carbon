@@ -95,6 +95,10 @@ def build(martial):
             P('BaseRobeSkirt',pelvis,panel([(s*.024,.08,.116),(s*.147,.08,.105),(s*.222,-.26,.106),(s*.045,-.30,.14)],.018),cloth)
             P('BaseRobeHem',pelvis,rod((s*.045,-.294,.151),(s*.222,-.254,.117),.008),accent)
             P('BaseRobeSeam',pelvis,curved_trim([(s*.078,.055,.130),(s*.099,-.08,.145),(s*.12,-.23,.153)],.0035),accent)
+            # Low relief cloth folds within the existing robe silhouette.
+            for offset in (.0,.034):
+                P('BaseRobeFold',pelvis,curved_trim([(s*(.104+offset),.04,.122),(s*(.126+offset),-.09,.134),(s*(.151+offset),-.235,.122)],.004),cloth)
+            P('BaseRobeCollarEdge',spine,curved_trim([(s*.027,.33,.143),(s*.072,.377,.132),(s*.092,.392,.121)],.003),accent)
             P('BaseCollarDetail',spine,curved_trim([(s*.026,.328,.142),(s*.062,.347,.143),(s*.083,.367,.135)],.004),accent)
     else:
         P('BaseChestPanel',spine,panel([(-.18,.29,.126),(0,.34,.137),(.18,.29,.126),(.145,.11,.132),(0,.075,.136),(-.145,.11,.132)],.018),dark)
@@ -104,6 +108,10 @@ def build(martial):
             P('BaseHipPouch',pelvis,box((s*.14,-.025,.101),(.074,.114,.055)),cloth)
             P('BasePouchFlap',pelvis,panel([(s*.106,.023,.134),(s*.174,.023,.134),(s*.174,-.008,.136),(s*.140,-.024,.137),(s*.106,-.008,.136)],.008),dark)
             P('BaseHarnessBuckle',spine,box((s*.143,.175,.152),(.046,.030,.012)),metal)
+            # Recessed-looking armor seams and small fasteners on the base tactical vest.
+            P('BaseChestSeam',spine,curved_trim([(s*.052,.302,.145),(s*.114,.269,.143),(s*.127,.219,.144)],.0035),metal)
+            for y in (.142,.196):
+                P('BaseHarnessRivet',spine,ell((s*.142,y,.155),(.006,.006,.003),1),metal)
             for y in (.12,.155):
                 P('BaseChestStitch',spine,rod((s*.055,y,.149),(s*.12,y+.013,.146),.0035,.0035),accent)
     P('Neck',spine,rod((0,.38,0),(0,.49,0),.055),skin)
@@ -129,7 +137,9 @@ def build(martial):
     P('HairCap',head,loft([(.15,.108,.099,-.018),(.181,.112,.103,-.018),(.21,.112,.102,-.018),(.237,.101,.089,-.019),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],24),hair)
     for i in range(7):
         x=(i-3)*.026
-        P('HairLock',head,curved_trim([(x,.226,-.100),(x*.85,.251,-.066),(x*.52,.263,-.023),(x*.45,.244,.035)],.006),hair)
+        # Tapered layered locks follow the scalp instead of ending in uniform tubes.
+        points=[(x,.226,-.100),(x*.85,.251,-.066),(x*.52,.263,-.023),(x*.45,.244,.035)]
+        P('HairLock',head,tm.util.concatenate([rod(a,b,r1,r2,8) for a,b,r1,r2 in zip(points,points[1:],(.007,.009,.006),(.009,.006,.002))]),hair)
     for s in (-1,1):
         P('Fringe',head,panel([(s*.012,.23,.08),(s*.097,.20,.062),(s*.074,.129,.085),(s*.038,.183,.107)],.025),hair)
     if martial:
