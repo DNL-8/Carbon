@@ -20,11 +20,14 @@ jobs:
       - name: Instalar Blender no runner descartável
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender
+          sudo apt-get install -y blender python3-numpy
           /usr/bin/blender --version
+      - name: Verificar NumPy no Python do Blender
+        run: |
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python-expr "import numpy; print('NUMPY_OK', numpy.__version__)"
       - name: Gerar escultura procedural e candidatos desktop
         run: |
-          env -u LD_LIBRARY_PATH -u PYTHONHOME -u PYTHONPATH /usr/bin/blender -b --factory-startup --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- "$RUNNER_TEMP/avatar-v3-anatomy"
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- "$RUNNER_TEMP/avatar-v3-anatomy"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
