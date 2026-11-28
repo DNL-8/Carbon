@@ -31,28 +31,71 @@ Runner 46150018360: geração GLB, lint, typecheck e build aprovados; movimento 
 A matriz de CI usa três fontes independentes de GLB: `rigid` (protótipo anterior), `skinned` (gerador de pesos) e `blender` (importação, deformação e reexportação real pelo Blender). A variável `AVATAR_LAB_RIG` seleciona os ativos antes do build de laboratório. Cada variante testa o catálogo de 104 peças e dez conjuntos em ambos os personagens em desktop/mobile. Capturas de frente, perfil e costas são destinadas à inspeção humana. A aprovação da variante rígida não aprova as demais; nenhum artefato é publicado automaticamente na main.
 
 
-## Publicação do código-fonte na main
+## Revisão artística — etapa 1
 
-O código-fonte do laboratório, os geradores, testes, documentação e correção do botão Restaurar foram incorporados à main por solicitação do proprietário. A CI principal anterior está aprovada. A execução de integração 46152969894 aprovou as três variantes isoladas e 18/20 testes autenticados; os dois erros de acessibilidade foram corrigidos em 115da01. A execução 46154383597 revalida a correção. Os GLB compilados, o lockfile preparado e a ativação do visualizador no Arsenal ainda não estão incluídos na main. O avatar anterior permanece oficial. Nenhuma release foi criada.
-
-
-## Entrega do Avatar V2 na main
-
-Os GLB reexportados pelo Blender, manifest e lockfile, visualizador, integração no Arsenal e testes autenticados foram incorporados à main. A transferência 46154648698 verificou SHA-256 dos seis arquivos do artefato `avatar-v2-prepared-blender` da execução 46154383597. As três variantes passaram nos testes isolados e a etapa de integração autenticada, incluindo lint, typecheck, build, auditoria de dependências e 20 testes Playwright, foi aprovada. O visualizador é opcional, carregado sob demanda no Arsenal pelo botão “Abrir laboratório GLB”; o avatar anterior continua disponível. Não houve alteração de banco ou regras RPG, nem release. A CI e o deploy da main após a integração precisam ser confirmados. A revisão artística, colisões e desempenho físico continuam pendentes.
-
-O preparo com `prepare.mjs` destina-se à branch de laboratório sem a integração aplicada (`feature/avatar-v2-glb`); não execute novamente sobre a main integrada. Na main, instale com `bun install --frozen-lockfile` e execute lint, typecheck, build e os testes habituais. Os GLB são ativos versionados, portanto não exigem Blender no deploy.
+Refinamento procedural inicial: normais suaves nas superfícies orgânicas, rosto com 13 anéis de 32 segmentos e mandíbula distinta por personagem, pálpebras inferiores, mechas curvas e cabelo base mais detalhado. Murim recebe costuras e acabamento de lapelas; Caçador recebe fivelas, abas dos bolsos e detalhes do peitoral. Os cinco meshes ponderados usam 24 segmentos e mais anéis de transição nos cotovelos/joelhos. Preservados materiais nomeados, sockets, IDs, 15 juntas, sete clips e a personalização existente. Adicionadas capturas de rosto de frente/perfil e validação de orçamento de 18 mil triângulos e 1,5 MB por GLB. A main permanece com o modelo anterior aprovado. Não equivale a escultura final, textura PBR pintada ou verificação visual de colisões; CI e revisão das capturas pendentes.
 
 
-### Interface do Arsenal
+## Revisão dos equipamentos — etapa 2
 
-Os controles de câmera, prévia GLB e personalização ficam recolhidos por padrão em uma engrenagem no canto superior direito do palco do personagem. A prévia continua disponível após recolher o painel. Os testes autenticados verificam abertura/fechamento, teclado, câmera e preservação do inventário. O botão Testar golpe e a pausa permanecem acessíveis fora do painel. A CI da revisão deve confirmar os testes.
-
-
-## Candidato aprovado — refinamentos e efeitos
-
-A execução 46156191078 (56c3227) aprovou as três variantes e a integração autenticada. Este candidato incorpora os modelos refinados, detalhes geométricos dos 104 equipamentos, sete animações, aura Qi/Mana por progressão, movimento secundário procedural e qualidade gráfica selecionável. A transferência confere SHA-256 dos dois GLBs e do visualizador, preservando a engrenagem da main 5e34423 e suas dependências. O modo compacto em Início/Painel/Treino e a revisão artística posterior continuam em homologação; não estão incluídos neste candidato. O avatar anterior continua disponível. Sem alteração de dados, bônus ou release. A CI da main após publicação deve ser confirmada.
+As 33 famílias mantêm os 104 IDs existentes. Cada peça passa a ter um relevo geométrico individual (cinco marcas que codificam o índice visual do catálogo por slot), acabamento de materiais rígidos/tecido, chanfros discretos e variações dimensionais de lâminas e placas. Acrescentados detalhes específicos de visores, exotrajes, asas, leques e martelos, e superfícies de capas curvas afastadas do corpo. O teste verifica 104 assinaturas geométricas por personagem, coordenadas finitas e os IDs equipados, sem modificar regras ou bônus. Os modelos continuam procedurais: não são 104 esculturas independentes, nem simulação física de tecido. Validação no navegador e clipping visual pendentes; produção permanece com a última versão aprovada.
 
 
-## Integração compacta aprovada — etapa 4
+## Revisão de movimento, aura e qualidade — etapa 3
 
-A execução 46156444501 (98a65ce) aprovou as três variantes e a integração autenticada da prévia compacta. Incorporados os mesmos ajustes de Murim, Training e renderizador; o teste adicional é combinado com o teste da engrenagem já presente na main. Início/Painel e treino podem exibir o GLB sob demanda, com modo econômico e animações vinculadas ao combate. O avatar anterior permanece disponível e os GLBs aprovados na etapa 3 permanecem inalterados. A CI desta combinação deve ser confirmada. A revisão posterior das malhas e a escolha do Avatar V2 como padrão ainda dependem de validação; não foi publicado release.
+Animações de ataque recebem apoio de quadril, pernas e manto, mantendo os sete clips e 15 juntas. Capas curvas têm deformação secundária limitada e afastada do corpo; mechas longas acompanham o movimento. Não é simulação física nem garantia de ausência de colisões. A aura usa anéis circulares para Qi e hexagonais para Mana, cores personalizadas, pulsação e quantidade de camadas conforme os tiers reais de Rank F–S e os oito reinos (sem alterar regras). Qualidade automática por largura da tela e preferência de movimento reduzido, além de opção econômica/detalhada; reduz DPR, camadas e atualização de normais no modo econômico. Testes de aura, progressão e qualidade preparados. Acesso às demais telas, promoção do GLB para avatar principal, revisão artística, FPS e bateria físicos continuam pendentes de homologação. Nenhum deploy ou nova dependência nesta etapa.
+
+
+## Etapa 4 — Integração compacta nas telas principais
+
+Preparado modo compacto econômico, com carregamento dinâmico sob demanda no Início/Painel e na sessão de treino. O combate usa eventos já existentes de séries concluídas e vitória; nenhuma recompensa é recalculada no visualizador. A prévia pode ser pausada/fechada e o avatar anterior permanece visível. O laboratório prepara os componentes Murim e Training em checkout isolado e inclui ambos nos artefatos. Teste autenticado adicional verifica abertura, navegação, ataque e fallback. A versão ainda não substitui automaticamente o avatar oficial; publicação e promoção dependem de homologação e preservação da engrenagem da main. Não há alegação de teste em dispositivo físico.
+
+
+## Inspeção de capturas e preservação da interface
+
+Inspeção das capturas desktop do artefato Blender 15267916971 (run 46156191078): rostos e roupas são legíveis, mas ainda estilizados e simplificados; boca pouco visível, pose de repouso aberta e botas/mãos pouco naturais. Revisão procedural acrescenta boca curva na superfície facial, polegar/nós dos dedos, botas arredondadas com sola e postura de repouso menos aberta. Sem certificação de colisões. O laboratório agora incorpora a engrenagem da main 5e34423, seus estilos e testes de câmera; o preparo insere o GLB no painel recolhido, preservando o comportamento de produção. Validação da nova revisão pendente. A versão GLB continua opcional até revisão artística e homologação completas.
+
+
+### Validação de encaixes em movimento (laboratório)
+
+Alinhamento vertical de visores e lentes corrigido pela referência do socket do elmo e a altura dos olhos do modelo procedural. Adicionados testes dos sete clips com um conjunto completo, verificação da estabilidade das matrizes locais dos acessórios e capturas por pose. Não substitui uma análise de interseção entre malhas, especialmente nas armas, cabelo e armadura; a revisão visual continua necessária. Nesta fase não promover para main nem disparar deploy manual. Configuração git.deploymentEnabled desabilita o deploy automático exclusivamente da branch feature/avatar-v2-glb; não alterar produção.
+
+
+### Encaixe bilateral e ajuste de armadura
+
+As armas duplas usam um socket explícito `slot_arma_esquerda`, espelhado ao socket original, e preservado na exportação Blender. É uma âncora interna, não um quinto slot do inventário. Os testes verificam a hierarquia dos encaixes, a simetria em repouso e a compatibilidade com as peças duplas do catálogo. A armadura do Caçador recebe escala horizontal proporcional ao torso base. O ajuste é aproximado, não uma certificação de ausência de colisões. Alterações restritas ao laboratório, sem deploy.
+
+
+### Diagnóstico de interseções e desempenho no laboratório
+
+Na rota isolada de testes, a cada janela de pelo menos 250 ms são amostrados vértices de acessórios (armas e tecido) em relação a três volumes elipsoidais aproximados associados a Spine, Hips e Head. Os relatórios JSON por personagem/clip registram contagem de amostras internas, FPS da janela, draw calls, triângulos e contagens de geometrias/texturas do renderizador. Estes indicadores são diagnósticos, não detecção exata de interseção de triângulos, nem medição de VRAM; FPS no Chromium SwiftShader não representa um celular físico. Não reprovar um teste pela mera proximidade aproximada, mas exigir amostras válidas e finitas. Verificar também a política de cabelo oculto para as 26 peças de cabeça. Sem dependências novas e sem deploy.
+
+
+### Ombreiras articuladas e relatórios persistentes
+
+A execução 46166544187 aprovou os três jobs de laboratório, mas o ZIP Blender recuperado continha apenas PNGs; os anexos JSON não estavam presentes. Agora os relatórios são também escritos explicitamente no diretório de saída do Playwright. Ombreiras de plate/exo ganham deslocamento limitado proporcional à diferença angular entre o braço atual e a pose de referência do GLB; mantêm o socket da armadura e não dependem de um solver de colisão. Testes verificam as famílias e o movimento em ataque. A eficácia visual e as medições dependem da próxima execução. Sem deploy.
+
+
+### Correção da CI das ombreiras
+
+A execução 46167072184 reprovou as três variantes porque a contagem das ombreiras articuladas permaneceu em zero. A causa provável é a sanitização dos nomes de nós pelo GLTFLoader para os bindings de animação (`UpperArm.L` torna-se `UpperArmL`). O renderer resolve o nome sanitizado pela função PropertyBinding.sanitizeNodeName, com fallback ao nome original; uma armadura pesada sem ambos os vínculos agora produz erro explícito. O teste mantém a exigência de duas ombreiras e verifica os nomes dos braços, sem relaxar o teste de movimento. A correção aguarda nova CI; sem deploy.
+
+
+### Agrupamento de geometrias estáticas
+
+Baseline Blender da CI 46167504468 (commit fa54aee): 4 relatórios, 28 janelas de pose, cada uma com 303 vértices amostrados de armas e 110 de tecido; nenhuma amostra interna aos três volumes elipsoidais aproximados. Um conjunto por personagem, sem cobertura exaustiva da trajetória. Murim: 124 draw calls e 14.496 triângulos; Caçador: 126 draw calls e 14.120 triângulos. FPS de software entre 18,5 e 61,5; não representa hardware móvel real. Agrupar apenas malhas estáticas irmãs com material idêntico e layout de atributos compatível, transformações incorporadas e sem mudança de triângulos. Excluir capas deformáveis e ombreiras móveis; manter validação dos motivos antes do agrupamento, liberar geometrias substituídas e verificar contagem por item. A redução real de draw calls e a aparência ainda dependem da CI. Sem deploy.
+
+
+### Cobertura temporal das animações
+
+CI 46168792940 aprovada integralmente (b0d1ce7). Relatórios Blender em desktop/mobile: Murim 96 draw calls (antes 124), Caçador 98 (antes 126); triângulos inalterados, 14.496 e 14.120; 28 poses sem amostras internas aos volumes aproximados. Nesta revisão, dividir cada clip em dez intervalos temporais e registrar uma amostra por intervalo, mantendo as janelas FPS separadas. Exigir todos os dez intervalos por clip/personagem/viewport e persistir os relatórios de trajetória; não declarar colisões eliminadas com base em volumes aproximados. Cobertura prevista: 280 amostras por variante, de um conjunto completo por personagem. Sem alterar main ou deploy.
+
+
+### Acabamento facial e cabelos alternativos
+
+Revisão das capturas Blender da CI 46169985364: personagens ainda estilizados, olhos excessivamente contornados e cabelo alternativo com volumes esféricos. Ajustados tamanho dos olhos e brilhos, espessura das pálpebras, linha neutra da boca e lábio inferior discreto. Os cabelos curtos/longos alternativos passam a usar mechas curvas afiladas de baixa resolução; mantêm a cobertura por elmos. Nenhuma textura extra, nenhum novo pacote. Validar orçamento original, aparência e contagem de mechas nas próximas capturas. Não se trata de modelos fotorrealistas nem de validação visual de vídeo contínuo. Sem deploy.
+
+
+### Refinamento de mãos, botas e proteção das pernas
+
+CI 46171987680 aprovou o refinamento facial anterior. Mãos passam a ter dedos curvados com duas formas de baixo custo, polegar definido e punho com acabamento. Botas ganham ponta e contorno de tornozelo; grevas recebem nervura central e bordas discretas. A posição dos sockets e dimensões gerais permanecem inalteradas. Preservar orçamento GLB e revisar a empunhadura nas próximas capturas; sem nova dependência, sem deploy. A aparência e as colisões desses detalhes ainda não estão homologadas.

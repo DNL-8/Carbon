@@ -214,18 +214,20 @@ def build(martial):
         # Outer ear with a shallow folded rim; remains within the existing helmet envelope.
         P('Ear',head,ell((s*.101,.115,-.005),(.017,.035,.023),2),skin)
         P('EarRim',head,curved_trim([(s*.105,.084,.006),(s*.113,.105,.009),(s*.113,.131,.008),(s*.104,.143,.003)],.0035),skin)
-        P('EyeWhite',head,ell((s*.043,.132,.091),(.029,.009,.012),2),white)
-        P('Iris',head,ell((s*.043,.132,.102),(.010,.009,.004),2),iris)
-        P('EyeGlint',head,ell((s*.043-.003,.135,.106),(.0028,.0028,.0014),1),white)
-        P('UpperLid',head,curved_trim([(s*.017,.132,.100),(s*.031,.140,.105),(s*.049,.142,.105),(s*.070,.135,.096)],.0022),hair)
+        P('EyeWhite',head,ell((s*.043,.132,.091),(.027,.0085,.011),2),white)
+        P('Iris',head,ell((s*.043,.132,.101),(.009,.008,.0035),2),iris)
+        P('EyeGlint',head,ell((s*.043-.0025,.135,.1045),(.0018,.0018,.0011),1),white)
+        P('UpperLid',head,curved_trim([(s*.018,.132,.099),(s*.031,.139,.104),(s*.049,.140,.104),(s*.069,.134,.096)],.0016),hair)
         P('Brow',head,curved_trim([(s*.019,.153,.099),(s*.042,.159 if martial else .155,.102),(s*.072,.160,.089)],.0038),hair)
-        P('LowerLid',head,curved_trim([(s*.019,.126,.099),(s*.044,.123,.104),(s*.069,.128,.096)],.0017),hair)
+        P('LowerLid',head,curved_trim([(s*.019,.127,.098),(s*.044,.124,.102),(s*.069,.128,.095)],.0011),skin)
     # A tapered bridge connects the brow to the rounded nasal tip, instead of a detached sphere.
     P('Nose',head,loft([(.083,.006,.004,.097),(.090,.015,.010,.104),(.101,.013,.016,.106),(.114,.009,.012,.103),(.132,.007,.008,.099),(.151,.004,.004,.096)],16),skin)
     for s in (-1,1):
         P('NoseWing',head,ell((s*.009,.092,.105),(.007,.006,.007),1),skin)
         P('NoseCrease',head,ell((s*.009,.088,.110),(.003,.0016,.0012),1),iris)
-    P('Mouth',head,curved_trim([(-.023,.065,.090),(-.011,.062,.100),(0,.061,.104),(.011,.062,.100),(.023,.065,.090)],.0022),iris)
+    # Subtle neutral lip line, with a shallow lower lip instead of a painted smile.
+    P('Mouth',head,curved_trim([(-.021,.063,.091),(-.010,.063,.099),(0,.062,.103),(.010,.063,.099),(.021,.063,.091)],.0015),iris)
+    P('MouthLower',head,ell((0,.057,.098),(.014,.003,.005),1),skin)
     P('HairCap',head,loft([(.15,.108,.099,-.018),(.181,.112,.103,-.018),(.21,.112,.102,-.018),(.237,.101,.089,-.019),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],24),hair)
     for i in range(7):
         x=(i-3)*.026
@@ -256,10 +258,21 @@ def build(martial):
         P('BaseShoulder.'+side,a,ell((s*.017,-.014,0),(.087 if martial else .103,.076,.092),1),cloth if martial else dark)
         P('BaseShoulderTrim.'+side,a,rod((s*.034,-.025,.071),(s*.080,-.070,.057),.009 if martial else .014),accent)
         P('Sleeve.'+side,a,rod((0,0,0),(s*.16,-.15,0),.075,.057),cloth);P('Forearm.'+side,e,rod((0,0,0),(s*.10,-.17,0),.052,.041),skin);P('Bracer.'+side,e,rod((s*.025,-.045,0),(s*.083,-.145,0),.059,.048),metal);P('Hand.'+side,h,ell((s*.018,-.025,.006),(.036,.055,.028),2),skin)
-        P('Hand.Thumb.'+side,h,ell((-s*.015,-.036,.022),(.016,.027,.016),1),skin)
+        # Compact curled fingers retain the original grip envelope and weapon sockets.
+        P('Hand.Thumb.'+side,h,tm.util.concatenate([rod((-s*.007,-.019,.015),(-s*.019,-.039,.024),.014,.011,8),ell((-s*.019,-.046,.027),(.010,.013,.011),1)]),skin)
         for finger in range(4):
-            P('Hand.Knuckle.'+side,h,ell((s*(.003+finger*.011),-.060+abs(finger-1.5)*.005,.022),(.009,.014,.010),1),skin)
+            x=s*(.003+finger*.011);y=-.055+abs(finger-1.5)*.005
+            P('Hand.Finger.'+side,h,tm.util.concatenate([rod((x,y,.015),(x,y-.013,.025),.0085,.007,8),ell((x,y-.014,.027),(.007,.009,.007),1)]),skin)
+        P('BracerRim.'+side,e,rod((s*.028,-.052,0),(s*.035,-.063,0),.060,.059,10),accent)
         leg=m.node('Thigh.'+side,pelvis,(s*.095,0,0));legs.append(leg);k=m.node('Shin.'+side,leg,(0,-.43,0));f=m.node('Foot.'+side,k,(0,-.38,0));P('Pants.'+side,leg,loft([(-.43,.065,.066,0),(-.20,.09,.087,0),(0,.102,.10,0)],10),dark);P('Boot.'+side,k,loft([(-.38,.052,.06,0),(-.15,.067,.073,0),(0,.071,.073,0)],10),cloth);P('Greave.'+side,k,panel([(-.055,-.03,.075),(.055,-.03,.075),(.045,-.27,.067),(-.045,-.27,.067)],.025),metal);P('Foot.'+side,f,ell((0,-.025,.043),(.060,.045,.108),2),dark);P('Foot.Sole.'+side,f,ell((0,-.061,.043),(.063,.015,.110),2),dark)
+        # Raised boot toe and ankle seam; keep within the existing foot silhouette.
+        P('Foot.Toe.'+side,f,ell((0,-.025,.103),(.052,.032,.047),1),cloth if martial else metal)
+        P('Boot.AnkleRim.'+side,k,loft([(-.365,.058,.066,0),(-.349,.059,.067,0)],12),accent)
+        P('GreaveRidge.'+side,k,curved_trim([(0,-.047,.093),(0,-.143,.092),(0,-.255,.083)],.005),accent)
+        for edge in (-1,1):
+            P('GreaveEdge.'+side,k,curved_trim([(edge*.048,-.047,.087),(edge*.038,-.252,.079)],.003),metal)
+    # Explicit mirrored grip anchor survives bone-axis changes during Blender export.
+    m.node('slot_arma_esquerda',hands[0],(-.035,-.026,.02))
     weapon=m.node('slot_arma',hands[1],(.035,-.026,.02));
     if martial:
         P('SpearShaft',weapon,rod((0,-.75,0),(0,.8,0),.018),dark);P('SpearGrip',weapon,rod((0,-.14,0),(0,.14,0),.023),inner);P('SpearBlade',weapon,panel([(0,.76,0),(.077,.88,0),(0,1.12,0),(-.077,.88,0)],.028),metal);P('SpearCore',weapon,panel([(0,.83,.019),(.021,.9,.019),(0,1.08,.019),(-.021,.9,.019)],.006),energy)

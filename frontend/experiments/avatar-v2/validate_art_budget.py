@@ -24,8 +24,8 @@ for name in ('murim','cacador'):
     assert triangles<=18000,(name,'triangle budget',triangles)
     materials={m['name'] for m in doc['materials']}
     assert {'Skin','Hair','BaseCloth','DarkCloth','Trim','Metal','Lining','Energy','Eyes','Iris'}<=materials
-    nodes={node.get('name','') for node in doc['nodes']}
-    for prefix in ('Mesh_HeadMesh','Mesh_HairCap','Mesh_HairLock','Mesh_BaseWaist','Mesh_LowerLid'):
+    nodes={node.get('name','').replace('.','_') for node in doc['nodes']}
+    for prefix in ('Mesh_HeadMesh','Mesh_HairCap','Mesh_HairLock','Mesh_BaseWaist','Mesh_LowerLid','Mesh_MouthLower','Mesh_Hand_Finger','Mesh_Foot_Toe','Mesh_GreaveRidge','Mesh_Boot_AnkleRim'):
         assert any(node.startswith(prefix) for node in nodes),(name,prefix)
     textured={'Skin','BaseCloth','DarkCloth','Lining','Metal','Trim'}
     for material in doc['materials']:

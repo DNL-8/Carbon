@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test'
+import { writeFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { EQUIPMENT_CATALOG } from '../../../src/utils/equipmentCatalog'
 import { getEquipmentArt } from '../../lib/equipment-art'
 
 test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page},info)=>{
+  test.setTimeout(300_000)
   const errors:string[]=[]
   page.on('pageerror',error=>errors.push(error.message))
   await page.goto('/avatar-v2-lab-test')
@@ -40,6 +42,19 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       if(!art)throw Error('Arte ausente: '+item.id)
       const signature=item.slot+':'+art.detail.toString(2).padStart(5,'0')
       await expect(canvas).toHaveAttribute('data-glb-design',signature)
+      await expect(canvas).toHaveAttribute('data-glb-dual-grip',String(item.slot==='arma'&&art.family==='twin'))
+      if(item.slot==='elmo')await expect(canvas).toHaveAttribute('data-glb-hair-covered',String(['hood','helm','horn'].includes(art.family)))
+      if(item.slot==='armadura'){
+        const heavy=['plate','exo'].includes(art.family)
+        await expect(canvas).toHaveAttribute('data-glb-shoulders',heavy?'2':'0')
+        if(heavy)await expect(canvas).toHaveAttribute('data-glb-shoulder-bindings',/^(UpperArm\.?L),(UpperArm\.?R)$/)
+      }
+      const before=Number(await canvas.getAttribute('data-glb-equipment-meshes-before'))
+      const after=Number(await canvas.getAttribute('data-glb-equipment-meshes-after'))
+      expect(before).toBeGreaterThan(0)
+      expect(after).toBeGreaterThan(0)
+      expect(after).toBeLessThanOrEqual(before)
+      expect(Number(await canvas.getAttribute('data-glb-equipment-triangles'))).toBeGreaterThan(0)
       designs.add(signature)
     }
     expect(designs.size).toBe(104)
@@ -84,6 +99,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     for(const hair of ['0','1','2','3']){
       await page.getByRole('combobox',{name:'Cabelo',exact:true}).selectOption(hair)
       await expect.poll(async()=>(await canvas.getAttribute('data-glb-appearance'))?.slice(0,1)).toBe(hair)
+      await expect(canvas).toHaveAttribute('data-glb-custom-hair-locks',hair==='2'?'6':hair==='1'&&style==='murim'?'5':'0')
     }
     await page.getByRole('combobox',{name:'Cabelo',exact:true}).selectOption('2')
     await page.getByRole('combobox',{name:'Rosto',exact:true}).selectOption('2')
@@ -98,6 +114,11 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await page.getByRole('button',{name:'Restaurar',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-yaw','0')
     await expect(canvas).toHaveAttribute('data-glb-zoom','false')
+    const visor=EQUIPMENT_CATALOG.find(item=>item.slot==='elmo'&&['visor','lens'].includes(getEquipmentArt(item.id)?.family??''))
+    if(!visor)throw Error('Visor ausente')
+    await piece.selectOption(visor.id)
+    await expect(canvas).toHaveAttribute('data-glb-equipment',visor.id)
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-visor-offset'))).toBeLessThan(.00001)
     const helmet=EQUIPMENT_CATALOG.find(item=>item.slot==='elmo')
     if(!helmet)throw Error('Elmo ausente')
     await piece.selectOption(helmet.id)
@@ -134,6 +155,68 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await page.getByRole('button',{name:'Repouso',exact:true}).click()
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-displacement'))).toBeGreaterThan(.001)
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-inward'))).toBeLessThan(.00001)
+    const equippedSet=EQUIPMENT_CATALOG.find(item=>item.setId&&item.slot==='arma')
+    const poseDiagnostics:unknown[]=[]
+    const trajectoryDiagnostics:unknown[]=[]
+    if(!equippedSet)throw Error('Conjunto de combate ausente')
+    await page.getByLabel('Conjunto completo').check()
+    await piece.selectOption(equippedSet.id)
+    await expect.poll(async()=>(await canvas.getAttribute('data-glb-equipment'))?.split(',').length).toBe(4)
+    for(const [label,clip] of [['Repouso','idle'],['Ataque','attack'],['Vitória','victory'],['Descanso','rest'],['Defesa','guard'],['Esquiva','dodge'],[style==='murim'?'Canalizar Qi':'Canalizar mana','channel']]){
+      await page.getByRole('button',{name:label,exact:true}).click()
+      await expect(canvas).toHaveAttribute('data-glb-animation',clip)
+      await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-time'))).toBeGreaterThan(.2)
+      await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-attachment-drift'))).toBeLessThan(.00001)
+      const sequence=Number(await canvas.getAttribute('data-glb-sequence'))
+      await expect.poll(async()=>{
+        const raw=await canvas.getAttribute('data-glb-diagnostics')
+        if(!raw)return false
+        const sample=JSON.parse(raw)
+        return sample.clip===clip&&sample.sequence===sequence&&sample.proxyCount===3&&sample.weaponSamples>0
+      }).toBe(true)
+      const raw=await canvas.getAttribute('data-glb-diagnostics')
+      if(!raw)throw Error('Diagnóstico de pose ausente')
+      const sample=JSON.parse(raw)
+      for(const key of ['fps','drawCalls','triangles','geometries','textures'])expect(Number.isFinite(sample[key])&&sample[key]>0,key).toBe(true)
+      expect(sample.weaponInside).toBeGreaterThanOrEqual(0)
+      expect(sample.weaponInside).toBeLessThanOrEqual(sample.weaponSamples)
+      expect(sample.capeInside).toBeLessThanOrEqual(sample.capeSamples)
+      expect(sample.equipmentMeshesAfter).toBeLessThan(sample.equipmentMeshesBefore)
+      poseDiagnostics.push(sample)
+      await canvas.screenshot({path:info.outputPath(style+'-pose-'+clip+'.png')})
+      await expect.poll(async()=>{
+        const raw=await canvas.getAttribute('data-glb-trajectory')
+        if(!raw)return false
+        const report=JSON.parse(raw)
+        return report.sequence===sequence&&report.clip===clip&&report.samples.length===10
+      },{timeout:20000}).toBe(true)
+      const trajectory=JSON.parse((await canvas.getAttribute('data-glb-trajectory'))!)
+      expect(trajectory.samples.map((s:{phase:number})=>s.phase).sort((a:number,b:number)=>a-b)).toEqual([0,1,2,3,4,5,6,7,8,9])
+      for(const s of trajectory.samples){
+        expect(s.time).toBeGreaterThanOrEqual(0)
+        expect(s.time).toBeLessThanOrEqual(trajectory.duration+.0001)
+        expect(s.weaponSamples).toBeGreaterThan(0)
+        expect(s.weaponInside).toBeGreaterThanOrEqual(0)
+        expect(s.weaponInside).toBeLessThanOrEqual(s.weaponSamples)
+        expect(s.capeInside).toBeGreaterThanOrEqual(0)
+        expect(s.capeInside).toBeLessThanOrEqual(s.capeSamples)
+      }
+      trajectoryDiagnostics.push(trajectory)
+    }
+    const report=JSON.stringify(poseDiagnostics,null,2)
+    await writeFile(info.outputPath(style+'-diagnostico-poses.json'),report)
+    await writeFile(info.outputPath(style+'-diagnostico-trajetorias.json'),JSON.stringify(trajectoryDiagnostics,null,2))
+    await info.attach(style+'-diagnostico-poses',{body:report,contentType:'application/json'})
+    const heavy=EQUIPMENT_CATALOG.find(item=>item.slot==='armadura'&&['plate','exo'].includes(getEquipmentArt(item.id)?.family??''))
+    if(!heavy)throw Error('Armadura pesada ausente')
+    await page.getByLabel('Conjunto completo').uncheck()
+    await piece.selectOption(heavy.id)
+    await expect(canvas).toHaveAttribute('data-glb-shoulders','2')
+    await page.getByRole('button',{name:'Ataque',exact:true}).click()
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-shoulder-lift'))).toBeGreaterThan(.02)
+    await canvas.screenshot({path:info.outputPath(style+'-ombreiras-ataque.png')})
+    await page.getByLabel('Conjunto completo').check()
+    await page.getByLabel('Conjunto completo').uncheck()
     await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})
   }

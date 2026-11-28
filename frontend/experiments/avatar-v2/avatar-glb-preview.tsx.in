@@ -6,6 +6,7 @@ import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js'
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import { getEquipmentArt } from '../lib/equipment-art'
 import { HUNTER_RANK_TIERS, MURIM_REALM_TIERS } from '../../src/utils/progressionCurves'
 import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
@@ -109,7 +110,7 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     const chest=add(new THREE.CylinderGeometry(heavy?.25:.22,.17,.35,10),main,0,.19,0)
     chest.scale.z=.62
     for(const s of [-1,1]){
-      if(heavy){const shoulder=ball(f==='exo'?.095:.08,trim,s*.24,.33,0);shoulder.scale.set(1,.7,1.15)}
+      if(heavy){const shoulder=ball(f==='exo'?.095:.08,trim,s*.24,.33,0);shoulder.scale.set(1,.7,1.15);shoulder.name=s<0?'CarbonShoulder.L':'CarbonShoulder.R'}
       else{const lapel=box(.045,.29,.025,trim,s*.07,.21,.135);lapel.rotation.z=s*.42}
       if(f==='robe'||f==='coat')plate([[-.065,0],[.065,0],[.10,-.36],[-.055,-.33]],.018,main,s*.09,0,.13)
       if(f==='vest')box(.065,.07,.035,trim,s*.10,.12,.14)
@@ -175,6 +176,43 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
   return group
 }
 
+// Batch only static sibling meshes with compatible attributes and the exact same material.
+// Cape vertices and articulated shoulders retain independent geometry and transforms.
+function batchStaticAttachment(group:THREE.Group){
+  const meshes=()=>group.children.filter((node):node is THREE.Mesh=>node instanceof THREE.Mesh)
+  const triangles=()=>meshes().reduce((sum,mesh)=>sum+(mesh.geometry.index?.count??mesh.geometry.getAttribute('position').count)/3,0)
+  const before=meshes().length
+  const originalTriangles=triangles()
+  const batches=new Map<string,THREE.Mesh[]>()
+  for(const mesh of meshes()){
+    if(mesh.name==='CarbonDrape'||mesh.name.startsWith('CarbonShoulder.')||Array.isArray(mesh.material)||!mesh.visible)continue
+    const geometry=mesh.geometry
+    const attributes=Object.keys(geometry.attributes).sort().map(name=>{
+      const a=geometry.getAttribute(name)
+      return [name,a.itemSize,a.normalized,a.array.constructor.name].join(':')
+    }).join('|')
+    const key=mesh.material.uuid+':'+Boolean(geometry.index)+':'+attributes
+    const list=batches.get(key)??[]
+    list.push(mesh);batches.set(key,list)
+  }
+  for(const list of batches.values()){
+    if(list.length<2)continue
+    const copies=list.map(mesh=>{
+      mesh.updateMatrix()
+      return mesh.geometry.clone().applyMatrix4(mesh.matrix)
+    })
+    const merged=mergeGeometries(copies,false)
+    for(const geometry of copies)geometry.dispose()
+    if(!merged)continue
+    const combined=new THREE.Mesh(merged,list[0].material)
+    combined.name='CarbonStaticBatch'
+    for(const mesh of list){mesh.removeFromParent();mesh.geometry.dispose()}
+    group.add(combined)
+  }
+  if(triangles()!==originalTriangles)throw new Error('Batch de equipamento alterou a contagem de triângulos')
+  return {before,after:meshes().length,triangles:originalTriangles}
+}
+
 function disposeAttachment(group: THREE.Object3D) {
   const materials=new Set<THREE.Material>()
   group.traverse(node=>{
@@ -209,7 +247,20 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     invalidate()
   },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
+  // Diagnostics are restricted to the isolated browser-test route, never the normal app.
+  type TrajectorySample={phase:number;time:number;weaponSamples:number;weaponInside:number;capeSamples:number;capeInside:number}
+  const labMetrics=useRef({elapsed:0,frames:0,samples:0,trajectory:[] as TrajectorySample[]})
+  const diagnostics=useMemo(()=>{
+    const proxies=[
+      {bone:'Spine',center:new THREE.Vector3(0,.23,0),radii:new THREE.Vector3(style==='murim'?.19:.21,.18,.105)},
+      {bone:'Hips',center:new THREE.Vector3(0,-.025,0),radii:new THREE.Vector3(.16,.09,.095)},
+      {bone:'Head',center:new THREE.Vector3(0,.13,0),radii:new THREE.Vector3(.085,.105,.077)}
+    ].flatMap(p=>{const node=scene.getObjectByName(p.bone);return node?[{...p,node,inverse:new THREE.Matrix4()}]:[]})
+    return {proxies,point:new THREE.Vector3(),local:new THREE.Vector3()}
+  },[scene,style])
   const drapes=useRef<THREE.Mesh[]>([])
+  const shoulders=useRef<{mesh:THREE.Mesh;arm:THREE.Object3D;restArm:THREE.Quaternion;restMesh:THREE.Quaternion;restPosition:THREE.Vector3;side:number}[]>([])
+  const attachmentAnchors=useRef<{object:THREE.Object3D;socket:THREE.Object3D;rest:THREE.Matrix4}[]>([])
   const effects=useRef<THREE.Group|null>(null)
   const hairMotion=useRef<{node:THREE.Object3D;rotation:THREE.Quaternion}[]>([])
   const faceMotion=useRef<{node:THREE.Mesh;scale:THREE.Vector3;position:THREE.Vector3;offset:THREE.Vector3}[]>([])
@@ -266,19 +317,38 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     if(!coveredHair&&appearance.hair!==3&&appearance.hair!==defaultHair){
       const material=new THREE.MeshStandardMaterial({color:hairColors[appearance.hairColor],roughness:.85})
       const add=(size:[number,number,number],pos:[number,number,number])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);m.scale.set(...size);m.position.set(...pos);custom.add(m);return m}
+      // Tapered swept locks keep the alternate hairstyles from looking like separate balls.
+      const lock=(points:THREE.Vector3[],radius:number)=>{
+        const curve=new THREE.CatmullRomCurve3(points)
+        const geometry=new THREE.TubeGeometry(curve,8,radius,6,false)
+        const position=geometry.getAttribute('position')
+        for(let row=0;row<=8;row++){
+          const u=row/8,center=curve.getPointAt(u),factor=1-.83*Math.pow(u,2)
+          for(let col=0;col<=6;col++){
+            const i=row*7+col
+            position.setXYZ(i,center.x+(position.getX(i)-center.x)*factor,center.y+(position.getY(i)-center.y)*factor,center.z+(position.getZ(i)-center.z)*factor)
+          }
+        }
+        geometry.computeVertexNormals()
+        const mesh=new THREE.Mesh(geometry,material);mesh.name='CarbonHairLock';custom.add(mesh)
+      }
       // Attach to a rest-space socket rather than the bone axes, which Blender may reorient.
       const anchor=scene.getObjectByName('slot_elmo')
       if(anchor){
         add([.108,.078,.105],[0,.035,-.018]);
         if(appearance.hair===0){add([.050,.053,.049],[0,.115,-.055]);add([.030,.13,.032],[0,-.025,-.125])}
-        if(appearance.hair===1){for(let i=-2;i<=2;i++){const tuft=add([.037,.047,.042],[i*.038,.066,-.010]);tuft.rotation.z=-i*.18}}
-        if(appearance.hair===2){for(const side of [-1,1]){const lock=add([.035,.156,.047],[side*.088,-.080,-.058]);lock.rotation.z=side*.13}add([.083,.19,.039],[0,-.105,-.109])}
+        if(appearance.hair===1){for(let i=-2;i<=2;i++)lock([new THREE.Vector3(i*.033,.040,.020),new THREE.Vector3(i*.036,.098,-.015),new THREE.Vector3(i*.030+.012,.065,-.065)],.031)}
+        if(appearance.hair===2){
+          for(const side of [-1,1])for(let j=0;j<3;j++)lock([new THREE.Vector3(side*(.07+j*.012),.055,-.032),new THREE.Vector3(side*(.093+j*.008),-.055,-.065),new THREE.Vector3(side*(.075+j*.012),-.21+j*.018,-.09)],.026)
+          add([.083,.17,.039],[0,-.087,-.109])
+        }
         anchor.add(custom)
       }else material.dispose()
     }
     hairMotion.current=changed.filter(entry=>/^Mesh_(Ponytail|HairLockTail)/.test(entry.node.name)).map(entry=>({node:entry.node,rotation:entry.node.quaternion.clone()}))
     gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
     gl.domElement.dataset.glbHairCovered=String(coveredHair)
+    gl.domElement.dataset.glbCustomHairLocks=String(custom.children.filter(node=>node.name==='CarbonHairLock').length)
     invalidate()
     return ()=>{for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}faceMotion.current=[];for(const entry of hairMotion.current)entry.node.quaternion.copy(entry.rotation);hairMotion.current=[];custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
   },[scene,appearance,style,coveredHair,gl,invalidate])
@@ -287,6 +357,11 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const ids: string[] = []
     const designs: string[] = []
     const capeMeshes: THREE.Mesh[] = []
+    const shoulderMeshes: typeof shoulders.current = []
+    let meshesBefore=0,meshesAfter=0,equipmentTriangles=0
+    const batch=(group:THREE.Group)=>{const result=batchStaticAttachment(group);meshesBefore+=result.before;meshesAfter+=result.after;equipmentTriangles+=result.triangles}
+    gl.domElement.dataset.glbVisorOffset='not-applicable'
+    gl.domElement.dataset.glbDualGrip='false'
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
@@ -297,6 +372,12 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       const group=art?makeAttachment(art,slot):new THREE.Group()
       if(slot==='elmo'&&art){
         group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
+        // The rest-space helmet socket is at head y=.17 and the eyes at y=.132.
+        // A visor/lens has its viewing slit at local y=-.032.
+        if(art.family==='visor'||art.family==='lens'){
+          group.position.y=.132-.17+.032
+          gl.domElement.dataset.glbVisorOffset=String(Math.abs(.17+group.position.y-.032-.132))
+        }
         // Hair coverage is handled by the appearance effect.
       }
       if(selected&&art&&group.children.length>0){
@@ -306,21 +387,53 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
         if(bits.length!==5 || ![...bounds.min.toArray(),...bounds.max.toArray()].every(Number.isFinite))throw new Error('Geometria de equipamento inválida: '+selected.id)
         designs.push(slot+':'+bits)
       }
+      // Preserve catalog geometry and add clearance for the wider Caçador base torso.
+      if(slot==='armadura'&&art&&style==='cacador')group.scale.x=1.08/.93
+      if(slot==='armadura'&&art&&['plate','exo'].includes(art.family))for(const side of [-1,1]){
+        const suffix=side<0?'L':'R'
+        const mesh=group.getObjectByName('CarbonShoulder.'+suffix)
+        // GLTFLoader sanitizes animation binding names (e.g. UpperArm.L -> UpperArmL).
+        // Resolve the identical binding in the immutable source and its cloned scene.
+        const rawName='UpperArm.'+suffix
+        const sanitized=THREE.PropertyBinding.sanitizeNodeName(rawName)
+        const arm=scene.getObjectByName(sanitized)??scene.getObjectByName(rawName)
+        const bindArm=gltf.scene.getObjectByName(sanitized)??gltf.scene.getObjectByName(rawName)
+        if(!(mesh instanceof THREE.Mesh)||!arm||!bindArm)throw new Error('Encaixe de ombreira ausente: '+rawName)
+        shoulderMeshes.push({mesh,arm,restArm:bindArm.quaternion.clone(),restMesh:mesh.quaternion.clone(),restPosition:mesh.position.clone(),side})
+      }
       if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
+      batch(group)
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
-        const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
-        if(left&&art){const second=makeAttachment(art,slot);second.position.set(-.035,-.026,.02);second.rotation.z=.30;left.add(second);attached.push({parent:left,object:second,children:[]})}
+        const left=scene.getObjectByName('slot_arma_esquerda')
+        if(!left||!art)throw new Error('Socket GLB da mão esquerda ausente')
+        const second=makeAttachment(art,slot)
+        second.rotation.z=.30
+        batch(second)
+        left.add(second);attached.push({parent:left,object:second,children:[]})
+        gl.domElement.dataset.glbDualGrip=String(second.parent===left)
       }
     }
+    attachmentAnchors.current=attached.map(entry=>{
+      entry.object.updateMatrix()
+      return {object:entry.object,socket:entry.parent,rest:entry.object.matrix.clone()}
+    })
+    gl.domElement.dataset.glbAttachmentDrift='0'
+    gl.domElement.dataset.glbEquipmentMeshesBefore=String(meshesBefore)
+    gl.domElement.dataset.glbEquipmentMeshesAfter=String(meshesAfter)
+    gl.domElement.dataset.glbEquipmentTriangles=String(equipmentTriangles)
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
     drapes.current=capeMeshes
+    shoulders.current=shoulderMeshes
+    gl.domElement.dataset.glbShoulders=String(shoulderMeshes.length)
+    gl.domElement.dataset.glbShoulderBindings=shoulderMeshes.map(entry=>entry.arm.name).sort().join(',')
+    gl.domElement.dataset.glbShoulderLift='0'
     gl.domElement.dataset.glbDrapes=String(capeMeshes.length)
     gl.domElement.dataset.glbDesign=designs.sort().join(',')
     invalidate()
-    return ()=>{drapes.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
-  },[scene,gear,invalidate,gl,style])
+    return ()=>{drapes.current=[];shoulders.current=[];attachmentAnchors.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
+  },[scene,gltf.scene,gear,invalidate,gl,style])
   useEffect(()=>{
     const group=new THREE.Group();group.name='CarbonEnergyEffects'
     const color=energyColor(style,appearance)
@@ -345,6 +458,9 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     action.reset().setLoop(clip==='idle'||clip==='rest'?THREE.LoopRepeat:THREE.LoopOnce,clip==='idle'||clip==='rest'?Infinity:1)
     for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}
     gl.domElement.dataset.glbEyeOpen='1'
+    labMetrics.current={elapsed:0,frames:0,samples:0,trajectory:[]}
+    delete gl.domElement.dataset.glbDiagnostics
+    delete gl.domElement.dataset.glbTrajectory
     action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);gl.domElement.dataset.glbTime='0';invalidate()
     return ()=>{action.stop();mixer.uncacheAction(selected)}
   },[gltf.animations,mixer,animation,invalidate,gl])
@@ -366,6 +482,19 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const time=action.time
     const active=animation.clip==='attack'||animation.clip==='dodge'||animation.clip==='channel'||animation.clip==='victory'
     const strength=active?.065:.018
+    // Limited secondary movement based on the arm's angular deviation from bind pose.
+    // Do not rotate the entire chest or detach equipment from the original socket.
+    let shoulderLift=0
+    for(const entry of shoulders.current){
+      const lift=Math.min(1,entry.arm.quaternion.angleTo(entry.restArm)/.8)
+      entry.mesh.position.copy(entry.restPosition)
+      entry.mesh.position.x+=entry.side*.018*lift
+      entry.mesh.position.y+=.024*lift
+      entry.mesh.quaternion.copy(entry.restMesh)
+      entry.mesh.rotateZ(-entry.side*.20*lift)
+      shoulderLift=Math.max(shoulderLift,lift)
+    }
+    gl.domElement.dataset.glbShoulderLift=String(shoulderLift)
     // Geometry-only eye motion; no facial rig or extra textures required.
     const blinkPhase=Math.abs(time-1.45)/.14
     const blink=animation.clip==='idle'?Math.min(1,blinkPhase):1
@@ -391,12 +520,67 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     }
     gl.domElement.dataset.glbCapeDisplacement=String(capeDisplacement)
     gl.domElement.dataset.glbCapeInward=String(capeInward)
+    // Check attachment transforms relative to their actual moving socket, not world axes.
+    let drift=0
+    for(const {object,socket,rest} of attachmentAnchors.current){
+      object.updateMatrix()
+      if(object.parent!==socket){drift=Infinity;break}
+      for(let i=0;i<16;i++)drift=Math.max(drift,Math.abs(object.matrix.elements[i]-rest.elements[i]))
+    }
+    gl.domElement.dataset.glbAttachmentDrift=String(drift)
     for(const entry of hairMotion.current){entry.node.quaternion.copy(entry.rotation);entry.node.rotateX(-strength*(.5+.5*Math.sin(time*5)))}
     const group=effects.current
     if(group){
       const power=active?1.2+.18*Math.sin(time*8):1
       group.scale.set(power,1,power);group.rotation.y=time*(style==='murim'?.65:1.3)
       gl.domElement.dataset.glbEffectScale=String(power)
+    }
+    if(window.location.pathname==='/avatar-v2-lab-test'&&Number.isFinite(dt)&&dt>0){
+      const metrics=labMetrics.current
+      metrics.elapsed+=dt;metrics.frames++
+      // Cover ten temporal intervals of the first animation cycle, independently of the FPS reporting window.
+      const duration=action.getClip().duration
+      const phase=Math.min(9,Math.floor(time/duration*10))
+      const newPhase=!metrics.trajectory.some(sample=>sample.phase===phase)
+      if(metrics.elapsed>=.25||newPhase){
+        scene.updateMatrixWorld(true)
+        for(const proxy of diagnostics.proxies)proxy.inverse.copy(proxy.node.matrixWorld).invert()
+        let weaponSamples=0,weaponInside=0,capeSamples=0,capeInside=0
+        const sample=(mesh:THREE.Mesh,kind:'weapon'|'cape')=>{
+          const positions=mesh.geometry.getAttribute('position')
+          if(!positions)return
+          const stride=Math.max(1,Math.floor(positions.count/32))
+          for(let i=0;i<positions.count;i+=stride){
+            diagnostics.point.fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld)
+            const inside=diagnostics.proxies.some(p=>{
+              diagnostics.local.copy(diagnostics.point).applyMatrix4(p.inverse).sub(p.center).divide(p.radii)
+              return diagnostics.local.lengthSq()<1
+            })
+            if(kind==='weapon'){weaponSamples++;if(inside)weaponInside++}
+            else{capeSamples++;if(inside)capeInside++}
+          }
+        }
+        for(const entry of attachmentAnchors.current){
+          if(!['slot_arma','slot_arma_esquerda'].includes(entry.socket.name))continue
+          entry.object.traverse(node=>{if(node instanceof THREE.Mesh&&node.visible)sample(node,'weapon')})
+        }
+        for(const mesh of drapes.current)sample(mesh,'cape')
+        if(newPhase){
+          metrics.trajectory.push({phase,time,weaponSamples,weaponInside,capeSamples,capeInside})
+          gl.domElement.dataset.glbTrajectory=JSON.stringify({clip:animation.clip,sequence:animation.sequence,duration,samples:metrics.trajectory})
+        }
+        if(metrics.elapsed>=.25){
+        gl.domElement.dataset.glbDiagnostics=JSON.stringify({
+          clip:animation.clip,sequence:animation.sequence,time,sample:++metrics.samples,
+          proxyCount:diagnostics.proxies.length,weaponSamples,weaponInside,capeSamples,capeInside,
+          fps:metrics.frames/metrics.elapsed,drawCalls:gl.info.render.calls,triangles:gl.info.render.triangles,
+          geometries:gl.info.memory.geometries,textures:gl.info.memory.textures,
+          equipmentMeshesBefore:Number(gl.domElement.dataset.glbEquipmentMeshesBefore),
+          equipmentMeshesAfter:Number(gl.domElement.dataset.glbEquipmentMeshesAfter)
+        })
+        metrics.elapsed=0;metrics.frames=0
+        }
+      }
     }
     gl.domElement.dataset.glbTime=String(time)
     if(action.isRunning())invalidate()

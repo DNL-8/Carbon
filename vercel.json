@@ -1,0 +1,9 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "feature/avatar-v2-final-publish": false,
+      "feature/avatar-v2-glb": false
+    }
+  }
+}
