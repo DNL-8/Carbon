@@ -164,3 +164,23 @@ A execução 46156191078 (56c3227) aprovou as três variantes e a integração a
 ## Integração compacta aprovada — etapa 4
 
 A execução 46156444501 (98a65ce) aprovou as três variantes e a integração autenticada da prévia compacta. Incorporados os mesmos ajustes de Murim, Training e renderizador; o teste adicional é combinado com o teste da engrenagem já presente na main. Início/Painel e treino podem exibir o GLB sob demanda, com modo econômico e animações vinculadas ao combate. O avatar anterior permanece disponível e os GLBs aprovados na etapa 3 permanecem inalterados. A CI desta combinação deve ser confirmada. A revisão posterior das malhas e a escolha do Avatar V2 como padrão ainda dependem de validação; não foi publicado release.
+
+
+## 12. Evolução artística sem custo adicional — planejamento iniciado
+
+Auditoria da main em 28/11/2026: GLB Caçador 657392 bytes e Murim 664668 bytes; Three.js 0.186.0 e React Three Fiber 9.8.2 já integrados, com GLTFLoader, SkeletonUtils e frameloop sob demanda. A CI principal [46157197807](https://github.com/DNL-8/Carbon/actions/runs/46157197807) concluiu com sucesso no commit d4906f6; não é uma validação dos futuros ativos artísticos. Os modelos publicados são procedurais, não MetaHumans. Preservar os quatro slots (elmo, armadura, capa, arma), os 104 IDs, as sete animações, o fallback e a engrenagem discreta. Não alterar backend, banco, economia ou progressão.
+
+- [x] Conferir AGENTS.md, DESIGN.md, manifest, renderizador, gerador Blender e checklist existente.
+- [x] Registrar tamanho dos ativos atuais e última CI principal consultada.
+- [ ] Verificar localmente disponibilidade, hardware e licenças de Blender, Unreal Engine 5 e MetaHuman; Unreal/MetaHuman são ferramentas opcionais de autoria, nunca dependências de execução web.
+- [ ] Fazer uma prova de exportação de um personagem original, incluindo rig, materiais, cabelo em malha e animações; verificar a licença específica antes de distribuir qualquer arquivo no repositório público. Se a redistribuição não for permitida, usar ativos próprios produzidos no Blender.
+- [ ] Modelar e revisar artisticamente Murim (vestes orientais, Qi) e Caçador (armadura sombria, mana), com topologia limpa, pesos de vértices naturais, texturas PBR e materiais distintos.
+- [ ] Retarget dos sete clips existentes e validação dos quatro sockets; manter a compatibilidade de todas as famílias de equipamento e aparência de ambos os personagens.
+- [ ] Testar exportação GLB sem dependências Unreal no navegador. Não presumir que Lumen, Niagara, groom, Chaos Cloth ou materiais proprietários sejam exportáveis.
+- [ ] Manter os orçamentos mais estritos atuais (1,5 MB e 18 mil triângulos por GLB, conforme validate_art_budget.py) até medir e justificar eventual aumento. Metas propostas de desempenho: 60 FPS desktop e pelo menos 30 FPS mobile em hardware de referência, não resultados medidos.
+- [ ] Avaliar Meshopt/KTX2 somente após medir ganho líquido e configurar os decodificadores do GLTFLoader; testar em hardware sem suporte de textura comprimida. O loader atual não configura esses decodificadores.
+- [ ] Validar capturas frente/perfil/costas, poses extremas, elmos, armas e capas; medir carregamento, FPS e memória. Preservar fallback, movimento reduzido e carregamento sob demanda.
+- [ ] Executar pipeline Blender, matriz Playwright e integração autenticada existentes; aprovar revisão artística antes de promover novos GLBs.
+- [ ] Publicar alterações validadas na main sem release v1.0.0, sem Unity, Pixel Streaming, GPU contratada ou recursos pagos.
+
+A meta de R$ 0 adicionais pressupõe hardware próprio e respeito às cotas gratuitas de hospedagem. Não adicionar Drei ou outros pacotes apenas por constarem do plano se a implementação existente já atende à necessidade. Skills externas de design/Playwright CLI não identificadas no catálogo da sessão; utilizar DESIGN.md e testes existentes. Esta etapa documenta a auditoria e os critérios de aceitação; ainda não produz novos modelos nem executa testes.
