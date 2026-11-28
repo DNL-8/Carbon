@@ -27,7 +27,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [x] Implementar prévia de rotação, zoom, ocultar elmo e cores do perfil.
 - [x] Corrigir fixture para uma peça por slot.
 - [x] Testar 104 peças e dez conjuntos no Murim (desktop/mobile; execução chegou à etapa seguinte).
-- [ ] Revalidar 104 peças e dez conjuntos também no Caçador (desktop/mobile).
+- [x] Revalidar 104 peças e dez conjuntos também no Caçador (desktop/mobile), CI 46150418021.
 - [ ] Conferir armas duplas, poses extremas, elmos e clipping visual.
 - [ ] Personalização completa de cabelo/rosto no GLB; paridade com avatar anterior.
 - [ ] Validar persistência por conta, conjuntos independentes e ausência de alterações involuntárias de bônus.
@@ -35,7 +35,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 ## 4. Animações, desempenho e acessibilidade
 - [x] Clips de repouso, ataque, vitória e descanso definidos nos GLB.
 - [x] Teste de movimento reduzido aprovado em desktop/mobile.
-- [ ] Confirmar avanço real do tempo da animação, pausa e repetição. Correção enviada: consultar o objeto AnimationClip do GLTF, não apenas o nome.
+- [x] Confirmar avanço real do tempo da animação, pausa e repetição (CI 46150418021).
 - [ ] Validar retomada após ocultar a aba e perda de contexto WebGL.
 - [ ] Medir FPS, memória, bateria e tempo de carregamento em aparelhos reais.
 - [ ] Validar teclado, leitor de tela, contraste e alvos de toque no laboratório.
@@ -44,7 +44,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 ## 5. Integração e entrega
 - [x] Visualizador experimental preparado com carregamento sob demanda.
 - [x] Avatar anterior preservado como alternativa.
-- [ ] Aprovar integralmente a CI isolada GLB.
+- [x] Aprovar integralmente a CI isolada GLB (46150418021, 4/4).
 - [ ] Incorporar correção de acessibilidade e demais mudanças recentes da main.
 - [ ] Integrar ativos e dependências validadas; executar CI completa e testes autenticados de Arsenal.
 - [ ] Revisar os resultados e capturas.
@@ -57,3 +57,13 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [Laboratório e novas execuções](https://github.com/DNL-8/Carbon/actions?query=branch%3Afeature%2Favatar-v2-glb)
 
 **Limitações:** protótipos rígidos não equivalem a modelos artísticos finais. Os testes de atributos do canvas não certificam qualidade estética ou ausência de colisões. A integração não está em produção. As cinco skills externas solicitadas não estão disponíveis neste ambiente; Playwright convencional é utilizado pela CI.
+
+## 6. Laboratório Blender — rig deformável
+
+- [x] Preparar gerador de cinco superfícies contínuas com pesos normalizados e 15 juntas, preservando os sockets e as peças rígidas.
+- [x] Preparar teste de deformação real no Blender e exportação GLB + arquivo .blend em runner descartável.
+- [ ] Confirmar execução do Blender, deformação e roundtrip de sockets/clips/skin.
+- [ ] Revisar a aparência e a orientação dos encaixes após exportação.
+- [ ] Refinar artisticamente as malhas e pesos antes de integrar ao visualizador.
+
+Os protótipos rígidos aprovados continuam como referência. O laboratório Blender é separado e não modifica o código ou ativos da main. A CI 46150418021 aprovou os quatro testes do visualizador rígido; a aprovação não se estende ao novo rig.
