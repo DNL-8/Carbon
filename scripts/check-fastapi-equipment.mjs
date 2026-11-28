@@ -4,6 +4,10 @@ import { EQUIPMENT_CATALOG, EQUIPMENT_SETS, DEFAULT_EQUIPPED_GEAR, migrateEquipm
 
 const data = JSON.parse(readFileSync(new URL('../backend/app/data/equipment.json', import.meta.url), 'utf8'))
 assert.deepEqual(data.equipment, EQUIPMENT_CATALOG)
+assert.equal(EQUIPMENT_CATALOG.length, 104)
+assert.equal(new Set(EQUIPMENT_CATALOG.map(item => item.id)).size, 104)
+for (const slot of ['elmo', 'armadura', 'capa', 'arma']) assert.equal(EQUIPMENT_CATALOG.filter(item => item.slot === slot).length, 26)
+for (const [tipo, count] of [['rank_cacador', 51], ['reino_murim', 51], ['inicial', 2]]) assert.equal(EQUIPMENT_CATALOG.filter(item => item.requirement.tipo === tipo).length, count)
 assert.deepEqual(data.sets, EQUIPMENT_SETS)
 assert.deepEqual(data.defaults, DEFAULT_EQUIPPED_GEAR)
 for (const [old, id] of Object.entries(data.legacy)) assert.equal(migrateEquipmentId(old), id)
