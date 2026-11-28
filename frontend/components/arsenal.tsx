@@ -1,13 +1,13 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Alert, Button, ButtonBase, Chip, MenuItem, Tab, Tabs, TextField } from '@mui/material'
+import { Alert, Button, ButtonBase, Chip, MenuItem, Pagination, Tab, Tabs, TextField } from '@mui/material'
 import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { calculateGearBonusSummary, EQUIPMENT_SETS } from '../../src/utils/rpgLogic'
+import { calculateGearBonusSummary, EQUIPMENT_CATALOG, EQUIPMENT_SETS } from '../../src/utils/rpgLogic'
 import { api, number, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar } from './warrior-avatar'
@@ -16,6 +16,15 @@ import { idResult, itemsResult, loadoutsResult, refreshRpg, slots, type ArmoryIn
 
 const preset = z.object({ name: z.string().trim().min(1, 'Informe o nome do conjunto.').max(60) })
 type Slot = keyof typeof slots
+type Track = 'all' | 'rank_cacador' | 'reino_murim' | 'inicial'
+type Order = 'catalog' | 'price' | 'xp' | 'coins' | 'boss'
+const PAGE_SIZE = 24
+const catalog = new Map(EQUIPMENT_CATALOG.map(item => [item.id, item]))
+const trackLabels = { rank_cacador: 'Caçador', reino_murim: 'Murim', inicial: 'Inicial' } as const
+const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR')
+function difference(value: number, unit: string) {
+  return value === 0 ? 'Sem mudança' : (value > 0 ? '+' : '−') + number.format(Math.abs(value)) + ' ' + unit
+}
 
 type ArsenalProps = { coins?: number; heroName?: string; rank?: string; realm?: string; onLedger: () => void }
 
@@ -28,6 +37,9 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
   const [rarity, setRarity] = useState('all')
   const [set, setSet] = useState('all')
   const [ownership, setOwnership] = useState('all')
+  const [track, setTrack] = useState<Track>('all')
+  const [order, setOrder] = useState<Order>('catalog')
+  const [page, setPage] = useState(1)
   const [tab, setTab] = useState<'catalog' | 'sets'>('catalog')
   const [previewId, setPreviewId] = useState<string>()
   const [attack, setAttack] = useState(0)
@@ -58,21 +70,49 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     },
   })
   const run = (body: ArmoryInput) => { setMessage(''); mutation.mutate(body) }
-  const term = search.trim().toLocaleLowerCase('pt-BR')
+  const term = normalize(search.trim())
   const equipped = items.data?.filter(item => item.equipped)
   const preview = items.data?.find(item => item.id === previewId)
   const shownGear = preview
     ? [...(equipped ?? []).filter(item => item.slot !== preview.slot), { ...preview, equipped: true }]
     : equipped
-  const summary = shownGear && calculateGearBonusSummary({
-    elmo: shownGear.find(item => item.slot === 'elmo')?.id ?? null,
-    armadura: shownGear.find(item => item.slot === 'armadura')?.id ?? null,
-    capa: shownGear.find(item => item.slot === 'capa')?.id ?? null,
-    arma: shownGear.find(item => item.slot === 'arma')?.id ?? null,
+  function summarize(gear: typeof equipped) {
+    return gear && calculateGearBonusSummary({
+      elmo: gear.find(item => item.slot === 'elmo')?.id ?? null,
+      armadura: gear.find(item => item.slot === 'armadura')?.id ?? null,
+      capa: gear.find(item => item.slot === 'capa')?.id ?? null,
+      arma: gear.find(item => item.slot === 'arma')?.id ?? null,
+    })
+  }
+  const currentSummary = summarize(equipped)
+  const summary = preview ? summarize(shownGear) : currentSummary
+  const metrics = summary && [
+    { label: 'Bônus de XP', value: summary.xpBonusPercent, previous: currentSummary?.xpBonusPercent, unit: '%', deltaUnit: 'p.p.', color: 'green' },
+    { label: 'Bônus de moedas', value: summary.coinBonusPercent, previous: currentSummary?.coinBonusPercent, unit: '%', deltaUnit: 'p.p.', color: 'orange' },
+    { label: 'Dano em chefes', value: summary.bossDamageBonusPercent, previous: currentSummary?.bossDamageBonusPercent, unit: '%', deltaUnit: 'p.p.', color: '' },
+    { label: 'Poder total', value: summary.totalPowerScore, previous: currentSummary?.totalPowerScore, unit: ' pts', deltaUnit: 'pts', color: '' },
+  ]
+  const filtered = items.data?.filter(item => {
+    const definition = catalog.get(item.id)
+    return (slot === 'all' || item.slot === slot)
+      && (rarity === 'all' || item.rarity === rarity)
+      && (set === 'all' || item.setId === set)
+      && (track === 'all' || definition?.requirement.tipo === track)
+      && (ownership === 'all' || (ownership === 'owned' ? item.owned : !item.owned && item.unlock.met && (ownership === 'rewards' ? item.acquisition === 'reward' : item.acquisition === 'purchase')))
+      && (normalize(item.name).includes(term) || normalize(item.description).includes(term))
   })
-  const filtered = items.data?.filter(item => (slot === 'all' || item.slot === slot) && (rarity === 'all' || item.rarity === rarity)
-    && (set === 'all' || item.setId === set) && (ownership === 'all' || (ownership === 'owned' ? item.owned : !item.owned && item.unlock.met && (ownership === 'rewards' ? item.acquisition === 'reward' : item.acquisition === 'purchase')))
-    && (item.name.toLocaleLowerCase('pt-BR').includes(term) || item.description.toLocaleLowerCase('pt-BR').includes(term)))
+  const ordered = filtered && (order === 'catalog' ? filtered : [...filtered].sort((a, b) => {
+    if (order === 'price') return a.priceCoins - b.priceCoins
+    const key = order === 'xp' ? 'xpBonusPercent' : order === 'coins' ? 'coinBonusPercent' : 'bossDamageBonusPercent'
+    return (catalog.get(b.id)?.[key] ?? 0) - (catalog.get(a.id)?.[key] ?? 0)
+  }))
+  const pageCount = Math.max(1, Math.ceil((ordered?.length ?? 0) / PAGE_SIZE))
+  const activePage = Math.min(page, pageCount)
+  const visibleItems = ordered?.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE)
+  const availableRewards = items.data?.filter(item => !item.owned && item.unlock.met && item.acquisition === 'reward').length ?? 0
+  function resetFilters() {
+    setSearch(''); setSlot('all'); setRarity('all'); setSet('all'); setOwnership('all'); setTrack('all'); setOrder('catalog'); setPage(1)
+  }
 
   function showPreview(id: string, trigger: HTMLButtonElement) {
     previewTrigger.current = trigger
@@ -106,6 +146,10 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
         }}>Ver extrato</Button>
       </div>
     </header>
+    {items.data && availableRewards > 0 && <Alert severity="success" action={<Button color="inherit" onClick={() => {
+      resetFilters(); setOwnership('rewards'); setTab('catalog')
+      requestAnimationFrame(() => document.getElementById('gear-tab-catalog')?.focus())
+    }}>Ver recompensas</Button>}>{availableRewards} {availableRewards === 1 ? 'recompensa disponível' : 'recompensas disponíveis'} para resgatar.</Alert>}
     {mutation.error && <Alert severity="error">{errorMessage(mutation.error)}</Alert>}
     {message && <p className="green" role="status">{message}</p>}
     {(items.isError || loadouts.isError) && <Alert severity="error" action={<Button onClick={() => {void items.refetch(); void loadouts.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o arsenal.</Alert>}
@@ -132,7 +176,7 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
           return <li key={id}>
             <ButtonBase className="surface inset gear-slot" data-preview={isPreview} onClick={() => {
               setTab('catalog')
-              setSlot(id as Slot)
+              setSlot(id as Slot); setPage(1)
               requestAnimationFrame(() => document.getElementById('gear-filter-' + id)?.focus())
             }}>
               <span className="muted">{label}</span>
@@ -145,8 +189,11 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
       </div>
       <div className="arsenal-preview">
         <p className="orange" role="status">{preview && 'Prévia: ' + preview.name}</p>
+        {preview && <p className="muted">{preview.owned ? 'No inventário' : preview.unlock.progressText}</p>}
         {preview && <div className="row">
           {!preview.owned && preview.unlock.met && preview.acquisition === 'reward' && <Button variant="contained" disabled={mutation.isPending} onClick={() => run({ action: 'buy', id: preview.id })}>Resgatar recompensa</Button>}
+          {!preview.owned && preview.acquisition === 'purchase' && <Button variant="contained" disabled={mutation.isPending || !preview.unlock.met || coins === undefined || coins < preview.priceCoins}
+            onClick={() => run({ action: 'buy', id: preview.id })}>Comprar por {number.format(preview.priceCoins)} moedas</Button>}
           {preview?.owned && !preview.equipped && <Button variant="contained" disabled={mutation.isPending} onClick={() => {
             equipmentHeading.current?.focus()
             run({ action: 'equip', id: preview.id })
@@ -157,10 +204,10 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     </section>
     {summary && <section className="arsenal-bonuses" aria-label={preview ? 'Bônus da prévia' : 'Bônus do equipamento'}>
       <dl className="surface arsenal-stats">
-        <div><dt>Bônus de XP</dt><dd className="green">+{summary.xpBonusPercent}%</dd></div>
-        <div><dt>Bônus de moedas</dt><dd className="orange">+{summary.coinBonusPercent}%</dd></div>
-        <div><dt>Dano em chefes</dt><dd>+{summary.bossDamageBonusPercent}%</dd></div>
-        <div><dt>Poder total</dt><dd>{number.format(summary.totalPowerScore)} pts</dd></div>
+        {metrics?.map(metric => <div key={metric.label}>
+          <dt>{metric.label}</dt><dd className={metric.color}>{metric.unit === '%' ? '+' : ''}{number.format(metric.value)}{metric.unit}</dd>
+          {preview && metric.previous !== undefined && <span className="arsenal-delta" data-direction={Math.sign(metric.value - metric.previous)}>{difference(metric.value - metric.previous, metric.deltaUnit)} em relação ao ativo</span>}
+        </div>)}
       </dl>
       {summary.activeSets.map(({ set, equippedCount, twoPieceActive, fourPieceActive }) => <div className="surface arsenal-set-bonus" key={set.id}>
         <span className="orange">{set.name} · {equippedCount}/4</span>
@@ -189,31 +236,39 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     </Tabs>
     <div className="view" id="gear-catalog" role="tabpanel" aria-labelledby="gear-tab-catalog" hidden={tab !== 'catalog'}>
       <section className="surface catalog-filter" aria-label="Filtros de equipamentos">
-        <TextField label="Buscar equipamento" value={search} onChange={event => setSearch(event.target.value)} fullWidth size="small" />
+        <TextField label="Buscar equipamento" value={search} onChange={event => {setSearch(event.target.value); setPage(1)}} fullWidth size="small" />
         <div className="filter-row" role="group" aria-label="Tipo de equipamento">
-          <Button variant={slot === 'all' ? 'contained' : 'outlined'} aria-pressed={slot === 'all'} onClick={() => setSlot('all')}>Todos</Button>
-          {(Object.keys(slots) as Slot[]).map(id => <Button key={id} id={'gear-filter-' + id} variant={slot === id ? 'contained' : 'outlined'} aria-pressed={slot === id} onClick={() => setSlot(id)}>{slots[id]}</Button>)}
+          <Button variant={slot === 'all' ? 'contained' : 'outlined'} aria-pressed={slot === 'all'} onClick={() => {setSlot('all'); setPage(1)}}>Todos</Button>
+          {(Object.keys(slots) as Slot[]).map(id => <Button key={id} id={'gear-filter-' + id} variant={slot === id ? 'contained' : 'outlined'} aria-pressed={slot === id} onClick={() => {setSlot(id); setPage(1)}}>{slots[id]}</Button>)}
         </div>
         <div className="rpg-grid">
-          <TextField label="Raridade" select size="small" value={rarity} onChange={event => setRarity(event.target.value)}>
+          <TextField label="Trilha" select size="small" value={track} onChange={event => {setTrack(event.target.value as Track); setPage(1)}}>
+            <MenuItem value="all">Ambas as trilhas</MenuItem><MenuItem value="rank_cacador">Caçador</MenuItem><MenuItem value="reino_murim">Murim</MenuItem><MenuItem value="inicial">Inicial</MenuItem>
+          </TextField>
+          <TextField label="Ordenar por" select size="small" value={order} onChange={event => {setOrder(event.target.value as Order); setPage(1)}}>
+            <MenuItem value="catalog">Catálogo</MenuItem><MenuItem value="price">Menor preço</MenuItem><MenuItem value="xp">Maior XP</MenuItem><MenuItem value="coins">Mais moedas</MenuItem><MenuItem value="boss">Dano em chefes</MenuItem>
+          </TextField>
+          <TextField label="Raridade" select size="small" value={rarity} onChange={event => {setRarity(event.target.value); setPage(1)}}>
             <MenuItem value="all">Todas</MenuItem>{['Comum', 'Raro', 'Épico', 'Lendário'].map(label => <MenuItem key={label} value={label}>{label}</MenuItem>)}
           </TextField>
-          <TextField label="Mostrar" select size="small" value={ownership} onChange={event => setOwnership(event.target.value)}>
+          <TextField label="Mostrar" select size="small" value={ownership} onChange={event => {setOwnership(event.target.value); setPage(1)}}>
             <MenuItem value="all">Catálogo completo</MenuItem><MenuItem value="owned">Meus equipamentos</MenuItem><MenuItem value="available">Liberados para compra</MenuItem><MenuItem value="rewards">Recompensas disponíveis</MenuItem>
           </TextField>
-          <TextField label="Conjunto" select size="small" value={set} onChange={event => setSet(event.target.value)}>
+          <TextField label="Conjunto" select size="small" value={set} onChange={event => {setSet(event.target.value); setPage(1)}}>
             <MenuItem value="all">Todos</MenuItem>{EQUIPMENT_SETS.map(item => <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}
           </TextField>
         </div>
+        <div className="arsenal-results"><p role="status">{filtered?.length ?? 0} de {items.data?.length ?? 0} equipamentos</p><Button variant="outlined" onClick={resetFilters}>Limpar filtros</Button></div>
       </section>
       {items.isPending && <p role="status">Carregando arsenal…</p>}
       {filtered?.length === 0 && <p role="status">Nenhum equipamento nesta seleção.</p>}
-      <div className="workout-grid arsenal-cards">{filtered?.map(item => <article className={'surface workout-card' + (item.equipped ? ' fulfilled' : '')} aria-label={item.name} key={item.id}>
-        <div className="arsenal-card-meta"><small className="gear-rarity mono">{slots[item.slot]} · {item.rarity}</small>
+      <div className="workout-grid arsenal-cards">{visibleItems?.map(item => <article className={'surface workout-card' + (item.equipped ? ' fulfilled' : '')} aria-label={item.name} key={item.id}>
+        <div className="arsenal-card-meta"><small className="gear-rarity mono">{slots[item.slot]} · {item.rarity} · {(() => { const kind = catalog.get(item.id)?.requirement.tipo; return kind === 'rank_cacador' || kind === 'reino_murim' || kind === 'inicial' ? trackLabels[kind] : '—' })()}</small>
           {item.equipped && <span className="green">Equipado</span>}{item.acquisition === 'reward' && !item.owned && <Chip size="small" label="Recompensa de marco" color="success" variant="outlined" /> }</div><h2>{item.name}</h2>
         <div className="equipment-card-art"><EquipmentArt id={item.id} /></div>
         <p>{item.description}</p><p className="orange">{item.powerBonusLabel}</p>
-        {!item.owned && !item.unlock.met && <p>{item.unlock.progressText}</p>}
+        {!item.owned && <p>{item.unlock.progressText}</p>}
+        {!item.owned && item.acquisition === 'purchase' && <p>{number.format(item.priceCoins)} moedas{item.unlock.met && coins !== undefined && coins < item.priceCoins ? ' · Saldo insuficiente' : ''}</p>}
         <div className="row">
           <Button variant="outlined" aria-pressed={previewId === item.id} onClick={event => showPreview(item.id, event.currentTarget)}>Visualizar</Button>
           {!item.equipped && (item.owned ?
@@ -223,13 +278,17 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
               onClick={() => run({ action: 'buy', id: item.id })}>Comprar por {number.format(item.priceCoins)} moedas</Button>)}
         </div>
       </article>)}</div>
+      {pageCount > 1 && <Pagination className="arsenal-pagination" count={pageCount} page={activePage} onChange={(_, next) => {
+        setPage(next)
+        document.getElementById('gear-tab-catalog')?.focus()
+      }} getItemAriaLabel={(type, p, selected) => type === 'page' ? (selected ? 'Página atual ' : 'Ir para página ') + p : ({ first: 'Primeira página', last: 'Última página', next: 'Próxima página', previous: 'Página anterior', 'start-ellipsis': 'Páginas anteriores', 'end-ellipsis': 'Mais páginas' })[type]} />}
     </div>
     <div className="workout-grid" id="gear-sets" role="tabpanel" aria-labelledby="gear-tab-sets" hidden={tab !== 'sets'}>
       {EQUIPMENT_SETS.map(item => <article key={item.id} className="surface workout-card">
         <h2>{item.name}</h2><p>{item.description}</p><p>2 peças · {item.twoPieceBonus.label}</p>
         {item.fourPieceBonus && <p>4 peças · {item.fourPieceBonus.label}</p>}
         <Button variant="outlined" onClick={() => {
-          setSet(item.id); setSlot('all'); setRarity('all'); setSearch(''); setOwnership('all'); setTab('catalog')
+          resetFilters(); setSet(item.id); setTab('catalog')
           requestAnimationFrame(() => document.getElementById('gear-tab-catalog')?.focus())
         }}>Ver peças de {item.name}</Button>
       </article>)}

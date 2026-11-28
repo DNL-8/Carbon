@@ -271,3 +271,12 @@ summary { cursor: pointer; color: #d4d4d8; }
 .equipment-card-art { align-self: stretch; display: grid; place-items: center; min-height: 112px; border: 1px solid var(--border); border-radius: 6px; background: var(--inset); }
 .equipment-art { display: block; width: 112px; max-width: 100%; height: auto; }
 .equipment-art-compact { width: 44px; flex: none; }
+
+/* Arsenal catalog navigation and comparison. */
+.arsenal-results { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.arsenal-pagination { display: flex; justify-content: center; padding-block: 8px; }
+.arsenal-pagination .MuiPagination-ul { justify-content: center; }
+.arsenal-delta { display: block; font-size: .75rem; color: var(--muted); line-height: 1.5; margin-top: 4px; }
+.arsenal-delta[data-direction="1"] { color: var(--green); }
+.arsenal-delta[data-direction="-1"] { color: #fca5a5; }
+.arsenal-cards .workout-card > .row:last-child { margin-top: auto; }
