@@ -94,3 +94,8 @@ CI 46168792940 aprovada integralmente (b0d1ce7). Relatórios Blender em desktop/
 ### Acabamento facial e cabelos alternativos
 
 Revisão das capturas Blender da CI 46169985364: personagens ainda estilizados, olhos excessivamente contornados e cabelo alternativo com volumes esféricos. Ajustados tamanho dos olhos e brilhos, espessura das pálpebras, linha neutra da boca e lábio inferior discreto. Os cabelos curtos/longos alternativos passam a usar mechas curvas afiladas de baixa resolução; mantêm a cobertura por elmos. Nenhuma textura extra, nenhum novo pacote. Validar orçamento original, aparência e contagem de mechas nas próximas capturas. Não se trata de modelos fotorrealistas nem de validação visual de vídeo contínuo. Sem deploy.
+
+
+### Refinamento de mãos, botas e proteção das pernas
+
+CI 46171987680 aprovou o refinamento facial anterior. Mãos passam a ter dedos curvados com duas formas de baixo custo, polegar definido e punho com acabamento. Botas ganham ponta e contorno de tornozelo; grevas recebem nervura central e bordas discretas. A posição dos sockets e dimensões gerais permanecem inalteradas. Preservar orçamento GLB e revisar a empunhadura nas próximas capturas; sem nova dependência, sem deploy. A aparência e as colisões desses detalhes ainda não estão homologadas.
