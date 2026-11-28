@@ -31,7 +31,7 @@ Com as origens de homologação já confirmadas, verificar `/api/health` no Fast
 Seguir [python-auth-cutover.md](python-auth-cutover.md).
 
 - [ ] Login web da conta A e da conta B, logout, recarga e nova sessão.
-- [ ] Terceira identidade de teste recusada; origem de escrita diferente recusada.
+- [ ] No modo fechado, terceira identidade de teste recusada; no modo aberto, nova identidade Google verificada recebe conta independente, e conflito de e-mail sem vínculo é recusado. Origem de escrita diferente recusada.
 - [ ] Criar registro sintético distinto em cada conta, confirmar que A nunca lê/altera B e vice-versa.
 - [ ] Validar Android com package e SHA-1 do APK de teste e o cliente Google adequado. Sessão inválida deve exigir novo login.
 - [ ] Validar expiração e revogação; não reutilizar tokens nem compartilhar cookies.
@@ -76,3 +76,7 @@ Versão funcional verificada: [f18d18c](https://github.com/DNL-8/Carbon/commit/f
 | Backup | Restore descartável aprovado na CI; configuração e restauração de backup real não comprovadas. |
 
 Não houve acesso a registros pessoais, alteração de infraestrutura, migração de produção nem publicação de aplicativo. A homologação real depende de um ambiente Carbon separado, com origem HTTPS, upstream FastAPI, banco de destino validado e credenciais configuradas privadamente. Não promover ambiente antigo como Carbon.
+
+## 9. Atualização da homologação — 28/11/2026
+
+A revisão `e1951af` foi publicada em ambos os projetos Vercel e aprovada pela [CI 46139706672](https://github.com/DNL-8/Carbon/actions/runs/46139706672). As verificações anteriores de produção, realizadas após a remoção de Cloud Run, confirmaram /api/health e /api/ready com HTTP 200. Cadastro Google e persistência inicial do perfil/progressão foram verificados por contagens no Neon; não foram consultados dados pessoais para esta evidência. O cadastro livre é opt-in via GOOGLE_OPEN_SIGNUP, sem associação automática por e-mail. ENABLE_WRITES foi habilitado em produção. Ainda não há evidência de treino concluído real, recuperação após novo login, duas contas reais isoladas, Gemini/Strava reais, APK em aparelho físico ou restore de backup real. Os testes automatizados continuam isolados. O APK de CI permanece fictício; o padrão do build local foi corrigido para a origem Carbon.

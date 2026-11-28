@@ -30,7 +30,7 @@ No Linux ou macOS, use `./gradlew :app:testDebugUnitTest :app:assembleDebug`. O 
 ## Homologar em aparelho físico
 
 1. Registre no projeto Google Cloud o package e o SHA-1 da assinatura do APK instalado. Use o client web do mesmo projeto no FastAPI.
-2. Compile com `-PfitnessApiOrigin=https://seu-app.example` ou configure `FITNESS_API_ORIGIN` para a origem HTTPS usada também em `APP_ORIGIN`.
+2. O build local usa `https://carbon-web-nine.vercel.app` por padrão. Para homologação isolada, informe `-PfitnessApiOrigin=https://seu-app.example` ou configure `FITNESS_API_ORIGIN` com a origem HTTPS correspondente a `APP_ORIGIN`. Use `./gradlew :app:signingReport` (no Windows, `.\\gradlew.bat :app:signingReport`) para obter o SHA-1 do certificado do APK que será instalado. Não publique a chave de assinatura.
 3. Entre com cada conta autorizada. Importe dados com permissões integrais e parciais e confira os resultados em **Saúde**. Repita a importação e confirme a deduplicação.
 4. Valide a sincronização em segundo plano, a revogação de permissões e a troca de conta durante a coleta.
 

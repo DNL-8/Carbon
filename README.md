@@ -220,7 +220,7 @@ cd android
 ```
 
 - O APK sai em `android/app/build/outputs/apk/debug/app-debug.apk`.
-- Informe sempre a origem HTTPS do seu ambiente, igual ao `APP_ORIGIN`, por `-PfitnessApiOrigin` ou pela variável `FITNESS_API_ORIGIN`. Sem isso, o build usa o padrão definido em `app/build.gradle.kts`.
+- Informe sempre a origem HTTPS do seu ambiente, igual ao `APP_ORIGIN`, por `-PfitnessApiOrigin` ou pela variável `FITNESS_API_ORIGIN`. Sem isso, o build usa `https://carbon-web-nine.vercel.app`; o APK de CI continua usando a origem fictícia.
 - No Google Cloud, registre o pacote `com.dnl8.fitnessrpg.debug` (versão debug) e o SHA-1 da assinatura.
 - Requer Android 8.0 (API 26) ou superior. A disponibilidade do Health Connect depende também do sistema e das permissões do dispositivo.
 

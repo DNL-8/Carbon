@@ -8,7 +8,7 @@ plugins {
 
 val fitnessApiOrigin = providers.gradleProperty("fitnessApiOrigin")
     .orElse(providers.environmentVariable("FITNESS_API_ORIGIN"))
-    .getOrElse("https://murim-iota.vercel.app")
+    .getOrElse("https://carbon-web-nine.vercel.app")
     .trimEnd('/')
 val fitnessApiUri = URI(fitnessApiOrigin)
 require(fitnessApiUri.scheme == "https" && fitnessApiUri.host != null &&

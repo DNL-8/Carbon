@@ -15,3 +15,7 @@ A expansão do catálogo usa os campos existentes de `fitness_arsenal` (owned, e
 ## Inspeção somente leitura — 28/11/2026
 
 No projeto murim, a branch padrão possui dois bancos: `carbon` com as 17 tabelas de aplicação e a tabela de versão Alembic (`0001_drizzle_baseline`), e `neondb` com o schema legado. O banco carbon é candidato ao ambiente novo, mas ainda não foi comprovada a configuração do deployment nem a equivalência de todas as restrições/índices. Nenhuma consulta a conteúdo de registros ou alteração foi feita. O histórico de migração anterior continua válido para neondb.
+
+## Atualização de produção — 28/11/2026
+
+O deployment Carbon na Vercel confirmou /api/ready e a criação de conta, vínculo Google, perfil e progressão no banco `carbon`. O banco `neondb` legado permanece separado. Configure o backup com a conexão direta do banco `carbon`, nunca reutilize uma URL legada sem verificar o destino. A restauração criptografada em banco descartável passou na CI, mas o backup de produção ainda precisa ser validado. Não transfira chaves privadas para o GitHub.
