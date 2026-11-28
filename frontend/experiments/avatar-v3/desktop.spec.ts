@@ -16,5 +16,14 @@ test('GLB Meshopt desktop: decode, orçamento e vistas',async({page},info)=>{
     await page.evaluate(a=>(window as any).pose(a),angle);
     await page.locator('canvas').screenshot({path:info.outputPath(name+'.png')});
   }
+  expect(metrics.expressions).toEqual(['Blink','Focus','Smile']);
+  await page.evaluate(()=> (window as any).face());
+  await page.locator('canvas').screenshot({path:info.outputPath('face-neutral.png')});
+  for(const expression of ['Blink','Focus','Smile']){
+    const affected=await page.evaluate(name=>(window as any).expression(name),expression);
+    expect(affected).toBeGreaterThan(0);
+    await page.locator('canvas').screenshot({path:info.outputPath('face-'+expression.toLowerCase()+'.png')});
+  }
+  expect(errors).toEqual([]);
   await writeFile(info.outputPath('browser-metrics.json'),JSON.stringify(metrics,null,2));
 });

@@ -23,7 +23,11 @@ try{
  const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
  let triangles=0;
  model.scene.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3});
- window.avatarMetrics={triangles,dimensions:size.toArray()};
+ const expressions=new Set();
+ model.scene.traverse(o=>{if(o.isMesh&&o.morphTargetDictionary)for(const name of Object.keys(o.morphTargetDictionary))expressions.add(name)});
+ window.avatarMetrics={triangles,dimensions:size.toArray(),expressions:[...expressions].sort()};
+ window.expression=(name)=>{let changed=0;model.scene.traverse(o=>{if(!o.morphTargetDictionary||!o.morphTargetInfluences)return;for(const [key,index] of Object.entries(o.morphTargetDictionary)){o.morphTargetInfluences[index]=key===name?1:0;if(key===name)changed++}});renderer.render(scene,camera);return changed};
+ window.face=(angle=0)=>{const target=new THREE.Vector3(center.x,box.max.y-.14,center.z);camera.position.copy(target).add(new THREE.Vector3(Math.sin(angle)*.58,0,Math.cos(angle)*.58));camera.lookAt(target);renderer.render(scene,camera)};
  window.pose=(angle)=>{camera.position.copy(center).add(new THREE.Vector3(Math.sin(angle)*3.6,0,Math.cos(angle)*3.6));camera.lookAt(center);renderer.render(scene,camera)};
  window.pose(0);
  status.textContent='Avatar V3 · PC';status.dataset.ready='true';

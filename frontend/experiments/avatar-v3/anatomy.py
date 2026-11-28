@@ -1,4 +1,4 @@
-"""Avatar V3 — original procedural anatomical blockout, phase 1 only.
+"""Avatar V3 — original procedural anatomical blockout, phase 2: facial detail prototypes.
 Run: blender -b --factory-startup --python-exit-code 1 --python anatomy.py -- output
 Blender coordinates: X across, -Y forward, Z up; units in metres.
 """
@@ -23,8 +23,8 @@ def activate(obj):
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
 
-def ellipsoid(name, center, radii, rotation=None):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=40, ring_count=24, location=center)
+def ellipsoid(name, center, radii, rotation=None, segments=40, rings=24):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=segments, ring_count=rings, location=center)
     obj=bpy.context.object
     obj.name=name
     obj.scale=radii
@@ -55,8 +55,9 @@ def add_body(style):
     e('UpperChest',(0,.005,1.43),(.205*width,.11*mass,.112))
     e('Neck',(0,.008,1.555),(.073*mass,.073*mass,.119))
     e('Cranium',(0,.007,1.733),(.100*width,.106,.125))
-    e('Jaw',(0,-.025,1.663),(.078*width,.079,.086))
-    e('Chin',(0,-.060,1.625),(.045,.054,.042))
+    e('Jaw',(0,-.025,1.663),(.081*width if hunter else .075*width,.079,.086))
+    e('Chin',(0,-.060,1.625),(.049 if hunter else .043,.054,.042))
+    e('MuzzlePlane',(0,-.071,1.653),(.047,.040,.035))
     e('NasalBridge',(0,-.090,1.716),(.022,.034,.047))
     e('NasalTip',(0,-.116,1.686),(.023,.024,.022))
     for s in (-1,1):
@@ -112,6 +113,13 @@ def add_body(style):
     bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
     body.data.remesh_voxel_size=.00165
     bpy.ops.object.voxel_remesh()
+    # Sculpt shallow orbital recesses on the fused surface, without opening holes.
+    for v in body.data.vertices:
+        x,y,z=v.co
+        if y<-.055 and 1.70<z<1.77:
+            dx=(abs(x)-.046*width)/.022
+            dz=(z-1.733)/.016
+            v.co.y+=.012*math.exp(-dx*dx-dz*dz)
     smooth=body.modifiers.new('Fuse anatomical forms','SMOOTH')
     smooth.factor=.7
     smooth.iterations=8
@@ -126,6 +134,81 @@ def add_body(style):
     body.data.materials.clear()
     body.data.materials.append(material)
     return body
+
+def face_details(style, skin):
+    """Closed facial parts, simple blendshapes; no facial rig or baked detail yet."""
+    hunter=style=='cacador'
+    width=1.10 if hunter else .97
+    parts=[]
+    def material(name,color,roughness):
+        mat=bpy.data.materials.new(name)
+        mat.diffuse_color=(*color,1)
+        mat.use_nodes=True
+        shader=mat.node_tree.nodes.get('Principled BSDF')
+        shader.inputs['Base Color'].default_value=(*color,1)
+        shader.inputs['Roughness'].default_value=roughness
+        return mat
+    white=material('Eye ivory',(.78,.75,.67),.34)
+    iris=material('Iris blue' if hunter else 'Iris amber',(.055,.22,.37) if hunter else (.32,.12,.035),.32)
+    dark=material('Pupil and brows',(.026,.017,.014),.47)
+    lips=material('Lip clay',(.26,.125,.105),.65)
+    def attach(obj,mat):
+        obj.data.materials.append(mat)
+        for f in obj.data.polygons: f.use_smooth=True
+        parts.append(obj)
+        return obj
+    def shape(obj,name,transform):
+        if obj.data.shape_keys is None: obj.shape_key_add(name='Basis')
+        key=obj.shape_key_add(name=name)
+        for vertex in key.data: vertex.co=transform(vertex.co.copy())
+    def part(name,center,radii,mat):
+        return attach(ellipsoid(name,center,radii,segments=32,rings=20),mat)
+    def ring(name,center,rx,rz,r,mat,tilt):
+        # Closed almond-shaped eyelid rim with a rounded cross-section.
+        verts=[]; faces=[]; n=64; sides=10
+        for i in range(n):
+            t=2*math.pi*i/n
+            cx=rx*math.cos(t)
+            cz=rz*math.sin(t)+tilt*math.cos(t)
+            for j in range(sides):
+                u=2*math.pi*j/sides
+                verts.append((cx+r*math.cos(t)*math.cos(u),
+                              r*math.sin(u),
+                              cz+r*math.sin(t)*math.cos(u)))
+        for i in range(n):
+            for j in range(sides):
+                a=i*sides+j; b=((i+1)%n)*sides+j
+                c=((i+1)%n)*sides+(j+1)%sides; d=i*sides+(j+1)%sides
+                faces.append((a,b,c,d))
+        mesh=bpy.data.meshes.new(name)
+        mesh.from_pydata(verts,[],faces)
+        mesh.update()
+        bm=bmesh.new();bm.from_mesh(mesh)
+        bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
+        bm.to_mesh(mesh);bm.free()
+        obj=bpy.data.objects.new(name,mesh)
+        bpy.context.collection.objects.link(obj)
+        obj.location=center
+        return attach(obj,mat)
+    for sign,side in [(-1,'L'),(1,'R')]:
+        x=sign*.046*width
+        z=1.733
+        y=-.096
+        eye=part('Eye_'+side,(x,y,z),(.024,.018,.013),white)
+        color=part('Iris_'+side,(x,-.113,z),(.0085,.0035,.009),iris)
+        pupil=part('Pupil_'+side,(x,-.116,z),(.0038,.002,.0048),dark)
+        lid=ring('Eyelid_'+side,(x,-.110,z),.024,.013,.0022,skin,sign*.002)
+        for obj in (eye,color,pupil,lid):
+            shape(obj,'Blink',lambda v:(v.x,v.y,v.z*.09))
+            shape(obj,'Focus',lambda v:(v.x,v.y,v.z*.63))
+        brow=attach(ellipsoid('Brow_'+side,(x,-.113,1.756),(.024,.004,.0038),
+                    Vector((0,1,0)).rotation_difference(Vector((0,1,0))),segments=32,rings=20),dark)
+        shape(brow,'Focus',lambda v:(v.x,v.y,v.z+sign*v.x*.22-.003))
+    mouth=part('LowerLip',(0,-.111,1.646),(.026,.006,.0046),lips)
+    upper=part('UpperLip',(0,-.112,1.654),(.025,.005,.0038),lips)
+    for obj in (mouth,upper):
+        shape(obj,'Smile',lambda v:(v.x*1.08,v.y,v.z+.006*(abs(v.x)/.026)**2))
+    return parts
 
 def stats(obj):
     obj.data.calc_loop_triangles()
@@ -165,6 +248,11 @@ def render(body, style, folder):
         camera.rotation_euler=(Vector((0,0,.94))-camera.location).to_track_quat('-Z','Y').to_euler()
         scene.render.filepath=str(folder/(style+'-'+label+'.png'))
         bpy.ops.render.render(write_still=True)
+    camera.data.ortho_scale=.34
+    camera.location=(0,-1.5,1.72)
+    camera.rotation_euler=(Vector((0,0,1.72))-camera.location).to_track_quat('-Z','Y').to_euler()
+    scene.render.filepath=str(folder/(style+'-face.png'))
+    bpy.ops.render.render(write_still=True)
 
 reports=[]
 for style in STYLES:
@@ -197,11 +285,19 @@ for style in STYLES:
     reduced=stats(desktop)
     assert 100000<=reduced['triangles']<=200000, reduced
     assert reduced['non_manifold_edges']==0, reduced
+    details=face_details(style,desktop.data.materials[0])
+    detail_stats=[stats(obj) for obj in details]
+    assert all(d['non_manifold_edges']==0 for d in detail_stats),detail_stats
+    total_triangles=reduced['triangles']+sum(d['triangles'] for d in detail_stats)
+    assert total_triangles<=200000,total_triangles
+    activate(desktop)
+    for obj in details: obj.select_set(True)
     path=folder/(style+'-desktop.glb')
-    bpy.ops.export_scene.gltf(filepath=str(path),export_format='GLB',use_selection=True,export_materials='EXPORT')
+    bpy.ops.export_scene.gltf(filepath=str(path),export_format='GLB',use_selection=True,export_materials='EXPORT',export_morph=True)
     assert path.stat().st_size<=20000000, path.stat().st_size
     result={'style':style,'source':source,'desktop':reduced,'glb_bytes':path.stat().st_size,
-            'stage':'procedural anatomical blockout; not artistic sculpt approval, no rig or textures'}
+            'total_triangles':total_triangles,'facial_parts':len(details),'expressions':['Blink','Focus','Smile'],
+            'stage':'procedural anatomy and facial prototype; no final artistic approval, facial rig or textures'}
     reports.append(result)
     (folder/'metrics.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     print('AVATAR_V3_ANATOMY',json.dumps(result),flush=True)
