@@ -107,6 +107,10 @@ Carbon/
 └── DESIGN.md           # Identidade visual e acessibilidade
 ```
 
+## Hospedagem
+
+A implantação opcional em Google Cloud Run usa dois serviços separados, API privada por IAM e o banco Neon existente. Veja [guia Cloud Run](docs/cloud-run.md). A hospedagem Vercel permanece compatível.
+
 ## Como rodar localmente
 
 ### Pré-requisitos
