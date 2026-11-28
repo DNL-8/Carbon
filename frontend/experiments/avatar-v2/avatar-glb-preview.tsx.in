@@ -187,7 +187,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
   useEffect(()=>{onLoaded()},[onLoaded])
   useEffect(()=>{mixer.timeScale=paused?0:1;invalidate()},[paused,mixer,invalidate])
   useEffect(()=>{const resume=()=>{if(!document.hidden)invalidate()};document.addEventListener('visibilitychange',resume);return ()=>document.removeEventListener('visibilitychange',resume)},[invalidate])
-  useFrame((_,dt)=>{if(!paused&&!document.hidden){mixer.update(Math.min(dt,.05));const action=mixer.existingAction(animation.clip);if(action)gl.domElement.dataset.glbTime=String(action.time);invalidate()}})
+  useFrame((_,dt)=>{if(!paused&&!document.hidden){mixer.update(Math.min(dt,.05));const clip=gltf.animations.find(item=>item.name===animation.clip);const action=clip?mixer.existingAction(clip):null;if(action)gl.domElement.dataset.glbTime=String(action.time);invalidate()}})
   return <primitive object={scene} dispose={null} />
 }
 
