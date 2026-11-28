@@ -95,6 +95,8 @@ jobs:
             frontend/bun.lock
             frontend/components/avatar-glb-preview.tsx
             frontend/components/arsenal.tsx
+            frontend/components/murim.tsx
+            frontend/components/training.tsx
             frontend/public/assets/avatar-v2/*.glb
           retention-days: 7
 
@@ -173,6 +175,8 @@ jobs:
             frontend/bun.lock
             frontend/components/avatar-glb-preview.tsx
             frontend/components/arsenal.tsx
+            frontend/components/murim.tsx
+            frontend/components/training.tsx
             frontend/public/assets/avatar-v2/*.glb
             frontend/tests/arsenal-glb.spec.ts
           if-no-files-found: error

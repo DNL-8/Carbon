@@ -154,3 +154,8 @@ As 33 famílias mantêm os 104 IDs existentes. Cada peça passa a ter um relevo 
 ## Revisão de movimento, aura e qualidade — etapa 3
 
 Animações de ataque recebem apoio de quadril, pernas e manto, mantendo os sete clips e 15 juntas. Capas curvas têm deformação secundária limitada e afastada do corpo; mechas longas acompanham o movimento. Não é simulação física nem garantia de ausência de colisões. A aura usa anéis circulares para Qi e hexagonais para Mana, cores personalizadas, pulsação e quantidade de camadas conforme os tiers reais de Rank F–S e os oito reinos (sem alterar regras). Qualidade automática por largura da tela e preferência de movimento reduzido, além de opção econômica/detalhada; reduz DPR, camadas e atualização de normais no modo econômico. Testes de aura, progressão e qualidade preparados. Acesso às demais telas, promoção do GLB para avatar principal, revisão artística, FPS e bateria físicos continuam pendentes de homologação. Nenhum deploy ou nova dependência nesta etapa.
+
+
+## Etapa 4 — Integração compacta nas telas principais
+
+Preparado modo compacto econômico, com carregamento dinâmico sob demanda no Início/Painel e na sessão de treino. O combate usa eventos já existentes de séries concluídas e vitória; nenhuma recompensa é recalculada no visualizador. A prévia pode ser pausada/fechada e o avatar anterior permanece visível. O laboratório prepara os componentes Murim e Training em checkout isolado e inclui ambos nos artefatos. Teste autenticado adicional verifica abertura, navegação, ataque e fallback. A versão ainda não substitui automaticamente o avatar oficial; publicação e promoção dependem de homologação e preservação da engrenagem da main. Não há alegação de teste em dispositivo físico.
