@@ -16,6 +16,9 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
   expect(items).toHaveLength(104)
   const original = items.filter(item => item.equipped).map(item => item.id).sort()
   const avatar = page.locator('.active-gear .warrior-avatar')
+  const canvas = avatar.locator('canvas[data-avatar-renderer]')
+  await expect(canvas).toHaveCount(1)
+  await expect(canvas).toHaveAttribute('data-avatar-renderer', /^(webgl|fallback)$/)
   const search = page.getByRole('textbox', { name: 'Buscar equipamento' })
   const captured = new Set<string>()
   for (const item of items) {

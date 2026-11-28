@@ -275,17 +275,18 @@ export function WarriorAvatar3D(props: Props) {
   const [ready,setReady]=useState(false)
   useEffect(()=>{latest.current=props},[props])
   useEffect(()=>{
-    const canvas=ref.current
-    if(!canvas) return
+    const target=ref.current
+    if(!target) return
+    const canvas: HTMLCanvasElement=target
     let engine:ReturnType<typeof renderer>
     try {engine=renderer(canvas)} catch {return}
     if(!engine) return
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
-    let visible=true, lost=false, frame=0, prev=0, elapsed=0, turnTime=2, strikeTime=2, celebrateTime=2
+    let visible=true, lost=false, presented=false, frame=0, prev=0, elapsed=0, turnTime=2, strikeTime=2, celebrateTime=2
     let x=0,y=0,lastProps:Props|null=null,lastReduced=false
     const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false})
     observer.observe(canvas)
-    const fail=(event:Event)=>{event.preventDefault();lost=true;setReady(false);cancelAnimationFrame(frame)}
+    const fail=(event:Event)=>{event.preventDefault();lost=true;presented=false;setReady(false);cancelAnimationFrame(frame)}
     const restore=()=>{lost=false;engine?.dispose();try{engine=renderer(canvas)}catch{engine=null}if(engine){lastProps=null;frame=requestAnimationFrame(tick)}}
     canvas.addEventListener('webglcontextlost',fail);canvas.addEventListener('webglcontextrestored',restore)
     function tick(now:number){
@@ -313,7 +314,7 @@ export function WarriorAvatar3D(props: Props) {
       const pixels=Math.max(1,Math.round(p.size*Math.min(window.devicePixelRatio||1,1.5)))
       if(canvas.width!==pixels||canvas.height!==pixels){canvas.width=pixels;canvas.height=pixels}
       engine.draw(drawModel(p,elapsed,turn,strike,celebrate,x,y,motion))
-      setReady(true)
+      if(!presented){presented=true;setReady(true)}
     }
     frame=requestAnimationFrame(tick)
     return ()=>{cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('webglcontextlost',fail);canvas.removeEventListener('webglcontextrestored',restore);engine?.dispose()}
