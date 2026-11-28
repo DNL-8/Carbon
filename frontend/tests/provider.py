@@ -98,7 +98,10 @@ if __name__ == "__main__":
     seed()
     # Registered exclusively on the disposable test server, not the production app.
     app.post("/__fixture/reset")(seed)
-    proxy = SimpleNamespace(Client=stub_client, HTTPError=httpx.HTTPError)
+    proxy = SimpleNamespace(
+        Client=stub_client, Timeout=httpx.Timeout, HTTPError=httpx.HTTPError,
+        HTTPStatusError=httpx.HTTPStatusError, TimeoutException=httpx.TimeoutException,
+    )
     python_auth.httpx = oracle.httpx = strava.httpx = proxy
     python_auth_routes.oauth = oauth
     strava.public_strava_config = main.public_strava_config = strava_config

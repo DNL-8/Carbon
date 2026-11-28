@@ -44,7 +44,8 @@ class Mesh {
     // Two-sided surfaces, useful for cloth panels; diffuse key + fill.
     const facing=normal[2]<0?-1:1
     const shade=Math.min(1.25,.48+.47*Math.max(0,facing*dot(normal,[-.38,.65,.66])/len)+.23*Math.abs(normal[2])/len+glow)
-    for(const v of [p,q,r]) this.data.push(v[0]/2.23,v[1]/2.23,-v[2]/5, ...tint.map(k=>Math.min(1,k*shade)))
+    const red=Math.min(1,tint[0]*shade),green=Math.min(1,tint[1]*shade),blue=Math.min(1,tint[2]*shade)
+    for(const v of [p,q,r]) this.data.push(v[0]/2.23,v[1]/2.23,-v[2]/5,red,green,blue)
   }
   prism(t: Transform, outline: [number,number][], depth: number, tint: Color, glow=0) {
     const front=outline.map(([x,y]):V=>[x,y,depth/2])
@@ -306,7 +307,11 @@ function renderer(canvas: HTMLCanvasElement) {
     return sh
   }
   const program=gl.createProgram(),buffer=gl.createBuffer()
-  if(!program||!buffer) return null
+  if(!program||!buffer){
+    if(program)gl.deleteProgram(program)
+    if(buffer)gl.deleteBuffer(buffer)
+    return null
+  }
   let vert:WebGLShader|undefined,frag:WebGLShader|undefined
   try {
     vert=shader(gl.VERTEX_SHADER,'attribute vec3 p; attribute vec3 c; varying vec3 v; void main(){ gl_Position=vec4(p,1.0); v=c; }')
@@ -335,8 +340,9 @@ function renderer(canvas: HTMLCanvasElement) {
 export function WarriorAvatar3D(props: Props) {
   const ref=useRef<HTMLCanvasElement>(null)
   const latest=useRef(props)
+  const wakeRef=useRef<(()=>void)|null>(null)
   const [ready,setReady]=useState(false)
-  useEffect(()=>{latest.current=props},[props])
+  useEffect(()=>{latest.current=props;wakeRef.current?.()},[props])
   useEffect(()=>{
     const target=ref.current
     if(!target) return
@@ -347,18 +353,23 @@ export function WarriorAvatar3D(props: Props) {
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
     let visible=true, lost=false, presented=false, frame=0, prev=0, elapsed=0, turnTime=2, strikeTime=2, celebrateTime=2
     let x=0,y=0,lastProps:Props|null=null,lastReduced=false
-    const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false})
+    const stop=()=>{if(frame)cancelAnimationFrame(frame);frame=0;prev=0}
+    const wake=()=>{if(!frame&&!lost&&engine&&visible&&!document.hidden)frame=requestAnimationFrame(tick)}
+    wakeRef.current=wake
+    const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false;if(visible)wake();else stop()})
     observer.observe(canvas)
-    const fail=(event:Event)=>{event.preventDefault();lost=true;presented=false;setReady(false);cancelAnimationFrame(frame)}
-    const restore=()=>{lost=false;engine?.dispose();try{engine=renderer(canvas)}catch{engine=null}if(engine){lastProps=null;frame=requestAnimationFrame(tick)}}
+    const visibility=()=>{if(document.hidden)stop();else wake()}
+    document.addEventListener('visibilitychange',visibility)
+    reduced.addEventListener('change',wake)
+    const fail=(event:Event)=>{event.preventDefault();lost=true;presented=false;setReady(false);stop()}
+    const restore=()=>{lost=false;engine?.dispose();try{engine=renderer(canvas)}catch{engine=null}if(engine){lastProps=null;wake()}}
     canvas.addEventListener('webglcontextlost',fail);canvas.addEventListener('webglcontextrestored',restore)
     function tick(now:number){
-      if(lost||!engine)return
-      frame=requestAnimationFrame(tick)
-      if(now-prev<32)return
-      const dt=prev?Math.min((now-prev)/1000,.07):0;prev=now
+      frame=0
+      if(lost||!engine||!visible||document.hidden)return
       const p=latest.current, motion=!p.paused&&!reduced.matches
-      if(!visible||document.hidden)return
+      if(motion&&now-prev<32){wake();return}
+      const dt=prev?Math.min((now-prev)/1000,.07):0;prev=now
       const changed=lastProps!==p||lastReduced!==reduced.matches
       if(lastProps){
         if(p.pulse!==lastProps.pulse) {turnTime=0;celebrateTime=0}
@@ -380,9 +391,10 @@ export function WarriorAvatar3D(props: Props) {
       const equipped=p.gear?.filter(g=>g.equipped).map(g=>g.id).sort().join(',')??''
       if(canvas.dataset.renderedEquipment!==equipped)canvas.dataset.renderedEquipment=equipped
       if(!presented){presented=true;setReady(true)}
+      if(motion)wake();else prev=0
     }
-    frame=requestAnimationFrame(tick)
-    return ()=>{cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('webglcontextlost',fail);canvas.removeEventListener('webglcontextrestored',restore);engine?.dispose()}
+    wake()
+    return ()=>{wakeRef.current=null;stop();observer.disconnect();document.removeEventListener('visibilitychange',visibility);reduced.removeEventListener('change',wake);canvas.removeEventListener('webglcontextlost',fail);canvas.removeEventListener('webglcontextrestored',restore);engine?.dispose()}
   },[])
   return <canvas ref={ref} aria-hidden="true" data-avatar-renderer={ready?'webgl':'fallback'}
     style={{position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:14,pointerEvents:'none',opacity:ready?1:0}} />

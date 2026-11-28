@@ -80,3 +80,10 @@ Não houve acesso a registros pessoais, alteração de infraestrutura, migraçã
 ## 9. Atualização da homologação — 28/11/2026
 
 A revisão `e1951af` foi publicada em ambos os projetos Vercel e aprovada pela [CI 46139706672](https://github.com/DNL-8/Carbon/actions/runs/46139706672). As verificações anteriores de produção, realizadas após a remoção de Cloud Run, confirmaram /api/health e /api/ready com HTTP 200. Cadastro Google e persistência inicial do perfil/progressão foram verificados por contagens no Neon; não foram consultados dados pessoais para esta evidência. O cadastro livre é opt-in via GOOGLE_OPEN_SIGNUP, sem associação automática por e-mail. ENABLE_WRITES foi habilitado em produção. Ainda não há evidência de treino concluído real, recuperação após novo login, duas contas reais isoladas, Gemini/Strava reais, APK em aparelho físico ou restore de backup real. Os testes automatizados continuam isolados. O APK de CI permanece fictício; o padrão do build local foi corrigido para a origem Carbon.
+
+
+## 10. Avatar 3D e integração contínua — 28/11/2026
+
+No commit `ae4475b`, os deployments web e API da Vercel estavam READY. A [CI 46145534895](https://github.com/DNL-8/Carbon/actions/runs/46145534895) aprovou Android, 183 testes Python, auditorias, lint, typecheck e build Next.js. Playwright: 12 aprovados, dois falharam no cenário do Oráculo em desktop/mobile por ausência de Timeout e classes de erro na fixture HTTP. Os testes de prévias dos 104 itens e geometria passaram em desktop e mobile; não provam ausência de colisões nem que WebGL estava ativo em todas as capturas. A fixture foi ajustada para preservar as classes reais do httpx. A nova revisão otimiza o ciclo de animação, adiciona verificação WebGL quando disponível e cobre dez conjuntos completos. Revalidação da nova revisão pendente.
+
+Provedores reais, aparelho Android físico, revisão visual de capturas e medições de bateria permanecem pendentes. Não foram alterados inventário, regras RPG, banco de produção ou credenciais. A release v1.0.0 permanece adiada.

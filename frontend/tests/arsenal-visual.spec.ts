@@ -21,6 +21,13 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
   const canvas = avatar.locator('canvas[data-avatar-renderer]')
   await expect(canvas).toHaveCount(1)
   await expect(canvas).toHaveAttribute('data-avatar-renderer', /^(webgl|fallback)$/)
+  const webglAvailable = await page.evaluate(() => {
+    const context = document.createElement('canvas').getContext('webgl')
+    if (!context) return false
+    context.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  })
+  if (webglAvailable) await expect(canvas).toHaveAttribute('data-avatar-renderer', 'webgl')
   for (const [id, label] of Object.entries({elmo: 'Cabeça', armadura: 'Vestimenta', capa: 'Manto', arma: 'Arma'})) {
     await expect(page.locator('#gear-filter-' + id)).toHaveText(label)
   }
@@ -71,6 +78,23 @@ test('geometria 3D: 104 itens permanecem finitos e enquadrados em várias poses'
         }
         expect(valid, item.id+' ângulo '+angle+' golpe '+strike).toBe(true)
       }
+    }
+  }
+})
+
+// Full sets exercise the shared joints together rather than just one piece at a time.
+test('geometria 3D: dez conjuntos completos em rotação e ataque', () => {
+  const sets = new Set(EQUIPMENT_CATALOG.map(item => item.setId).filter(Boolean))
+  expect(sets.size).toBe(10)
+  for (const id of sets) {
+    const pieces = new Map(EQUIPMENT_CATALOG.filter(item => item.setId === id).map(item => [item.slot, item]))
+    expect(pieces.size, id).toBe(4)
+    const gear = [...pieces.values()].map(item => ({id:item.id,name:item.name,slot:item.slot,rarity:item.rarity,equipped:true}))
+    for (const angle of [0, Math.PI/2, Math.PI, 3*Math.PI/2]) {
+      const data = drawModel({size:256,gear,look:{x:0,y:0},paused:false,pulse:0,attack:1,levelUp:0,victory:false,milestone:false,resting:false,lowHp:false},1,angle,1,0,0,0,true)
+      expect(data.length % 18).toBe(0)
+      expect(data.length).toBeGreaterThan(0)
+      expect(data.every((value,i)=>Number.isFinite(value)&&(i%6>=3||Math.abs(value)<=1)),id).toBe(true)
     }
   }
 })
