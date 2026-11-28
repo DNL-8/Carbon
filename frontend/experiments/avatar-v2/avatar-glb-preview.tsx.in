@@ -62,7 +62,7 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       for(let col=0;col<=columns;col++){
         const u=col/columns
         const x=side*(offset+u*w*(1+.28*t))
-        const z=-.055-.15*t-.025*Math.sin(u*Math.PI*3+art.detail*.17)*t
+        const z=-.055-.15*t-.025*Math.sin(u*Math.PI*3+art.detail*.17)*t-.009*(1-Math.cos(u*Math.PI*8))*t*t
         points.push(x,-h*t*(1-.12*(1-u)),z)
       }
     }
@@ -93,7 +93,11 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       const shell=add(new THREE.SphereGeometry(.138,16,12,0,Math.PI*2,0,Math.PI*.55),main,0,.027,-.006)
       shell.scale.set(1,1.12,1.04)
       box(.19,.026,.025,trim,0,.012,.125)
-      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)}
+      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)
+        // Raised lateral fasteners stay clear of the eye opening.
+        for(const y of [-.045,-.09])ball(.006,trim,s*.129,y,.043)
+      }
+      const crest=add(new THREE.SphereGeometry(.14,16,8,0,Math.PI*2,0,Math.PI*.23),trim,0,.029,-.006);crest.scale.set(.19,1.14,1.06)
       if(f==='horn')for(const s of [-1,1]){const horn=add(new THREE.ConeGeometry(.033,.12,8),trim,s*.105,.11,0);horn.rotation.z=-s*.5}
     }
     if(f==='halo')motif(0,.19,-.12,'x',.014,.005)
@@ -113,7 +117,11 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     box(.27,.045,.24,dark,0,0,0);box(.075,.052,.024,trim,0,0,.132)
     if(heavy){
       plate([[-plateWidth,.08],[0,.13],[plateWidth,.08],[.10,-.11],[0,-.15],[-.10,-.11]],.03,trim,0,.19,.15)
-      for(const s of [-1,1]){plate([[0,0],[s*.055,.035],[s*.06,-.06],[0,-.08]],.012,main,s*.12,.22,.155);if(f==='exo')box(.026,.11,.033,glow,s*.205,.22,.075)}
+      for(const s of [-1,1]){plate([[0,0],[s*.055,.035],[s*.06,-.06],[0,-.08]],.012,main,s*.12,.22,.155);if(f==='exo')box(.026,.11,.033,glow,s*.205,.22,.075)
+        // Overlay narrow segmented relief on the existing breastplate envelope.
+        for(let i=0;i<2;i++)plate([[0,0],[s*.044,.008],[s*.041,-.025],[0,-.032]],.009,trim,s*.081,.12-i*.032,.174)
+        ball(.006,trim,s*.128,.245,.18)
+      }
     } else if(f==='tunic')box(.14,.026,.025,trim,0,.09,.145)
     motif(0,.044,.155,'x',.025,.006)
   }else if(slot==='capa'){
@@ -149,6 +157,8 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       box(.20,.04,.045,trim,0,.16)
       plate([[-.048,.19],[.048,.19],[bend+.04,len-.09],[bend,len],[bend-.04,len-.09]],.035,f==='spirit'?glow:main)
       plate([[-.008,.22],[.008,.22],[bend,len-.05]],.008,glow,0,0,.022)
+      // A shallow tapered fuller on the reverse face adds relief without changing grip.
+      plate([[-.012,.24],[.012,.24],[bend,len-.11]],.005,trim,0,0,-.021)
     }
     motif(0,-.025,.025,'y',.022,.004)
     if(f==='twin')group.userData.dual=true
