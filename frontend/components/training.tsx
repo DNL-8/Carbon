@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, TextField } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import type { WorkoutTemplate } from '../../src/types/fitness'
@@ -10,15 +11,19 @@ import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar, type AvatarGear } from './warrior-avatar'
-import type { AvatarStyle, AvatarPreferences } from '../lib/avatar-preferences'
+import { defaultAvatarPreferences, type AvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 import { savePendingWorkout, removePendingWorkout } from '../lib/pending-workouts'
 import { saveDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
-export function Training({ owner, workout, draft, bonus, level, hp, gear, avatarStyle, appearances, onFinish, onCancel }: {
-  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; level?: number; hp?: number; gear?: AvatarGear[]; avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; onFinish: (reward: Reward) => void; onCancel: () => void
+const AvatarGlbPreview = dynamic(() => import('./avatar-glb-preview').then(module => module.AvatarGlbPreview), { ssr: false })
+const EMPTY_AVATAR_GEAR: never[] = []
+
+export function Training({ owner, workout, draft, bonus, level, hp, gear, avatarStyle, appearances, rank, realm, onFinish, onCancel }: {
+  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; level?: number; hp?: number; gear?: AvatarGear[]; avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; rank?: string; realm?: string; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
   const [sets, setSets] = useState(() => draft?.sets ?? initialFocusSets(workout))
   const [attack, setAttack] = useState(0)
+  const [showTrainingGlb, setShowTrainingGlb] = useState(false)
   const [index, setIndex] = useState(draft?.index ?? 0)
   const [dialog, setDialog] = useState<'finish' | 'exit' | null>(null)
   const [elapsed, setElapsed] = useState(draft?.elapsedSeconds ?? 0)
@@ -39,6 +44,8 @@ export function Training({ owner, workout, draft, bonus, level, hp, gear, avatar
   const rows = sets.map((set, position) => ({ ...set, position })).filter(set => set.exerciseId === exercise.id)
   const count = new Set(completed.map(row => row.exerciseId)).size
   const combat = getWorkoutCombat(workout, completed, elapsed, bonus)
+  const bossDefeated = combat.state.bossDefeated
+  const activity = useMemo(() => ({ clip: bossDefeated ? 'victory' as const : attack > 0 ? 'attack' as const : paused ? 'rest' as const : 'idle' as const, sequence: attack }), [bossDefeated, attack, paused])
   const remaining = Math.max(0, workout.durationMinutes * 60 - elapsed)
   const rest = Math.max(0, Math.ceil((restEnd - now) / 1000))
   const mutation = useMutation({ mutationFn: async (body: FinishInput) => read(
@@ -128,6 +135,8 @@ export function Training({ owner, workout, draft, bonus, level, hp, gear, avatar
       </section>
       <section aria-label="Combate e tempo da sessão" className="surface combat-card">
         <WarriorAvatar avatarStyle={avatarStyle} appearances={appearances} size={112} level={level} hp={hp} gear={gear} attack={attack} victory={combat.state.bossDefeated} resting={paused || rest > 0} />
+        <Button variant="outlined" aria-expanded={showTrainingGlb} onClick={() => setShowTrainingGlb(value => !value)}>{showTrainingGlb ? 'Ocultar Avatar V2' : 'Exibir Avatar V2'}</Button>
+        {showTrainingGlb && <AvatarGlbPreview compact preferences={appearances ?? defaultAvatarPreferences} gear={gear ?? EMPTY_AVATAR_GEAR} rank={rank} realm={realm} activity={activity} />}
         <div className="timer mono"><small className="timer-label">{remaining > 0 ? 'Tempo restante' : 'Tempo decorrido'}</small><strong>{formatSecondsMMSS(remaining || elapsed)}</strong><span>Decorrido: {formatSecondsMMSS(elapsed)}</span></div>
         <Button variant="outlined" disabled={busy || locked} onClick={pause}>{paused ? 'Continuar' : 'Pausar'}</Button>
         <div className="surface inset boss">

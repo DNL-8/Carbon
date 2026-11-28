@@ -373,7 +373,7 @@ class PreviewBoundary extends Component<{children:ReactNode},{failed:boolean}>{
   render(){return this.state.failed?<Alert severity="warning">Prévia GLB indisponível. O avatar original permanece acima.</Alert>:this.props.children}
 }
 
-export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:AvatarPreferences;gear:AvatarGear[];rank?:string;realm?:string}){
+export function AvatarGlbPreview({preferences,gear,rank,realm,compact=false,activity}: {preferences:AvatarPreferences;gear:AvatarGear[];rank?:string;realm?:string;compact?:boolean;activity?:AnimationRequest}){
   const [animation,setAnimation]=useState<AnimationRequest>({clip:'idle',sequence:0})
   const [paused,setPaused]=useState(false)
   const [reduced,setReduced]=useState(false)
@@ -388,7 +388,8 @@ export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:Ava
   const style=resolveAvatarStyle(preferences.style,gear)
   const markLoaded=useCallback(()=>setLoaded(style),[style])
   const stage=Math.max(0,style==='murim'?MURIM_REALM_TIERS.findIndex(tier=>tier.name===realm||tier.id===realm):HUNTER_RANK_TIERS.findIndex(tier=>tier.rank===rank))
-  const resolvedQuality:ResolvedQuality=quality==='auto'?(smallScreen||reduced?'low':'high'):quality
+  const resolvedQuality:ResolvedQuality=compact?'low':quality==='auto'?(smallScreen||reduced?'low':'high'):quality
+  const requestedAnimation=activity??animation
   const visibleGear=useMemo(()=>hideHelmet?gear.filter(item=>item.slot!=='elmo'):gear,[gear,hideHelmet])
   useEffect(()=>{
     const media=window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -399,10 +400,10 @@ export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:Ava
     return ()=>{media.removeEventListener('change',sync);viewport.removeEventListener('change',syncViewport)}
   },[])
   const play=(next:Clip)=>setAnimation(value=>({clip:next,sequence:value.sequence+1}))
-  return <section aria-label="Laboratório Avatar V2" className="surface inset" style={{width:'100%',padding:12}}>
-    <p><strong>Prévia GLB experimental</strong></p>
-    <p className="muted">Modelos articulados e encaixes protótipos. O avatar original continua oficial; não altera inventário.</p>
-    <div style={{height:320,width:'100%',background:'#111113',borderRadius:8,overflow:'hidden'}}>
+  return <section aria-label={compact?'Avatar V2 compacto':'Laboratório Avatar V2'} className="surface inset" style={{width:'100%',padding:compact?8:12}}>
+    {!compact && <><p><strong>Prévia GLB experimental</strong></p>
+    <p className="muted">Modelos articulados e encaixes protótipos. O avatar original continua oficial; não altera inventário.</p></>}
+    <div style={{height:compact?192:320,width:'100%',background:'#111113',borderRadius:8,overflow:'hidden'}}>
       {contextFailed?<Alert severity="warning" action={<Button color="inherit" onClick={()=>setContextFailed(false)}>Tentar novamente</Button>}>Contexto 3D indisponível. Use o avatar original.</Alert>:<PreviewBoundary key={style}>
         <Canvas frameloop="demand" dpr={resolvedQuality==='low'?1:[1,1.5]} camera={{position:[0,1.02,3.85],fov:34,near:.01,far:20}} fallback={<p role="status">WebGL indisponível. Use o avatar original.</p>}>
           <color attach="background" args={['#111113']}/>
@@ -411,12 +412,13 @@ export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:Ava
           <directionalLight position={[3,5,4]} intensity={2.1}/>
           <directionalLight position={[-3,2,-3]} intensity={1.4} color={style==='murim'?'#fb923c':'#60a5fa'}/>
           <Suspense fallback={null}>
-            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} quality={resolvedQuality} stage={stage} onLoaded={markLoaded} onContextLost={loseContext}/>
+            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={requestedAnimation} paused={paused||reduced} yaw={yaw} zoom={zoom} quality={resolvedQuality} stage={stage} onLoaded={markLoaded} onContextLost={loseContext}/>
           </Suspense>
         </Canvas>
       </PreviewBoundary>}
     </div>
     <p role="status">{contextFailed?'Prévia indisponível':loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
+    {compact ? <Button size="small" variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(value=>!value)}>{paused?'Retomar animações 3D':'Pausar animações 3D'}</Button> : <>
     <label style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>Qualidade gráfica <select aria-label="Qualidade gráfica" value={quality} onChange={event=>{const value=event.target.value;setQuality(value==='low'||value==='high'?value:'auto')}} style={{minHeight:44,color:'inherit',background:'#18181b'}}><option value="auto">Automática</option><option value="low">Econômica</option><option value="high">Detalhada</option></select></label>
     <div className="row" style={{flexWrap:'wrap',gap:8}} aria-label="Controles do avatar" role="group">
       <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental" sx={{flexWrap:"wrap","& .MuiButton-root":{minHeight:44}}}>
@@ -428,6 +430,6 @@ export function AvatarGlbPreview({preferences,gear,rank,realm}: {preferences:Ava
       <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={hideHelmet} onClick={()=>setHideHelmet(v=>!v)}>{hideHelmet?'Exibir elmo':'Ocultar elmo'}</Button>
       <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Animar':'Pausar'}</Button>
       {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso'],['guard','Defesa'],['dodge','Esquiva'],['channel',style==='murim'?'Canalizar Qi':'Canalizar mana']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" sx={{minHeight:44}} disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
-    </div>
+    </div></>}
   </section>
 }

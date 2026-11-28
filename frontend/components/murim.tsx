@@ -24,6 +24,8 @@ import { PendingWorkouts } from './pending-workouts'
 import { loadDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
 const loadingModule = () => <p role="status">Carregando módulo…</p>
+const AvatarGlbPreview = dynamic(() => import('./avatar-glb-preview').then(module => module.AvatarGlbPreview), { ssr: false })
+const EMPTY_AVATAR_GEAR: never[] = []
 const Health = dynamic(() => import('./health').then(module => module.Health), { loading: loadingModule })
 const Arsenal = dynamic(() => import('./arsenal').then(module => module.Arsenal), { loading: loadingModule })
 const Oracle = dynamic(() => import('./oracle').then(module => module.Oracle), { loading: loadingModule })
@@ -46,12 +48,13 @@ export function Murim({ owner }: { owner: string }) {
   const [error, setError] = useState('')
   const [signingOut, setSigningOut] = useState(false)
   const [avatarSettings, setAvatarSettings] = useState(false)
+  const [showHeroGlb, setShowHeroGlb] = useState(false)
   const [localAppearance, setLocalAppearance] = useState<AvatarPreferences>(defaultAvatarPreferences)
   const [avatarDraft, setAvatarDraft] = useState<AvatarPreferences>(defaultAvatarPreferences)
   const [avatarSaving, setAvatarSaving] = useState(false)
   const [previewWithoutHelmet, setPreviewWithoutHelmet] = useState(false)
   const [avatarError, setAvatarError] = useState('')
-  useEffect(() => { setLocalAppearance(loadAvatarPreferences(owner)); setAvatarSettings(false); setAvatarError('') }, [owner])
+  useEffect(() => { setLocalAppearance(loadAvatarPreferences(owner)); setAvatarSettings(false); setShowHeroGlb(false); setAvatarError('') }, [owner])
   const main = useRef<HTMLElement>(null)
   const receiptHeading = useRef<HTMLHeadingElement>(null)
   const trigger = useRef<HTMLElement>(null)
@@ -149,7 +152,7 @@ export function Murim({ owner }: { owner: string }) {
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training owner={owner} avatarStyle={avatarPreferences.style} appearances={avatarPreferences} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} level={metrics?.level} hp={metrics?.hp} gear={gear.data} onFinish={finish} onCancel={() => {
+  if (active) return <Training owner={owner} rank={metrics?.rank} realm={metrics?.realm} avatarStyle={avatarPreferences.style} appearances={avatarPreferences} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} level={metrics?.level} hp={metrics?.hp} gear={gear.data} onFinish={finish} onCancel={() => {
     setActive(undefined); setResume(null); setDraft(loadDraft(owner))
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
@@ -232,6 +235,10 @@ export function Murim({ owner }: { owner: string }) {
           <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar avatarStyle={avatarPreferences.style} appearances={avatarPreferences} size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
             <p>{profile.data?.profile?.name} <span aria-hidden="true">·</span> {profile.data?.profile?.heroClass} {metrics && <>· <span className="green">{metrics.realm}</span></>}</p>
           </header>
+          <section className="surface overview" aria-label="Visualização 3D do herói">
+            <div className="between"><h2>Personagem</h2><Button variant="outlined" aria-expanded={showHeroGlb} onClick={() => setShowHeroGlb(value => !value)}>{showHeroGlb ? 'Ocultar Avatar V2' : 'Exibir Avatar V2'}</Button></div>
+            {showHeroGlb && <AvatarGlbPreview compact preferences={avatarPreferences} gear={gear.data ?? EMPTY_AVATAR_GEAR} rank={metrics?.rank} realm={metrics?.realm} />}
+          </section>
           {(progress.isError || dashboard.isError) && <Alert severity="error" action={<Button onClick={() => {void progress.refetch(); void dashboard.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o progresso.</Alert>}
           {progress.isPending && <p role="status">Carregando progresso…</p>}
           {!draft && <section className="surface recommended">

@@ -159,3 +159,8 @@ Os controles de câmera, prévia GLB e personalização ficam recolhidos por pad
 ## Candidato aprovado — refinamentos e efeitos
 
 A execução 46156191078 (56c3227) aprovou as três variantes e a integração autenticada. Este candidato incorpora os modelos refinados, detalhes geométricos dos 104 equipamentos, sete animações, aura Qi/Mana por progressão, movimento secundário procedural e qualidade gráfica selecionável. A transferência confere SHA-256 dos dois GLBs e do visualizador, preservando a engrenagem da main 5e34423 e suas dependências. O modo compacto em Início/Painel/Treino e a revisão artística posterior continuam em homologação; não estão incluídos neste candidato. O avatar anterior continua disponível. Sem alteração de dados, bônus ou release. A CI da main após publicação deve ser confirmada.
+
+
+## Integração compacta aprovada — etapa 4
+
+A execução 46156444501 (98a65ce) aprovou as três variantes e a integração autenticada da prévia compacta. Incorporados os mesmos ajustes de Murim, Training e renderizador; o teste adicional é combinado com o teste da engrenagem já presente na main. Início/Painel e treino podem exibir o GLB sob demanda, com modo econômico e animações vinculadas ao combate. O avatar anterior permanece disponível e os GLBs aprovados na etapa 3 permanecem inalterados. A CI desta combinação deve ser confirmada. A revisão posterior das malhas e a escolha do Avatar V2 como padrão ainda dependem de validação; não foi publicado release.
