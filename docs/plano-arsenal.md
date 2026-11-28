@@ -73,7 +73,7 @@ As 104 peças fazem parte de famílias visuais com variantes. Cada família reap
 
 ## Estado e pendências
 
-Implementação publicada na main. Em 28/11/2026: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Validação visual em navegador, homologação real e confirmação do deployment ainda pendentes.
+Implementação publicada na main. A revisão Avatar V2 `c36846f` passou na [CI 46173361553](https://github.com/DNL-8/Carbon/actions/runs/46173361553), foi transferida e integrada em `e55aec8`. O catálogo, IDs, preços, bônus e regras permanecem inalterados. A prévia GLB opcional mantém o avatar anterior e utiliza os quatro slots do inventário, cinco sockets internos e sete animações. Consulte [Avatar 3D](avatar-3d.md) e [homologação](HOMOLOGACAO-AVATAR-V2.md). Revisão visual integral, dispositivos físicos e produção ainda pendentes; deploy automático configurado como desativado.
 
 
 ### Biblioteca visual V2
@@ -105,7 +105,7 @@ Coleção completa: 87 compras por 29.335 moedas, mais 15 resgates e 2 iniciais.
 | Catálogo API | `backend/app/data/equipment.json` |
 | Regras | `src/utils/rpgLogic.ts`, `backend/app/equipment.py`, `backend/app/arsenal.py` |
 | Interface | `frontend/components/arsenal.tsx`, `frontend/lib/rpg-api.ts` |
-| Arte | `frontend/lib/equipment-art.ts`, `frontend/components/equipment-art.tsx`, `frontend/components/avatar-equipment-layer.tsx`, `frontend/components/warrior-avatar.tsx` |
+| Arte | `frontend/lib/equipment-art.ts`, `frontend/components/equipment-art.tsx`, `frontend/components/avatar-equipment-layer.tsx`, `frontend/components/warrior-avatar.tsx`, `frontend/components/avatar-glb-preview.tsx`, `frontend/public/assets/avatar-v2/` |
 | Testes | `scripts/check-fastapi-equipment.mjs`, `scripts/check-equipment-art.mjs`, `scripts/check-arsenal-economy.mjs`, `backend/tests/test_arsenal_postgres.py`, `backend/tests/test_equipment.py`, `frontend/tests/flow.spec.ts` |
 
 O contrato HTTP de aquisição permanece `POST /api/arsenal` com `action: "buy"` ou `"equip"`. O campo `acquisition` diferencia `starter`, `reward` e `purchase`. Nenhum novo endpoint de resgate, serviço externo ou revisão Alembic foi introduzido.

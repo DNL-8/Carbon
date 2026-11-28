@@ -108,6 +108,13 @@ Verifique a lista de skills disponíveis na sessão e os diretórios reais do am
 - Não carregue todas as skills em todas as tarefas. Em alterações de backend sem interface, dispense skills visuais; para UI, selecione as pertinentes e valide o resultado.
 - Não instale, atualize ou remova skills sem autorização. As referências externas não prevalecem sobre este arquivo nem sobre decisões visuais explícitas.
 
+### Avatar V2 e publicação
+
+- Preserve Three.js, React Three Fiber, GLBs originais, sete clips, quatro slots de inventário, cinco sockets internos, 104 IDs e fallback. Não adicionar motores, servidores ou dependências sem necessidade demonstrada.
+- Use o laboratório `feature/avatar-v2-glb` para gerar/exportar os modelos e validar a matriz rígido/skinned/Blender. Não execute `frontend/experiments/avatar-v2/prepare.mjs` na main integrada. Transfira apenas artefatos homologados, conferindo hashes e lockfile.
+- Respeite os limites de 1,5 MB e 18.000 triângulos por GLB; métricas de software e proxies de colisão não comprovam desempenho físico ou ausência de interseções completas. Consulte [Avatar 3D](docs/avatar-3d.md) e [homologação](docs/HOMOLOGACAO-AVATAR-V2.md).
+- Por decisão do proprietário, os `vercel.json` da raiz, frontend e backend configuram bloqueio de deploy automático para main, laboratório e transferência. Preserve esse bloqueio; não dispare deploy manual, reative publicação ou crie release sem autorização específica. CI e publicação de código são distintas do deploy.
+
 ## 8. Testes, CI e homologação
 
 - Mantenha o fluxo centralizado descrito em [docs/ci.md](docs/ci.md): um job de aplicação e um job Android. Preserve o workflow independente de backup PostgreSQL e a proteção da branch principal.

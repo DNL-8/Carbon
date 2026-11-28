@@ -1,24 +1,49 @@
-# Avatar 3D — primeira implementação
+# Avatar 3D — estado atual
 
-- Renderização WebGL de geometria low-poly procedural, com profundidade, iluminação por face, articulações locais e rotação completa por clique/toque.
-- Mantém os quatro slots e utiliza as 33 famílias, cores e IDs existentes no catálogo de 104 itens. As peças são variantes geométricas por família, não 104 modelos artísticos independentes.
-- Mantém o SVG anterior como fallback de hardware, perda de contexto ou falha na inicialização. Nenhuma mudança na economia, API ou persistência.
-- Respeita pausa e movimento reduzido; limita resolução e frequência de renderização, não desenha quando fora da área visível.
-- Homologação: o build, typecheck e os testes de prévias individuais passaram em ae4475b; a CI completa ainda falhou no simulador do Oráculo. Revisar capturas, oclusões em rotação e dispositivos reais. Testes de conjuntos completos e verificação explícita de WebGL quando disponível adicionados na revisão seguinte; revalidar no CI.
-- Otimização: cancela o loop de animation frames fora da tela, com aba oculta ou após renderização estática em pausa/movimento reduzido; retoma por visibilidade, mudança de configuração ou props. Calcula cor por triângulo, não por vértice. Não implica medição de bateria ou FPS em aparelho real.
-- Nenhuma dependência nova; escolha de WebGL nativo para não alterar manifest e lockfile sem instalação verificável. Considerar Three.js caso a evolução exija modelos GLB, skinning ou física avançada.
+Atualização: 28/11/2026. Revisão GLB `c36846f` aprovada no laboratório, incorporada à main em `e55aec8`. Este guia descreve o código integrado, não uma confirmação de deploy.
 
-## Personalização do personagem
+## Experiência do jogador
 
-A engrenagem no cabeçalho e no Arsenal abre as opções Murim, Caçador e Automático. A escolha muda a identidade do modelo 3D e acompanha o personagem na sessão de treino. A opção Equipamentos dos dois mundos libera a visualização e escolha de ambas as trilhas no catálogo; desativada, filtra para a trilha escolhida e itens iniciais, sem desequipar peças nem bloquear conjuntos salvos. O servidor continua autorizando aquisições e equipamentos possuídos. Preferências cosméticas são guardadas localmente por conta neste navegador, sem migração ou sincronização entre dispositivos. O fallback SVG mantém a camada de equipamentos. Testes de desktop e mobile verificam seleção, filtros, recarga e preservação do inventário; execução pendente.
+| Local | Controle |
+| --- | --- |
+| Arsenal | Engrenagem → Abrir laboratório GLB; controles de rotação em 45°, zoom do rosto, ocultar elmo, restaurar, qualidade gráfica e animações. |
+| Início/Painel e treino | Exibir Avatar V2; modo compacto econômico, com animações relacionadas ao treino. |
+| Configurações | Murim, Caçador ou Automático; cabelo, rosto, pele, cor de cabelo, energia e equipamentos dos dois mundos. |
 
-## Aparências e conjuntos por personagem
+A aparência versionada `c2` usa o campo avatar existente do perfil (até 24 caracteres), com salvamento explícito e validação do servidor. As preferências locais são fallback/migração inicial. Os presets de equipamento reutilizam os conjuntos salvos no servidor; não há duplicação do inventário ou troca automática. A prévia não concede bônus, não compra peças e não altera XP/Qi. O editor é web; não há editor 3D nativo Android.
 
-A engrenagem permite editar cabelo, rosto, tom de pele, cor do cabelo e energia separadamente para Murim e Caçador, com prévia. O campo avatar existente (até 24 caracteres) guarda a codificação versionada c2, validada no servidor; não há novo schema nem mudança de OpenAPI. O primeiro salvamento importa a escolha antiga do navegador quando não existe uma preferência no perfil. A sincronização utiliza o perfil autenticado, com salvamento explícito; o último salvamento prevalece em edição concorrente. O formulário normal preserva o código salvo quando omite o campo. Os elmos fechados ocultam rosto/cabelo. As duas ações de conjunto no Arsenal reutilizam os conjuntos salvos do servidor: salvam peças atualmente equipadas, podem ser aplicadas explicitamente e não alteram XP/Qi ou propriedade; para substituir um conjunto, exclua o preset antigo e salve o atual. Não há troca automática de equipamento nem inventário duplicado. A personalização está implementada na web; Android nativo não ganhou editor. Testes adicionados, aguardando CI.
+## Implementação
 
-## Avatar V2 — etapa 1
+- Dois modelos originais procedurais estilizados, não fotorrealistas: Murim e Caçador, com rig, 15 ossos e cinco malhas deformáveis. Blender é ferramenta de autoria/exportação em CI, não dependência do navegador.
+- Three.js 0.186.0, React Three Fiber 9.8.2, GLTFLoader, SkeletonUtils e BufferGeometryUtils. Carregamento dinâmico sem SSR; renderização sob demanda, pausa e respeito a movimento reduzido.
+- Sete clips: `idle`, `attack`, `victory`, `rest`, `guard`, `dodge`, `channel`. Capas, cabelos e ombreiras têm movimentos secundários procedurais limitados; não há solver físico completo.
+- Quatro slots de inventário: `elmo`, `armadura`, `capa`, `arma`. Cinco sockets internos (incluindo `slot_arma_esquerda` para armas duplas); 33 famílias e 104 variantes geométricas. Os materiais incluem mapas PBR incorporados nos GLB.
+- Avatar WebGL procedural anterior e SVG como alternativa continuam no app. Em caso de falha GLB ou perda de contexto, o componente apresenta uma mensagem e preserva a alternativa.
 
-- Mantém renderizador WebGL existente, sem alterar dependências ou lockfile. Murim recebe proporção mais esguia e postura marcial; Caçador mantém proporção mais robusta e posição de guarda. O esqueleto procedural continua compartilhado para preservar os encaixes. A cabeça e seus acessórios são escalados juntos; o ataque difere entre as trilhas.
-- Câmera no editor e no Arsenal: rotação em incrementos de 45 graus, zoom de retrato e retorno à visão original. Controles ficam indisponíveis em fallback SVG. O zoom recorta intencionalmente a parte inferior. Prévia sem elmo não muda inventário, aparência salva ou bônus. Restauração afeta apenas a aparência em edição até concluir.
-- Controle de mistura usa papel switch explícito; Playwright verifica o papel correto, prévia sem elmo e câmera. Testes geométricos incluem diferenciação das silhuetas. Validação em CI ainda pendente.
-- Próxima fase: criar/validar modelos GLB licenciados ou originais, rig e sockets documentados, instalar Three.js/R3F com lockfile reproduzível e migrar por etapas. Não declarar modelos ou renderizador novo concluídos enquanto esses artefatos e testes não existirem.
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `frontend/components/avatar-glb-preview.tsx` | Visualizador e acessórios |
+| `frontend/components/arsenal.tsx` | Catálogo, prévia e engrenagem |
+| `frontend/components/murim.tsx`, `training.tsx` | Visualização compacta |
+| `frontend/lib/avatar-preferences.ts`, `equipment-art.ts` | Preferências e famílias visuais |
+| `frontend/public/assets/avatar-v2/*.glb` | Modelos integrados |
+| `frontend/experiments/avatar-v2/` | Geradores, exportação e testes isolados |
+
+## Desempenho e orçamento
+
+| Modelo | Tamanho integrado |
+| --- | ---: |
+| Murim | 733.532 bytes |
+| Caçador | 741.412 bytes |
+| Total | 1.474.944 bytes |
+
+Cada GLB deve respeitar 1.500.000 bytes e 18.000 triângulos. Agrupamento das malhas estáticas por material preserva triângulos e exclui partes animadas. A comparação histórica Blender registrou 124 → 96 draw calls (Murim) e 126 → 98 (Caçador), com o conjunto específico testado antes dos últimos refinamentos. Não extrapolar para todos os equipamentos ou para FPS físico.
+
+## Validação e publicação
+
+- [CI de laboratório 46173361553](https://github.com/DNL-8/Carbon/actions/runs/46173361553): quatro jobs aprovados (rígido, skinned, Blender e Arsenal autenticado). [Transferência 46174356809](https://github.com/DNL-8/Carbon/actions/runs/46174356809): hashes verificados; modelos e visualizador integrados sem alteração de dependências ou regras RPG.
+- A revisão anterior de trajetórias analisou 840 intervalos e 200.760 observações de vértices, sem pontos internos nos proxies amostrados. Não certifica colisões exatas nem todas as combinações. Veja [relatório](HOMOLOGACAO-AVATAR-V2.md).
+- Revisão visual completa, desempenho/bateria em aparelho físico e homologação da produção continuam pendentes. Veja [checklist](CHECKLIST-AVATAR-V2.md).
+- Alterações futuras no laboratório devem preservar orçamento, acessibilidade, IDs, sockets, inventário e fallback. Não executar `prepare.mjs` na main integrada. Não acionar deploy ou criar release sem autorização; o bloqueio de deploy automático está versionado.
+
+A evolução histórica do WebGL procedural para GLB pode ser consultada no histórico Git e no checklist. Não é necessária infraestrutura Unreal/Unity ou renderização remota.

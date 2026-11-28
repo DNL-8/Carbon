@@ -45,8 +45,8 @@ O Oráculo envia ao Gemini a pergunta, dados de progressão e perfil de jogo e u
 - **Aquisição:** 15 recompensas de marco, resgatadas sem custo (inclusive por progresso anterior), e 87 compras com moedas. Adquirir e equipar são ações separadas.
 - **Bônus:** especializados em XP, moedas ou dano contra chefes. Os conjuntos dão +4% com 2 peças ou +10% com 4 peças (não acumulam).
 - **Catálogo:** busca que ignora acentos, filtros, ordenação, 24 peças por página e comparação com o equipamento ativo.
-- **Avatar:** geometria 3D low-poly em WebGL nativo, com 33 famílias visuais e 104 variantes do catálogo, rotação por interação, respiração, piscadas, golpe, celebração, pausa e preferência de movimento reduzido. O SVG anterior permanece como alternativa quando WebGL não está disponível.
-- **Identidade visual:** vestes e adornos marciais, equipamentos táticos de Caçador e efeitos de Qi/mana. Os encaixes 3D ainda exigem homologação visual em navegador e celular.
+- **Avatar:** o Avatar V2 é uma prévia 3D opcional de modelos GLB articulados (Murim e Caçador), renderizada por Three.js e React Three Fiber. Mantém as 33 famílias e as 104 variantes de equipamentos, sete animações, personalização, câmera, pausa e movimento reduzido. O avatar procedural WebGL anterior e seu fallback SVG permanecem disponíveis.
+- **Identidade visual:** vestes e adornos marciais, equipamentos táticos de Caçador e efeitos de Qi/Mana. Visores, armas duplas, ombreiras e capas possuem encaixes específicos. Há validação automatizada e amostragem aproximada de colisões; revisão visual completa e desempenho físico permanecem pendentes.
 
 A coleção completa é opcional e não exige uma rotina específica de treino. Detalhes em [Arsenal V2](docs/plano-arsenal.md).
 
@@ -85,7 +85,7 @@ A web e o Android falam com a API pelo proxy do Next.js. O FastAPI concentra aut
 | --- | --- |
 | Web | Next.js (App Router), React, TypeScript |
 | Interface | Material UI, Emotion, MUI X Charts Community |
-| Avatar 3D | WebGL nativo, geometria procedural e SVG como fallback |
+| Avatar 3D | Three.js 0.186.0, React Three Fiber 9.8.2, GLB/glTF 2.0, Blender no laboratório; WebGL procedural e SVG como alternativas |
 | Estado e formulários | TanStack Query, React Hook Form, Zod |
 | API | Python, FastAPI, Pydantic, Uvicorn |
 | Autenticação | Google OAuth2/OIDC com Authlib e sessões próprias |
@@ -109,9 +109,19 @@ Carbon/
 └── DESIGN.md           # Identidade visual e acessibilidade
 ```
 
+## Avatar V2
+
+- No Arsenal, abra a engrenagem e escolha **Abrir laboratório GLB**. A prévia não compra, equipa nem altera bônus por si só.
+- Em Início/Painel e durante o treino, use **Exibir Avatar V2** para a visualização compacta sob demanda.
+- Escolha Murim, Caçador ou Automático, personalize a aparência e permita equipamentos dos dois mundos. A aparência é cosmética; propriedade e bônus continuam validados pelo FastAPI.
+- Modelos atuais: Murim 733.532 bytes; Caçador 741.412 bytes; total 1.474.944 bytes (aprox. 1,47 MB). O orçamento de laboratório é de até 1,5 MB e 18.000 triângulos por GLB.
+- Sete clips: repouso, ataque, vitória, descanso, defesa, esquiva e canalização de Qi/Mana. Consulte [guia técnico](docs/avatar-3d.md) e [homologação do Avatar V2](docs/HOMOLOGACAO-AVATAR-V2.md).
+
 ## Hospedagem
 
-A hospedagem utiliza Vercel (Next.js e FastAPI) e PostgreSQL Neon. [Aplicativo web](https://carbon-web-nine.vercel.app).
+A arquitetura utiliza Vercel (Next.js e FastAPI) e PostgreSQL Neon. [Aplicativo web](https://carbon-web-nine.vercel.app).
+
+**Publicações pausadas por solicitação do proprietário:** os arquivos `vercel.json` na raiz, em `frontend/` e em `backend/` desabilitam deploys automáticos de `main`, `feature/avatar-v2-glb` e `feature/avatar-v2-final-publish`. A configuração está versionada; sua aplicação pela Vercel deve ser confirmada antes de afirmar que o bloqueio está efetivo. Não solicitar deploy manual, remover o bloqueio ou criar release sem autorização. A versão disponível no endereço público pode ser anterior à main.
 
 ## Como rodar localmente
 
@@ -240,7 +250,7 @@ No Linux ou macOS, use `./gradlew`. Instalação e permissões estão no [guia A
 - **Playwright:** além do banco acima em `127.0.0.1`, requer `uv sync --locked` no backend, `bun run build`, o Chromium (`bunx playwright install chromium`) e as portas 38200 e 38212 livres. Os provedores Google, Gemini e Strava são simulados.
 - **Contrato da API:** ao mudar o OpenAPI, execute `bun run generate:api` em `frontend/`.
 
-A CI tem dois jobs, **Aplicação** (FastAPI + Next.js) e **Android**, que cobrem paridade das regras RPG, lint, testes, auditoria de dependências, migrations, backup e restauração em banco descartável, builds, testes web em desktop e mobile e testes de interface no emulador. Veja [CI](docs/ci.md).
+A CI principal tem dois jobs, **Aplicação** (FastAPI + Next.js) e **Android**, que cobrem paridade das regras RPG, lint, testes, auditoria de dependências, migrations, backup e restauração em banco descartável, builds, testes web em desktop e mobile e testes de interface no emulador. Veja [CI](docs/ci.md). O laboratório Avatar V2 possui CI separada com variantes rígida, deformável e Blender, além de integração autenticada; não executa deploy.
 
 ## Health Connect
 
@@ -264,7 +274,7 @@ A sincronização manual consulta os últimos 30 dias. Com conexão e permissão
 
 ## Status do projeto
 
-O resultado atual da integração contínua está no selo no topo e em [Actions](https://github.com/DNL-8/Carbon/actions). CI aprovada não equivale a homologação com serviços reais.
+O resultado atual da integração contínua está no selo no topo e em [Actions](https://github.com/DNL-8/Carbon/actions). Em 28/11/2026, a revisão do Avatar V2 `c36846f` foi aprovada em quatro jobs na [CI 46173361553](https://github.com/DNL-8/Carbon/actions/runs/46173361553) e integrada em `e55aec8` após a [transferência 46174356809](https://github.com/DNL-8/Carbon/actions/runs/46174356809). A [CI da integração na main](https://github.com/DNL-8/Carbon/actions/runs/46174423506) deve ser consultada pelo SHA exato. CI aprovada não equivale a homologação com serviços reais.
 
 Ainda falta confirmar:
 
@@ -284,5 +294,5 @@ Antes de usar dados reais, siga o [roteiro de homologação](docs/homologacao.md
 | Aplicações | [Frontend](frontend/README.md) · [Backend](backend/README.md) · [Android](android/README.md) |
 | Configuração e dados | [Autenticação Google](docs/python-auth-cutover.md) · [PostgreSQL / Neon](docs/neon-postgresql.md) · [Migração legada](docs/migracao-legado.md) |
 | Qualidade | [CI](docs/ci.md) · [Homologação](docs/homologacao.md) · [Auditoria](docs/auditoria.md) |
-| Produto e design | [Arsenal V2](docs/plano-arsenal.md) · [Avatar 3D](docs/avatar-3d.md) · [Roteiro visual](docs/roteiro-visual-murim.md) · [Design system](DESIGN.md) |
+| Produto e design | [Arsenal V2](docs/plano-arsenal.md) · [Avatar 3D](docs/avatar-3d.md) · [Checklist Avatar V2](docs/CHECKLIST-AVATAR-V2.md) · [Homologação Avatar V2](docs/HOMOLOGACAO-AVATAR-V2.md) · [Roteiro visual](docs/roteiro-visual-murim.md) · [Design system](DESIGN.md) |
 | Contribuição com agentes | [AGENTS.md](AGENTS.md) |

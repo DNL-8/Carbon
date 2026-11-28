@@ -1,6 +1,6 @@
 # Checklist — Carbon Avatar V2
 
-Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O aplicativo é destinado a dois usuários. Manter a economia, IDs, progressão, segurança e fallback existentes. Não publicar release v1.0.0.
+Atualizado em 28/11/2026. Laboratório: `feature/avatar-v2-glb`. Última revisão integrada: `e55aec8` na main. O registro atual está na seção 14; seções anteriores preservam o histórico. O aplicativo é destinado a dois usuários. Manter a economia, IDs, progressão, segurança e fallback existentes. Não publicar release v1.0.0.
 
 ## 1. Base e infraestrutura
 - [x] CI da main aprovada no commit d4cb103 (FastAPI, Next.js e Android).
@@ -194,3 +194,15 @@ A execução [46163338738](https://github.com/DNL-8/Carbon/actions/runs/46163338
 ## Revisão de acabamento — 28/11/2026
 
 CI de laboratório [46173361553](https://github.com/DNL-8/Carbon/actions/runs/46173361553), código `c36846f`: quatro jobs aprovados. Candidato 15274838390. Inclui encaixe bilateral, visores, ombreiras, agrupamento por material, rosto, cabelos, mãos e botas. GLBs aprovados: Murim 733532 bytes; Caçador 741412 bytes. Importar somente GLBs e visualizador, preservar dependências e componentes integrados. Teste físico e revisão visual completa permanecem pendentes. Por solicitação de não realizar deploy, a configuração versionada Vercel desativa publicação automática das branches main, laboratório e transferência; reativar main somente por solicitação posterior. Não executar prepare.mjs na main.
+
+## 14. Estado atual da integração — 28/11/2026
+
+- [x] Revisão `c36846f` aprovada em quatro jobs na [CI 46173361553](https://github.com/DNL-8/Carbon/actions/runs/46173361553).
+- [x] Transferência [46174356809](https://github.com/DNL-8/Carbon/actions/runs/46174356809) aprovada; hashes conferidos; main atualizada para `e55aec8`.
+- [x] Modelos GLB com 733.532 e 741.412 bytes; visualizador, visores, armas duplas, ombreiras, cabelos, rosto, mãos, botas e agrupamento de geometrias integrados.
+- [x] Configuração versionada para desativar deploy automático nas três branches relevantes; efetividade na Vercel ainda a confirmar.
+- [ ] Confirmar resultado da [CI principal 46174423506](https://github.com/DNL-8/Carbon/actions/runs/46174423506).
+- [ ] Revisão visual de todas as animações e combinações representativas; testes físicos, colisões exatas quando necessárias.
+- [ ] Homologar serviços reais e deployment somente quando autorizado.
+
+Sem release. Não executar `prepare.mjs` na main integrada. Consulte [homologação](HOMOLOGACAO-AVATAR-V2.md).
