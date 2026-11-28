@@ -67,3 +67,16 @@ Nenhuma decisão de escopo em aberto. Os marcos e preços foram definidos; a sim
 ### Interface do catálogo
 
 Paginação de 24 peças, busca sem distinção de acentos, filtro por trilha/slot/raridade/conjunto/disponibilidade, ordenação por preço e atributo, resgates em destaque, e comparação em pontos percentuais em relação ao equipamento ativo. O catálogo mostra requisitos e saldo insuficiente; prévia permanece independente de aquisição.
+
+### Simulação econômica (cenários, não metas de saúde)
+
+Base: sessões completas com 120 ou 220 XP base, moedas calculadas por 28% do XP base + 25 pelo chefe, missão diária de treino (+30 XP/+25 moedas), missão semanal de três sessões (+60 XP/+40 moedas). Sem bônus de equipamentos, recordes, passos, pesagem ou volume. Calendário fixo com 2–3 dias livres por semana; nenhuma penalidade por descanso. Compra opcional de uma alternativa por marco, mais as 15 recompensas gratuitas retroativas. O desbloqueio Murim usa somente o piso por XP, sem somar Qi de atividade. Valores de 28 dias e resultados de cenário:
+
+| Sessões/semana | XP base | Moedas em 28 dias | Dia das 15 recompensas | Maior espera de compra (dias) |
+|---:|---:|---:|---:|---:|
+| 4 | 120 | 1504 | 409 | 1 |
+| 5 | 120 | 1840 | 333 | 1 |
+| 4 | 220 | 1952 | 255 | 1 |
+| 5 | 220 | 2400 | 207 | 1 |
+
+Coleção completa: 87 compras por 29.335 moedas, mais 15 resgates e 2 iniciais. A coleção completa é opcional; não representa objetivo de treinamento. O modelo testa acessibilidade de alternativas, não prevê a velocidade real individual. A CI executa o script e testes de concorrência em PostgreSQL descartável. Validação visual e resultado da CI ainda precisam ser confirmados.

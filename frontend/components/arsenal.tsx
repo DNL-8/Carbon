@@ -205,8 +205,8 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     {summary && <section className="arsenal-bonuses" aria-label={preview ? 'Bônus da prévia' : 'Bônus do equipamento'}>
       <dl className="surface arsenal-stats">
         {metrics?.map(metric => <div key={metric.label}>
-          <dt>{metric.label}</dt><dd className={metric.color}>{metric.unit === '%' ? '+' : ''}{number.format(metric.value)}{metric.unit}</dd>
-          {preview && metric.previous !== undefined && <span className="arsenal-delta" data-direction={Math.sign(metric.value - metric.previous)}>{difference(metric.value - metric.previous, metric.deltaUnit)} em relação ao ativo</span>}
+          <dt>{metric.label}</dt><dd className={metric.color}>{metric.unit === '%' ? '+' : ''}{number.format(metric.value)}{metric.unit}
+          {preview && metric.previous !== undefined && <span className="arsenal-delta" data-direction={Math.sign(metric.value - metric.previous)}>{difference(metric.value - metric.previous, metric.deltaUnit)} em relação ao ativo</span>}</dd>
         </div>)}
       </dl>
       {summary.activeSets.map(({ set, equippedCount, twoPieceActive, fourPieceActive }) => <div className="surface arsenal-set-bonus" key={set.id}>
