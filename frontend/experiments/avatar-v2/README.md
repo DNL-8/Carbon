@@ -54,3 +54,8 @@ Preparado modo compacto econômico, com carregamento dinâmico sob demanda no In
 ## Inspeção de capturas e preservação da interface
 
 Inspeção das capturas desktop do artefato Blender 15267916971 (run 46156191078): rostos e roupas são legíveis, mas ainda estilizados e simplificados; boca pouco visível, pose de repouso aberta e botas/mãos pouco naturais. Revisão procedural acrescenta boca curva na superfície facial, polegar/nós dos dedos, botas arredondadas com sola e postura de repouso menos aberta. Sem certificação de colisões. O laboratório agora incorpora a engrenagem da main 5e34423, seus estilos e testes de câmera; o preparo insere o GLB no painel recolhido, preservando o comportamento de produção. Validação da nova revisão pendente. A versão GLB continua opcional até revisão artística e homologação completas.
+
+
+### Validação de encaixes em movimento (laboratório)
+
+Alinhamento vertical de visores e lentes corrigido pela referência do socket do elmo e a altura dos olhos do modelo procedural. Adicionados testes dos sete clips com um conjunto completo, verificação da estabilidade das matrizes locais dos acessórios e capturas por pose. Não substitui uma análise de interseção entre malhas, especialmente nas armas, cabelo e armadura; a revisão visual continua necessária. Nesta fase não promover para main nem disparar deploy manual. Configuração git.deploymentEnabled desabilita o deploy automático exclusivamente da branch feature/avatar-v2-glb; não alterar produção.

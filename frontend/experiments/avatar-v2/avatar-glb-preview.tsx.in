@@ -210,6 +210,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
   },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
   const drapes=useRef<THREE.Mesh[]>([])
+  const attachmentAnchors=useRef<{object:THREE.Object3D;socket:THREE.Object3D;rest:THREE.Matrix4}[]>([])
   const effects=useRef<THREE.Group|null>(null)
   const hairMotion=useRef<{node:THREE.Object3D;rotation:THREE.Quaternion}[]>([])
   const faceMotion=useRef<{node:THREE.Mesh;scale:THREE.Vector3;position:THREE.Vector3;offset:THREE.Vector3}[]>([])
@@ -287,6 +288,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const ids: string[] = []
     const designs: string[] = []
     const capeMeshes: THREE.Mesh[] = []
+    gl.domElement.dataset.glbVisorOffset='not-applicable'
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
@@ -297,6 +299,12 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       const group=art?makeAttachment(art,slot):new THREE.Group()
       if(slot==='elmo'&&art){
         group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
+        // The rest-space helmet socket is at head y=.17 and the eyes at y=.132.
+        // A visor/lens has its viewing slit at local y=-.032.
+        if(art.family==='visor'||art.family==='lens'){
+          group.position.y=.132-.17+.032
+          gl.domElement.dataset.glbVisorOffset=String(Math.abs(.17+group.position.y-.032-.132))
+        }
         // Hair coverage is handled by the appearance effect.
       }
       if(selected&&art&&group.children.length>0){
@@ -313,13 +321,18 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
         if(left&&art){const second=makeAttachment(art,slot);second.position.set(-.035,-.026,.02);second.rotation.z=.30;left.add(second);attached.push({parent:left,object:second,children:[]})}
       }
     }
+    attachmentAnchors.current=attached.map(entry=>{
+      entry.object.updateMatrix()
+      return {object:entry.object,socket:entry.parent,rest:entry.object.matrix.clone()}
+    })
+    gl.domElement.dataset.glbAttachmentDrift='0'
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
     drapes.current=capeMeshes
     gl.domElement.dataset.glbDrapes=String(capeMeshes.length)
     gl.domElement.dataset.glbDesign=designs.sort().join(',')
     invalidate()
-    return ()=>{drapes.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
+    return ()=>{drapes.current=[];attachmentAnchors.current=[];for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
   },[scene,gear,invalidate,gl,style])
   useEffect(()=>{
     const group=new THREE.Group();group.name='CarbonEnergyEffects'
@@ -391,6 +404,14 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     }
     gl.domElement.dataset.glbCapeDisplacement=String(capeDisplacement)
     gl.domElement.dataset.glbCapeInward=String(capeInward)
+    // Check attachment transforms relative to their actual moving socket, not world axes.
+    let drift=0
+    for(const {object,socket,rest} of attachmentAnchors.current){
+      object.updateMatrix()
+      if(object.parent!==socket){drift=Infinity;break}
+      for(let i=0;i<16;i++)drift=Math.max(drift,Math.abs(object.matrix.elements[i]-rest.elements[i]))
+    }
+    gl.domElement.dataset.glbAttachmentDrift=String(drift)
     for(const entry of hairMotion.current){entry.node.quaternion.copy(entry.rotation);entry.node.rotateX(-strength*(.5+.5*Math.sin(time*5)))}
     const group=effects.current
     if(group){

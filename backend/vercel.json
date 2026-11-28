@@ -1,0 +1,7 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "feature/avatar-v2-glb": false
+    }
+  }
+}
