@@ -109,6 +109,9 @@ function helmet(m: Mesh, t: Transform, art: Art | null) {
   } else if(f==='band') {
     m.ringBody(t,[0,0,0],[[.15,.54,.44],[.29,.54,.44]],a)
     m.box(t,[0,.22,.45],[.25,.16,.07],b)
+    // The martial headband has a rear knot and two short fabric tails.
+    m.orb(t,[0,.20,-.46],[.11,.09,.08],b)
+    for(const side of [-1,1])m.box(pose(t,[side*.08,.09,-.48],.15,0,side*.40),[0,-.10,0],[.10,.27,.045],a,.025)
   } else if(f==='diadem'||f==='crown'){
     m.ringBody(t,[0,0,0],[[.29,.52,.43],[.42,.52,.43]],a)
     for(let i=-2;i<=2;i++){
@@ -120,7 +123,10 @@ function helmet(m: Mesh, t: Transform, art: Art | null) {
     m.box(t,[0,.01,.52],[.74,.15,.04],black,.05)
     if(f==='lens') m.orb(t,[.25,.01,.59],[.14,.12,.07],b,.15)
   }
-  if(art && f!=='halo') m.orb(t,[0,.28,.53],[.075,.075,.055],b,.15)
+  if(art && f!=='halo') {
+    const emblem=f==='visor'||f==='mask'||f==='lens'? [.0,.15,.53] as V : [0,.28,.48] as V
+    m.orb(t,emblem,[.055,.055,.035],b,art.tier>=4?.15:0)
+  }
 }
 function armor(m: Mesh,t: Transform,art: Art | null) {
   const [a,b]=palette(art), f=art?.family??'plate'
@@ -128,18 +134,31 @@ function armor(m: Mesh,t: Transform,art: Art | null) {
   m.ringBody(t,[0,0,0],[[-.39,.37,.24],[-.25,.43,.29],[.26,heavy?.51:.43,.31],[.34,.35,.25]],a,10)
   if(heavy){
     m.prism(pose(t,[0,.04,.32]),[[-.31,.18],[0,.29],[.31,.18],[.24,-.17],[0,-.28],[-.24,-.17]],.12,b)
-    m.orb(t,[0,.04,.42],[.12,.12,.08],gold,.18)
+    m.orb(t,[0,.04,.42],[.12,.12,.08],b,.12)
+    if(f==='exo')for(const side of [-1,1])m.box(t,[side*.28,.10,.30],[.10,.26,.12],b,.035)
   }else{
     for(const sign of [-1,1]) m.box(pose(t,[sign*.09,.06,.31],0,0,sign*.55),[0,0,0],[.13,.64,.065],b,.03)
     if(f==='vest') for(const sign of [-1,1]) m.box(t,[sign*.21,-.15,.33],[.19,.17,.08],b)
-    if(f==='robe'||f==='coat') for(const sign of [-1,1]) m.box(pose(t,[sign*.23,-.39,.04],-.06,0,sign*.10),[0,-.16,0],[.31,.35,.48],a)
+    if(f==='robe'||f==='coat') for(const sign of [-1,1]) {
+      // Flaps hang in front of the thighs instead of wrapping through the legs.
+      const flap=pose(t,[sign*.22,-.39,.31],.08,0,sign*.10)
+      m.box(flap,[0,-.15,0],[.32,.35,.065],a)
+      m.box(flap,[0,-.29,.045],[.30,.045,.025],b,.01)
+    }
   }
   m.box(t,[0,-.36,.025],[.82,.14,.62],black)
   m.box(t,[0,-.36,.35],[.20,.16,.09],b)
+  // Distinct variants use the catalogue detail index as an engraving pattern.
+  if(art)for(let i=0;i<1+art.detail%3;i++){
+    const x=(i-(art.detail%3)/2)*.105
+    m.box(t,[x,-.20,.32],[.035,.075,.025],b,.008)
+  }
 }
 function cape(m: Mesh,t: Transform,art: Art,wave:number) {
   const [a,b]=palette(art), f=art.family
-  const joint=pose(t,[0,.24,-.29],wave)
+  // The shoulder socket sits behind the thickest part of the breastplate.
+  // Positive pitch carries the cloth away from the back rather than into it.
+  const joint=pose(t,[0,.25,-.38],.23+wave*.50)
   if(f==='wings'){
     for(const s of [-1,1]){
       const wing=pose(joint,[s*.28,0,0],0,s*.28+wave*.25,s*.16)
@@ -151,9 +170,10 @@ function cape(m: Mesh,t: Transform,art: Art,wave:number) {
   const narrow=f==='banner'||f==='ribbon'
   for(const s of [-1,1]){
     const top=narrow?.20:.36, bottom=narrow?.30:.63
-    const panel=pose(joint,[s*.17,0,0],-.12+wave*.45,0,s*.04)
+    const divided=f==='split'||f==='coatTail'||f==='ribbon'
+    const panel=pose(joint,[s*(divided?.13:0),0,0],.12+wave*.30,0,s*.025)
     const bottomY=f==='veil'?-1.06:-1.20
-    const gap=f==='split'||f==='coatTail'||f==='ribbon'?.13:0
+    const gap=divided?.10:0
     m.prism(panel,[[0,0],[s*top,.02],[s*bottom,bottomY],[s*gap,bottomY+.08]],.055,a)
     m.prism(pose(panel,[0,0,.032]),[[s*.05,-.10],[s*.11,-.10],[s*(bottom-.08),bottomY+.09],[s*(bottom-.15),bottomY+.09]],.012,b)
   }
@@ -163,12 +183,22 @@ function weapon(m: Mesh,t: Transform,art: Art | null, family?: EquipmentFamily) 
   // All grips are centered on the hand origin; tips point up local Y.
   const long=f==='staff'||f==='spear'||f==='wood'
   const short=f==='dagger'||f==='twin'
-  m.rod(t,[0,long?.24:0,0],long?.067:.075,long?1.42:.36,black)
+  // Grip stays centered in the glove for every family; long poles extend both ways.
+  const qi=art?.track==='reino_murim'&&art.tier>=4
+  const mana=art?.track==='rank_cacador'&&art.tier>=4
+  const energy=qi||mana?.20:0
+  m.rod(t,[0,long?.21:0,0],long?.067:.075,long?1.55:.36,black)
+  if(art)for(let i=0;i<1+art.detail%3;i++)m.rod(t,[0,-.10+i*.08,0],.079,.027,b)
   m.rod(t,[0,-.17,0],.093,.08,b)
   if(f==='wood'){m.rod(t,[0,.55,0],.075,1.08,a);return}
   if(f==='staff'||f==='spear'){
     if(f==='staff') m.orb(t,[0,1.03,0],[.18,.21,.15],a,.12)
-    else m.prism(t,[[-.14,.90],[0,1.35],[.14,.90],[0,.79]],.09,a)
+    else {
+      // Jin-style spear: a balanced shaft, collar and faceted spearhead.
+      m.prism(t,[[-.15,.92],[0,1.44],[.15,.92],[0,.80]],.10,a,energy)
+      m.prism(pose(t,[0,0,.056]),[[0,.84],[.055,.95],[0,1.37]],.014,b,energy)
+      if(qi){m.orb(t,[0,.84,0],[.115,.075,.115],b,.28);m.rod(t,[0,.69,0],.082,.16,b)}
+    }
     m.rod(t,[0,.91,0],.11,.14,b);return
   }
   if(f==='hammer'){
@@ -182,10 +212,10 @@ function weapon(m: Mesh,t: Transform,art: Art | null, family?: EquipmentFamily) 
   }
   const length=short?.62:1.24, w=short?.11:.13, bend=f==='sabre'?.18:0
   m.box(t,[0,.19,0],[.40,.095,.18],b,.035)
-  m.prism(t,[[-w,.23],[w,.23],[w+bend*.55,length-.13],[bend,length],[-w+bend*.55,length-.13]],.10,a,f==='spirit'?.18:0)
-  m.prism(pose(t,[0,0,.054]),[[-.025,.27],[.025,.27],[bend,length-.07]],.018,b,.08)
+  m.prism(t,[[-w,.23],[w,.23],[w+bend*.55,length-.13],[bend,length],[-w+bend*.55,length-.13]],.10,a,f==='spirit'?.32:energy)
+  m.prism(pose(t,[0,0,.054]),[[-.025,.27],[.025,.27],[bend,length-.07]],.018,b,.08+energy)
 }
-function drawModel(props: Props, time: number, turn: number, strike: number, celebrate: number, lookX:number,lookY:number, moving: boolean) {
+export function drawModel(props: Props, time: number, turn: number, strike: number, celebrate: number, lookX:number,lookY:number, moving: boolean) {
   const yaw=lookX*.09+turn+Math.sin(time*1.05)*.045
   const camera=pose(I,[0,-.02,0],-.10+lookY*.025,yaw)
   const m=new Mesh(camera)
@@ -208,16 +238,19 @@ function drawModel(props: Props, time: number, turn: number, strike: number, cel
   m.orb(torso,[0,0,0],[.43,.49,.29],dark)
   armor(m,torso,body)
   for(const s of [-1,1]){
-    const arm=pose(torso,[s*.46,.22,0],s===1?-strike*.95:-.08,0,s*(.23+Math.sin(time*2.5)*.035)+(s===1?strike*.85:0))
-    m.orb(arm,[0,-.07,0],[.25,.23,.25],armorTint)
+    const armed=s===1||blade?.family==='twin'
+    const swing=armed?strike:0
+    const arm=pose(torso,[s*.48,.22,0],-.10-swing*.60,0,s*(.26+Math.sin(time*2.5)*.035+swing*.25))
+    const heavy=!body||body.family==='plate'||body.family==='exo'
+    m.orb(arm,[0,-.07,0],heavy?[.25,.23,.25]:[.19,.20,.19],armorTint)
     m.box(arm,[0,-.12,.22],[.24,.12,.07],armorTrim,.025)
     m.box(arm,[0,-.31,0],[.23,.34,.24],dark)
-    const elbow=pose(arm,[0,-.43,0],-.30-strike*.2)
+    const elbow=pose(arm,[0,-.43,0],-.30-swing*.25)
     m.box(elbow,[0,-.15,.02],[.24,.28,.25],steel)
     const hand=pose(elbow,[0,-.31,.04])
     m.orb(hand,[0,0,0],[.14,.15,.14],dark)
     if((blade||props.gear===undefined)&&(s===1||blade?.family==='twin'))
-      weapon(m,pose(hand,[0,0,0],-.25,0,-s*.18),blade)
+      weapon(m,pose(hand,[0,0,0],.15,-s*.06,-s*(.65+swing*.58)),blade)
     else if(s===-1){
       const qi=.10+Math.sin(time*3)*.014+celebrate*.035
       m.orb(hand,[-.18,.12,.18],[qi,qi,qi],props.lowHp?color('#f87171'):gold,.5)
@@ -227,9 +260,20 @@ function drawModel(props: Props, time: number, turn: number, strike: number, cel
   m.box(head,[0,-.09,.38],[.82,.38,.18],black,.12)
   helmet(m,head,helm)
   const blink=moving&&time%4.8>4.66?.12:1
-  for(const s of [-1,1]) m.box(head,[s*.19,-.06,.595],[.24,.085*blink,.045],props.lowHp?color('#f87171'):light,.02,.45)
-  m.box(head,[0,-.27,.48],[.28,.055,.05],gold,.02)
+  const family=helm?.family??'helm'
+  const faceCover=family==='visor'||family==='mask'||family==='lens'
+  const shell=family==='hood'||family==='helm'||family==='horn'
+  const eyeDepth=faceCover?.563:shell?.533:.493
+  for(const sign of [-1,1]){
+    if(family==='lens'&&sign===1)continue // the monóculo covers this eye
+    m.box(head,[sign*.19,-.06,eyeDepth],[.24,.085*blink,.045],props.lowHp?color('#f87171'):light,.02,.45)
+  }
+  if(family!=='mask')m.box(head,[0,-.27,.48],[.28,.055,.05],gold,.02)
   if(celebrate>0.02) m.hoop(rig,[0,0,-.65],1.56+celebrate*.12,.04,props.victory?color('#34d399'):gold)
+  // Keep large weapons and wings inside the square preview at all orientations.
+  let extent=1
+  for(let i=0;i<m.data.length;i+=6)extent=Math.max(extent,Math.abs(m.data[i])/.94,Math.abs(m.data[i+1])/.94)
+  if(extent>1)for(let i=0;i<m.data.length;i+=6){m.data[i]/=extent;m.data[i+1]/=extent}
   return new Float32Array(m.data)
 }
 
@@ -314,6 +358,8 @@ export function WarriorAvatar3D(props: Props) {
       const pixels=Math.max(1,Math.round(p.size*Math.min(window.devicePixelRatio||1,1.5)))
       if(canvas.width!==pixels||canvas.height!==pixels){canvas.width=pixels;canvas.height=pixels}
       engine.draw(drawModel(p,elapsed,turn,strike,celebrate,x,y,motion))
+      const equipped=p.gear?.filter(g=>g.equipped).map(g=>g.id).sort().join(',')??''
+      if(canvas.dataset.renderedEquipment!==equipped)canvas.dataset.renderedEquipment=equipped
       if(!presented){presented=true;setReady(true)}
     }
     frame=requestAnimationFrame(tick)
