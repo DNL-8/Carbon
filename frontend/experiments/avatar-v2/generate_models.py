@@ -29,8 +29,10 @@ class Model:
         if parent is not None:self.nodes[parent].setdefault('children',[]).append(i)
         return i
     def part(self,name,parent,mesh,mat):
-        # Flat shaded triangles, explicit normals; indices are unnecessary.
-        v=np.asarray(mesh.triangles.reshape(-1,3),dtype='<f4');norm=np.repeat(mesh.face_normals,3,axis=0).astype('<f4')
+        # Smooth organic surfaces and fabric; retain crisp normals on plates, seams and blades.
+        v=np.asarray(mesh.triangles.reshape(-1,3),dtype='<f4')
+        organic=name.startswith(('HeadMesh','Ear','EyeWhite','Iris','EyeGlint','Nose','HairCap','HairTuft','HairLock','Topknot','Ponytail','Neck','Hand.','BaseShoulder.','Sleeve.','Forearm.','Pants.','BaseTorso','BaseHip','BaseWaist','Boot.'))
+        norm=(mesh.vertex_normals[mesh.faces].reshape(-1,3) if organic else np.repeat(mesh.face_normals,3,axis=0)).astype('<f4')
         p=self.data(v,'VEC3',5126,34962,True);n=self.data(norm,'VEC3',5126,34962)
         self.meshes.append({'name':name,'primitives':[{'attributes':{'POSITION':p,'NORMAL':n},'material':mat}]})
         return self.node('Mesh_'+name,parent,mesh=len(self.meshes)-1)
@@ -73,9 +75,13 @@ def panel(points,thickness=.012):
     for i in range(n):j=(i+1)%n;f.extend([(i,j,j+n),(i,j+n,i+n)])
     m=tm.Trimesh(vertices=vs,faces=f,process=True);m.fix_normals();return m
 
+def curved_trim(points,r=.004):
+    """Low-cost 3D piping or hair lock following a polyline, not a flat decal."""
+    return tm.util.concatenate([rod(a,b,r,r*.88,8) for a,b in zip(points,points[1:])])
+
 def build(martial):
     m=Model('murim' if martial else 'cacador'); root=m.node('CharacterRoot'); pelvis=m.node('Hips',root,(0,.91,0));spine=m.node('Spine',pelvis,(0,.13,0));head=m.node('Head',spine,(0,.48,0));
-    skin=m.material('Skin','C99873');hair=m.material('Hair','292027');cloth=m.material('BaseCloth','30282A' if martial else '252B35');dark=m.material('DarkCloth','17191E');accent=m.material('Trim','B7833B' if martial else '527898',.4);metal=m.material('Metal','8E673C' if martial else '7E8797',.7,.36);inner=m.material('Lining','9C3F28' if martial else '234F76');energy=m.material('Energy','FFAB42' if martial else '55C8FF',.1,.35,.8);white=m.material('Eyes','F4E5CF');iris=m.material('Iris','50301F');
+    skin=m.material('Skin','C99873',rough=.63);hair=m.material('Hair','292027',rough=.52);cloth=m.material('BaseCloth','30282A' if martial else '252B35',rough=.91);dark=m.material('DarkCloth','17191E',rough=.88);accent=m.material('Trim','B7833B' if martial else '527898',.4);metal=m.material('Metal','8E673C' if martial else '7E8797',.7,.36);inner=m.material('Lining','9C3F28' if martial else '234F76');energy=m.material('Energy','FFAB42' if martial else '55C8FF',.1,.35,.8);white=m.material('Eyes','F4E5CF');iris=m.material('Iris','50301F');
     P=m.part;w=.93 if martial else 1.08
     P('BaseTorso',spine,loft([(0,.15*w,.105,0),(.17,.19*w,.115,0),(.32,.235*w,.12,0),(.39,.19*w,.105,0),(.43,.075,.075,0)],12),cloth)
     # Base clothing is independent of equipment sockets: no item or bonus is implied.
@@ -88,30 +94,44 @@ def build(martial):
             P('BaseRobeTrim',spine,rod((s*.085,.385,.126),(s*.153,.10,.143),.009,.007),accent)
             P('BaseRobeSkirt',pelvis,panel([(s*.024,.08,.116),(s*.147,.08,.105),(s*.222,-.26,.106),(s*.045,-.30,.14)],.018),cloth)
             P('BaseRobeHem',pelvis,rod((s*.045,-.294,.151),(s*.222,-.254,.117),.008),accent)
+            P('BaseRobeSeam',pelvis,curved_trim([(s*.078,.055,.130),(s*.099,-.08,.145),(s*.12,-.23,.153)],.0035),accent)
+            P('BaseCollarDetail',spine,curved_trim([(s*.026,.328,.142),(s*.062,.347,.143),(s*.083,.367,.135)],.004),accent)
     else:
         P('BaseChestPanel',spine,panel([(-.18,.29,.126),(0,.34,.137),(.18,.29,.126),(.145,.11,.132),(0,.075,.136),(-.145,.11,.132)],.018),dark)
         P('BaseChestMark',spine,panel([(-.024,.23,.15),(0,.27,.15),(.024,.23,.15),(0,.20,.15)],.008),energy)
         for s in (-1,1):
             P('BaseHarness',spine,panel([(s*.078,.386,.121),(s*.128,.373,.122),(s*.165,.09,.137),(s*.116,.087,.139)],.014),accent)
             P('BaseHipPouch',pelvis,box((s*.14,-.025,.101),(.074,.114,.055)),cloth)
+            P('BasePouchFlap',pelvis,panel([(s*.106,.023,.134),(s*.174,.023,.134),(s*.174,-.008,.136),(s*.140,-.024,.137),(s*.106,-.008,.136)],.008),dark)
+            P('BaseHarnessBuckle',spine,box((s*.143,.175,.152),(.046,.030,.012)),metal)
+            for y in (.12,.155):
+                P('BaseChestStitch',spine,rod((s*.055,y,.149),(s*.12,y+.013,.146),.0035,.0035),accent)
     P('Neck',spine,rod((0,.38,0),(0,.49,0),.055),skin)
-    P('HeadMesh',head,loft([(0,.048,.052,.015),(.026,.069,.073,.015),(.058,.087,.085,.009),(.092,.100,.096,.002),(.135,.105,.099,0),(.170,.103,.096,-.003),(.20,.093,.089,-.008),(.23,.063,.062,-.014),(.245,.009,.014,-.02)],24),skin)
+    # Shared head socket envelope; different jaw silhouettes for the two styles.
+    jaw=1.0 if martial else 1.055
+    P('HeadMesh',head,loft([(0,.041,.048,.017),(.015,.055*jaw,.065,.016),(.034,.074*jaw,.078,.013),(.058,.087*jaw,.085,.009),(.078,.095,.091,.006),(.100,.102,.096,.002),(.135,.105,.099,0),(.157,.105,.098,-.001),(.180,.101,.095,-.004),(.20,.093,.089,-.008),(.218,.079,.075,-.011),(.235,.050,.053,-.015),(.245,.009,.014,-.02)],32),skin)
     for s in (-1,1):
         P('Ear',head,ell((s*.101,.115,-.005),(.017,.035,.023),1),skin)
         P('EyeWhite',head,ell((s*.043,.132,.091),(.029,.009,.012),2),white)
         P('Iris',head,ell((s*.043,.132,.102),(.010,.009,.004),2),iris)
         P('EyeGlint',head,ell((s*.043-.003,.135,.106),(.0028,.0028,.0014),1),white)
         P('UpperLid',head,rod((s*.017,.139,.101),(s*.070,.140,.094),.0025,.002),hair)
-        P('Brow',head,rod((s*.019,.154,.099),(s*.072,.160,.089),.004,.003),hair)
+        P('Brow',head,curved_trim([(s*.019,.153,.099),(s*.042,.159 if martial else .155,.102),(s*.072,.160,.089)],.0038),hair)
+        P('LowerLid',head,curved_trim([(s*.019,.126,.099),(s*.044,.123,.104),(s*.069,.128,.096)],.0017),hair)
     P('Nose',head,ell((0,.104,.104),(.012,.021,.013),2),skin);P('Mouth',head,rod((-.018,.064,.090),(.018,.064,.090),.0028),iris)
-    P('HairCap',head,loft([(.15,.108,.099,-.018),(.21,.112,.102,-.018),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],12),hair)
+    P('HairCap',head,loft([(.15,.108,.099,-.018),(.181,.112,.103,-.018),(.21,.112,.102,-.018),(.237,.101,.089,-.019),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],24),hair)
+    for i in range(7):
+        x=(i-3)*.026
+        P('HairLock',head,curved_trim([(x,.226,-.100),(x*.85,.251,-.066),(x*.52,.263,-.023),(x*.45,.244,.035)],.006),hair)
     for s in (-1,1):
         P('Fringe',head,panel([(s*.012,.23,.08),(s*.097,.20,.062),(s*.074,.129,.085),(s*.038,.183,.107)],.025),hair)
     if martial:
         P('Topknot',head,ell((0,.285,-.052),(.054,.059,.057),1),hair);P('HairTie',head,rod((0,.246,-.054),(0,.263,-.054),.047),accent)
-        P('Ponytail',head,rod((0,.25,-.08),(0,.09,-.15),.033,.017),hair)
+        P('Ponytail',head,curved_trim([(0,.25,-.08),(0,.198,-.119),(0,.125,-.148),(0,.065,-.154)],.028),hair)
+        for s in (-1,1):
+            P('HairLockTail',head,curved_trim([(s*.012,.242,-.084),(s*.019,.167,-.132),(s*.012,.095,-.156)],.007),hair)
     else:
-        for i in range(5):P('HairTuft',head,rod(((i-2)*.037,.22,-.015),((i-2)*.048,.28-abs(i-2)*.009,-.046),.028,.004),hair)
+        for i in range(7):P('HairTuft',head,rod(((i-3)*.026,.228,-.015),((i-3)*.032,.28-abs(i-3)*.007,-.046),.019,.003,12),hair)
     helm=m.node('slot_elmo',head,(0,.17,0));P('Headband' if martial else 'HunterCirclet',helm,loft([(-.018,.109,.105,-.01),(.004,.111,.107,-.01)],16),accent)
     armor=m.node('slot_armadura',spine);P('Vest',armor,loft([(.02,.164*w,.116,0),(.22,.203*w,.13,0),(.34,.24*w,.131,0),(.40,.15*w,.095,0)],12),cloth)
     for s in (-1,1):

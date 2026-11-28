@@ -139,3 +139,8 @@ A geração e exportação Blender permanecem aprovadas para sete clips; o pipel
 ### Correção de acessibilidade dos controles de aparência
 
 CI 46152196486 e 46152071266: nas três variantes, os testes de movimento reduzido e de pausa/teclado/axe/recuperação passaram em desktop e mobile (4/6 por variante, 12/18 no total). A suíte de catálogo chegou aos campos de aparência, mas esperou pelo rótulo exato `Cabelo` até atingir 180 s. A etapa autenticada foi corretamente bloqueada. Corrigida a associação dos cinco campos com `htmlFor`/`id`, nome acessível explícito e busca por combobox; acrescentada verificação antecipada dos cinco controles e limite de 10 s por ação. Nenhum teste foi excluído. A próxima CI precisa confirmar a correção e completar a homologação.
+
+
+## Revisão artística — etapa 1
+
+Refinamento procedural inicial: normais suaves nas superfícies orgânicas, rosto com 13 anéis de 32 segmentos e mandíbula distinta por personagem, pálpebras inferiores, mechas curvas e cabelo base mais detalhado. Murim recebe costuras e acabamento de lapelas; Caçador recebe fivelas, abas dos bolsos e detalhes do peitoral. Os cinco meshes ponderados usam 24 segmentos e mais anéis de transição nos cotovelos/joelhos. Preservados materiais nomeados, sockets, IDs, 15 juntas, sete clips e a personalização existente. Adicionadas capturas de rosto de frente/perfil e validação de orçamento de 18 mil triângulos e 1,5 MB por GLB. A main permanece com o modelo anterior aprovado. Não equivale a escultura final, textura PBR pintada ou verificação visual de colisões; CI e revisão das capturas pendentes.

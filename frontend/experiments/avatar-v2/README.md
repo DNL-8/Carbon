@@ -29,3 +29,8 @@ Runner 46150018360: geração GLB, lint, typecheck e build aprovados; movimento 
 ## Comparação de rigs no navegador
 
 A matriz de CI usa três fontes independentes de GLB: `rigid` (protótipo anterior), `skinned` (gerador de pesos) e `blender` (importação, deformação e reexportação real pelo Blender). A variável `AVATAR_LAB_RIG` seleciona os ativos antes do build de laboratório. Cada variante testa o catálogo de 104 peças e dez conjuntos em ambos os personagens em desktop/mobile. Capturas de frente, perfil e costas são destinadas à inspeção humana. A aprovação da variante rígida não aprova as demais; nenhum artefato é publicado automaticamente na main.
+
+
+## Revisão artística — etapa 1
+
+Refinamento procedural inicial: normais suaves nas superfícies orgânicas, rosto com 13 anéis de 32 segmentos e mandíbula distinta por personagem, pálpebras inferiores, mechas curvas e cabelo base mais detalhado. Murim recebe costuras e acabamento de lapelas; Caçador recebe fivelas, abas dos bolsos e detalhes do peitoral. Os cinco meshes ponderados usam 24 segmentos e mais anéis de transição nos cotovelos/joelhos. Preservados materiais nomeados, sockets, IDs, 15 juntas, sete clips e a personalização existente. Adicionadas capturas de rosto de frente/perfil e validação de orçamento de 18 mil triângulos e 1,5 MB por GLB. A main permanece com o modelo anterior aprovado. Não equivale a escultura final, textura PBR pintada ou verificação visual de colisões; CI e revisão das capturas pendentes.
