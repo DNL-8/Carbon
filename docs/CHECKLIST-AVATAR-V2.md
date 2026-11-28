@@ -122,3 +122,7 @@ A CI do Blender 46151721448 aprovou a revisão das vestimentas. Os testes das tr
 - [x] Preparar teste de pausa real e evento de perda de contexto simulado, com retomada do visualizador.
 - [ ] Confirmar aprovação dos novos testes e medir desempenho em dispositivo físico; evento sintético não comprova recuperação de perda de GPU real.
 - [ ] Consolidar artefatos validados e lockfile no frontend definitivo. Não promover automaticamente nem alterar a main antes da revisão da CI e capturas.
+
+### Correção da homologação dos novos movimentos
+
+A CI Blender 46151888853 aprovou os dois modelos e os sete clips. A CI de navegador 46151888788 e 46151940801 falhou na sintaxe do fixture de teste, devido à expansão de um padrão de substituição no trecho de personalização. Reconstruído o trecho sem expressão regular e removida a duplicação, preservando os testes de equipamento, animação, teclado, acessibilidade e perda de contexto. Nova execução necessária para confirmar aprovação.
