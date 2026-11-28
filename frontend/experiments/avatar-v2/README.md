@@ -84,3 +84,8 @@ A execução 46167072184 reprovou as três variantes porque a contagem das ombre
 ### Agrupamento de geometrias estáticas
 
 Baseline Blender da CI 46167504468 (commit fa54aee): 4 relatórios, 28 janelas de pose, cada uma com 303 vértices amostrados de armas e 110 de tecido; nenhuma amostra interna aos três volumes elipsoidais aproximados. Um conjunto por personagem, sem cobertura exaustiva da trajetória. Murim: 124 draw calls e 14.496 triângulos; Caçador: 126 draw calls e 14.120 triângulos. FPS de software entre 18,5 e 61,5; não representa hardware móvel real. Agrupar apenas malhas estáticas irmãs com material idêntico e layout de atributos compatível, transformações incorporadas e sem mudança de triângulos. Excluir capas deformáveis e ombreiras móveis; manter validação dos motivos antes do agrupamento, liberar geometrias substituídas e verificar contagem por item. A redução real de draw calls e a aparência ainda dependem da CI. Sem deploy.
+
+
+### Cobertura temporal das animações
+
+CI 46168792940 aprovada integralmente (b0d1ce7). Relatórios Blender em desktop/mobile: Murim 96 draw calls (antes 124), Caçador 98 (antes 126); triângulos inalterados, 14.496 e 14.120; 28 poses sem amostras internas aos volumes aproximados. Nesta revisão, dividir cada clip em dez intervalos temporais e registrar uma amostra por intervalo, mantendo as janelas FPS separadas. Exigir todos os dez intervalos por clip/personagem/viewport e persistir os relatórios de trajetória; não declarar colisões eliminadas com base em volumes aproximados. Cobertura prevista: 280 amostras por variante, de um conjunto completo por personagem. Sem alterar main ou deploy.

@@ -248,7 +248,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
   },[scene,gl,invalidate])
   const mixer=useMemo(()=>new THREE.AnimationMixer(scene),[scene])
   // Diagnostics are restricted to the isolated browser-test route, never the normal app.
-  const labMetrics=useRef({elapsed:0,frames:0,samples:0})
+  type TrajectorySample={phase:number;time:number;weaponSamples:number;weaponInside:number;capeSamples:number;capeInside:number}
+  const labMetrics=useRef({elapsed:0,frames:0,samples:0,trajectory:[] as TrajectorySample[]})
   const diagnostics=useMemo(()=>{
     const proxies=[
       {bone:'Spine',center:new THREE.Vector3(0,.23,0),radii:new THREE.Vector3(style==='murim'?.19:.21,.18,.105)},
@@ -438,8 +439,9 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     action.reset().setLoop(clip==='idle'||clip==='rest'?THREE.LoopRepeat:THREE.LoopOnce,clip==='idle'||clip==='rest'?Infinity:1)
     for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}
     gl.domElement.dataset.glbEyeOpen='1'
-    labMetrics.current={elapsed:0,frames:0,samples:0}
+    labMetrics.current={elapsed:0,frames:0,samples:0,trajectory:[]}
     delete gl.domElement.dataset.glbDiagnostics
+    delete gl.domElement.dataset.glbTrajectory
     action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);gl.domElement.dataset.glbTime='0';invalidate()
     return ()=>{action.stop();mixer.uncacheAction(selected)}
   },[gltf.animations,mixer,animation,invalidate,gl])
@@ -517,7 +519,11 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     if(window.location.pathname==='/avatar-v2-lab-test'&&Number.isFinite(dt)&&dt>0){
       const metrics=labMetrics.current
       metrics.elapsed+=dt;metrics.frames++
-      if(metrics.elapsed>=.25){
+      // Cover ten temporal intervals of the first animation cycle, independently of the FPS reporting window.
+      const duration=action.getClip().duration
+      const phase=Math.min(9,Math.floor(time/duration*10))
+      const newPhase=!metrics.trajectory.some(sample=>sample.phase===phase)
+      if(metrics.elapsed>=.25||newPhase){
         scene.updateMatrixWorld(true)
         for(const proxy of diagnostics.proxies)proxy.inverse.copy(proxy.node.matrixWorld).invert()
         let weaponSamples=0,weaponInside=0,capeSamples=0,capeInside=0
@@ -540,6 +546,11 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
           entry.object.traverse(node=>{if(node instanceof THREE.Mesh&&node.visible)sample(node,'weapon')})
         }
         for(const mesh of drapes.current)sample(mesh,'cape')
+        if(newPhase){
+          metrics.trajectory.push({phase,time,weaponSamples,weaponInside,capeSamples,capeInside})
+          gl.domElement.dataset.glbTrajectory=JSON.stringify({clip:animation.clip,sequence:animation.sequence,duration,samples:metrics.trajectory})
+        }
+        if(metrics.elapsed>=.25){
         gl.domElement.dataset.glbDiagnostics=JSON.stringify({
           clip:animation.clip,sequence:animation.sequence,time,sample:++metrics.samples,
           proxyCount:diagnostics.proxies.length,weaponSamples,weaponInside,capeSamples,capeInside,
@@ -549,6 +560,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
           equipmentMeshesAfter:Number(gl.domElement.dataset.glbEquipmentMeshesAfter)
         })
         metrics.elapsed=0;metrics.frames=0
+        }
       }
     }
     gl.domElement.dataset.glbTime=String(time)
