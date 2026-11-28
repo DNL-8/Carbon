@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { getEquipmentArt, type EquipmentFamily } from '../lib/equipment-art'
 import type { AvatarGear } from './warrior-avatar'
+import { resolveAvatarStyle, type AvatarStyle } from '../lib/avatar-preferences'
 
 type V = [number, number, number]
 type Color = V
 type Transform = (v: V) => V
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 type Props = {
-  size: number; gear?: AvatarGear[]; look: { x: number; y: number }
+  avatarStyle?: AvatarStyle; size: number; gear?: AvatarGear[]; look: { x: number; y: number }
   paused: boolean; pulse: number; attack: number; levelUp: number
   victory: boolean; milestone: boolean; resting: boolean; lowHp: boolean
 }
@@ -131,8 +132,8 @@ function helmet(m: Mesh, t: Transform, art: Art | null) {
     m.orb(t,emblem,[.055,.055,.035],b,art.tier>=4?.15:0)
   }
 }
-function armor(m: Mesh,t: Transform,art: Art | null) {
-  const [a,b]=palette(art), f=art?.family??'plate'
+function armor(m: Mesh,t: Transform,art: Art | null, martial=false) {
+  const [a,b]=palette(art,martial?color('#633c2b'):steel), f=art?.family??(martial?'robe':'plate')
   const heavy=f==='plate'||f==='exo'
   m.ringBody(t,[0,0,0],[[-.39,.37,.24],[-.25,.43,.29],[.26,heavy?.51:.43,.31],[.34,.35,.25]],a,10)
   if(heavy){
@@ -224,10 +225,11 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   const m=new Mesh(camera)
   const bySlot=(slot:string)=>{const item=props.gear?.find(g=>g.equipped&&g.slot===slot);return item?getEquipmentArt(item.id):null}
   const helm=bySlot('elmo'), body=bySlot('armadura'), cloak=bySlot('capa'), blade=bySlot('arma')
-  const [armorTint,armorTrim]=palette(body)
-  // Presentation only: mixed builds retain the actual family of each equipped piece.
-  const martial=helm?.track==='reino_murim'||(!helm&&body?.track==='reino_murim')
-  const clothBody=body?.family==='tunic'||body?.family==='robe'||body?.family==='coat'
+  // Character identity is independent of equipped item families.
+  const martial=resolveAvatarStyle(props.avatarStyle??'auto',props.gear)==='murim'
+  const energy=martial?gold:color('#60a5fa')
+  const [armorTint,armorTrim]=palette(body,martial?color('#633c2b'):steel)
+  const clothBody=(!body&&martial)||body?.family==='tunic'||body?.family==='robe'||body?.family==='coat'
   const bareHead=martial&&(!helm||['band','diadem','crown','halo'].includes(helm.family))
   const idle=Math.sin(time*(props.resting?1.6:2.5))*.035
   const rig=pose(I,[0,idle+celebrate*.13,0],0,0,Math.sin(time*1.25)*.025+strike*.08)
@@ -243,12 +245,12 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   }
   if(cloak) cape(m,torso,cloak,Math.sin(time*2)*.11+strike*.12)
   m.orb(torso,[0,0,0],[.43,.49,.29],dark)
-  armor(m,torso,body)
+  armor(m,torso,body,martial)
   for(const s of [-1,1]){
     const armed=s===1||blade?.family==='twin'
     const swing=armed?strike:0
     const arm=pose(torso,[s*.48,.22,0],-.10-swing*.60,0,s*(.26+Math.sin(time*2.5)*.035+swing*.25))
-    const heavy=!body||body.family==='plate'||body.family==='exo'
+    const heavy=(!body&&!martial)||body?.family==='plate'||body?.family==='exo'
     m.orb(arm,[0,-.07,0],heavy?[.25,.23,.25]:[.19,.20,.19],armorTint)
     m.box(arm,[0,-.12,.22],[.24,.12,.07],armorTrim,.025)
     m.box(arm,[0,-.31,0],clothBody?[.28,.36,.29]:[.23,.34,.24],clothBody?armorTint:dark)
@@ -261,7 +263,7 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
       weapon(m,pose(hand,[0,0,0],.15,-s*.06,-s*(.65+swing*.58)),blade)
     else if(s===-1){
       const qi=.10+Math.sin(time*3)*.014+celebrate*.035
-      m.orb(hand,[-.18,.12,.18],[qi,qi,qi],props.lowHp?color('#f87171'):gold,.5)
+      m.orb(hand,[-.18,.12,.18],[qi,qi,qi],props.lowHp?color('#f87171'):energy,.5)
     }
   }
   m.orb(head,[0,0,0],[.51,.51,.43],bareHead?skin:dark)
@@ -283,12 +285,12 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
     if(family==='lens'&&sign===1)continue // the monóculo covers this eye
     if(bareHead){
       m.box(head,[sign*.17,-.055,eyeDepth],[.16,.055*blink,.038],hair,.015)
-      if(blink>.5)m.box(head,[sign*.17,-.055,eyeDepth+.023],[.045,.044,.014],props.lowHp?color('#f87171'):gold,.008)
+      if(blink>.5)m.box(head,[sign*.17,-.055,eyeDepth+.023],[.045,.044,.014],props.lowHp?color('#f87171'):energy,.008)
     }else m.box(head,[sign*.19,-.06,eyeDepth],[.24,.085*blink,.045],props.lowHp?color('#f87171'):light,.02,.45)
   }
   if(bareHead)m.box(head,[0,-.24,.36],[.14,.025,.04],hair,.01)
   else if(family!=='mask')m.box(head,[0,-.27,.48],[.28,.055,.05],gold,.02)
-  if(celebrate>0.02) m.hoop(rig,[0,0,-.65],1.56+celebrate*.12,.04,props.victory?color('#34d399'):gold)
+  if(celebrate>0.02) m.hoop(rig,[0,0,-.65],1.56+celebrate*.12,.04,props.victory?color('#34d399'):energy)
   // Keep large weapons and wings inside the square preview at all orientations.
   let extent=1
   for(let i=0;i<m.data.length;i+=6)extent=Math.max(extent,Math.abs(m.data[i])/.94,Math.abs(m.data[i+1])/.94)
@@ -390,6 +392,7 @@ export function WarriorAvatar3D(props: Props) {
       engine.draw(drawModel(p,elapsed,turn,strike,celebrate,x,y,motion))
       const equipped=p.gear?.filter(g=>g.equipped).map(g=>g.id).sort().join(',')??''
       if(canvas.dataset.renderedEquipment!==equipped)canvas.dataset.renderedEquipment=equipped
+      canvas.dataset.renderedCharacter=resolveAvatarStyle(p.avatarStyle??'auto',p.gear)
       if(!presented){presented=true;setReady(true)}
       if(motion)wake();else prev=0
     }

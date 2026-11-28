@@ -31,6 +31,27 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
   for (const [id, label] of Object.entries({elmo: 'Cabeça', armadura: 'Vestimenta', capa: 'Manto', arma: 'Arma'})) {
     await expect(page.locator('#gear-filter-' + id)).toHaveText(label)
   }
+  const settings = page.locator('.arsenal-stage').getByRole('button', { name: 'Personalizar personagem' })
+  await settings.click()
+  const dialog = page.getByRole('dialog', { name: 'Personalizar personagem' })
+  await dialog.getByRole('radio', { name: 'Murim · artista marcial' }).check()
+  await dialog.getByRole('checkbox', { name: 'Equipamentos dos dois mundos' }).uncheck()
+  await dialog.getByRole('button', { name: 'Concluir' }).click()
+  await expect(avatar).toHaveAttribute('data-character', 'murim')
+  await expect(page.getByText('53 de 104 equipamentos', { exact: true })).toBeVisible()
+  await expect(avatar).toHaveAttribute('data-equipment', original.join(','))
+  await settings.click()
+  await dialog.getByRole('radio', { name: 'Caçador · guerreiro tático' }).check()
+  await dialog.getByRole('checkbox', { name: 'Equipamentos dos dois mundos' }).check()
+  await dialog.getByRole('button', { name: 'Concluir' }).click()
+  await expect(avatar).toHaveAttribute('data-character', 'cacador')
+  await expect(page.getByText('104 de 104 equipamentos', { exact: true })).toBeVisible()
+  await page.reload()
+  await expect(avatar).toHaveAttribute('data-character', 'cacador')
+  await settings.click()
+  await dialog.getByRole('radio', { name: 'Murim · artista marcial' }).check()
+  await dialog.getByRole('button', { name: 'Concluir' }).click()
+  await expect(avatar).toHaveAttribute('data-character', 'murim')
   const search = page.getByRole('textbox', { name: 'Buscar equipamento' })
   const captured = new Set<string>()
   for (const item of items) {
@@ -56,6 +77,9 @@ test('homologação visual: as 104 peças possuem prévia no encaixe correto', a
     await expect(avatar).toHaveAttribute('data-equipment', original.join(','))
   }
   expect(captured.size).toBe(33)
+  await settings.click()
+  await dialog.getByRole('radio', { name: 'Automático · pelo equipamento' }).check()
+  await dialog.getByRole('button', { name: 'Concluir' }).click()
   const after = await page.request.get('/api/arsenal')
   expect(after.ok()).toBeTruthy()
   const persisted = await after.json() as typeof items

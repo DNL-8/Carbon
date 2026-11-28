@@ -11,6 +11,7 @@ import { calculateGearBonusSummary, EQUIPMENT_CATALOG, EQUIPMENT_SETS } from '..
 import { api, number, read } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar } from './warrior-avatar'
+import { resolveAvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 import { EquipmentArt } from './equipment-art'
 import { idResult, itemsResult, loadoutsResult, refreshRpg, slots, type ArmoryInput } from '../lib/rpg-api'
 
@@ -26,9 +27,9 @@ function difference(value: number, unit: string) {
   return value === 0 ? 'Sem mudança' : (value > 0 ? '+' : '−') + number.format(Math.abs(value)) + ' ' + unit
 }
 
-type ArsenalProps = { coins?: number; heroName?: string; rank?: string; realm?: string; onLedger: () => void }
+type ArsenalProps = { coins?: number; heroName?: string; rank?: string; realm?: string; preferences: AvatarPreferences; onSettings: () => void; onLedger: () => void }
 
-export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps) {
+export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings, onLedger }: ArsenalProps) {
   const client = useQueryClient()
   const items = useQuery({ queryKey: ['arsenal'], queryFn: async () => read(await api.GET('/api/arsenal'), itemsResult) })
   const loadouts = useQuery({ queryKey: ['loadouts'], queryFn: async () => read(await api.GET('/api/arsenal/conjuntos'), loadoutsResult) })
@@ -72,6 +73,9 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
   const run = (body: ArmoryInput) => { setMessage(''); mutation.mutate(body) }
   const term = normalize(search.trim())
   const equipped = items.data?.filter(item => item.equipped)
+  const characterStyle = resolveAvatarStyle(preferences.style, equipped)
+  const characterTrack = characterStyle === 'murim' ? 'reino_murim' : 'rank_cacador'
+  const effectiveTrack = !preferences.mixed && track !== 'all' && track !== 'inicial' && track !== characterTrack ? 'all' : track
   const preview = items.data?.find(item => item.id === previewId)
   const shownGear = preview
     ? [...(equipped ?? []).filter(item => item.slot !== preview.slot), { ...preview, equipped: true }]
@@ -97,7 +101,8 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
     return (slot === 'all' || item.slot === slot)
       && (rarity === 'all' || item.rarity === rarity)
       && (set === 'all' || item.setId === set)
-      && (track === 'all' || definition?.requirement.tipo === track)
+      && (preferences.mixed || definition?.requirement.tipo === characterTrack || definition?.requirement.tipo === 'inicial')
+      && (effectiveTrack === 'all' || definition?.requirement.tipo === effectiveTrack)
       && (ownership === 'all' || (ownership === 'owned' ? item.owned : !item.owned && item.unlock.met && (ownership === 'rewards' ? item.acquisition === 'reward' : item.acquisition === 'purchase')))
       && (normalize(item.name).includes(term) || normalize(item.description).includes(term))
   })
@@ -166,7 +171,9 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
       </header>
       <div className="active-gear">
         <div className="arsenal-stage">
-          <WarriorAvatar size={224} gear={shownGear} attack={attack} />
+          <WarriorAvatar size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} />
+          <Button variant="outlined" onClick={onSettings} startIcon={<span aria-hidden="true">⚙</span>}>Personalizar personagem</Button>
+          <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}
             onClick={() => setAttack(value => value + 1)}>Testar golpe</Button>
         </div>
@@ -242,8 +249,8 @@ export function Arsenal({ coins, heroName, rank, realm, onLedger }: ArsenalProps
           {(Object.keys(slots) as Slot[]).map(id => <Button key={id} id={'gear-filter-' + id} variant={slot === id ? 'contained' : 'outlined'} aria-pressed={slot === id} onClick={() => {setSlot(id); setPage(1)}}>{slots[id]}</Button>)}
         </div>
         <div className="rpg-grid">
-          <TextField label="Trilha" select size="small" value={track} onChange={event => {setTrack(event.target.value as Track); setPage(1)}}>
-            <MenuItem value="all">Ambas as trilhas</MenuItem><MenuItem value="rank_cacador">Caçador</MenuItem><MenuItem value="reino_murim">Murim</MenuItem><MenuItem value="inicial">Inicial</MenuItem>
+          <TextField label="Trilha" select size="small" value={effectiveTrack} onChange={event => {setTrack(event.target.value as Track); setPage(1)}}>
+            <MenuItem value="all">{preferences.mixed ? 'Ambas as trilhas' : 'Trilha e iniciais'}</MenuItem><MenuItem value="rank_cacador" disabled={!preferences.mixed && characterTrack !== 'rank_cacador'}>Caçador</MenuItem><MenuItem value="reino_murim" disabled={!preferences.mixed && characterTrack !== 'reino_murim'}>Murim</MenuItem><MenuItem value="inicial">Inicial</MenuItem>
           </TextField>
           <TextField label="Ordenar por" select size="small" value={order} onChange={event => {setOrder(event.target.value as Order); setPage(1)}}>
             <MenuItem value="catalog">Catálogo</MenuItem><MenuItem value="price">Menor preço</MenuItem><MenuItem value="xp">Maior XP</MenuItem><MenuItem value="coins">Mais moedas</MenuItem><MenuItem value="boss">Dano em chefes</MenuItem>

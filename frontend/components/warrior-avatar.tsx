@@ -5,13 +5,14 @@ import { EQUIPMENT_CATALOG } from '../../src/utils/equipmentCatalog'
 import { getEquipmentArt } from '../lib/equipment-art'
 import { AvatarEquipmentLayer } from './avatar-equipment-layer'
 import { WarriorAvatar3D } from './warrior-avatar-3d'
+import { resolveAvatarStyle, type AvatarStyle } from '../lib/avatar-preferences'
 
 export type AvatarGear = { id: string; name: string; slot: string; rarity: string; equipped: boolean }
-type Props = { size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
+type Props = { avatarStyle?: AvatarStyle; size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
 const rarityColors: Record<string, string> = { comum: '#a1a1aa', common: '#a1a1aa', incomum: '#34d399', uncommon: '#34d399', raro: '#60a5fa', rare: '#60a5fa', épico: '#c084fc', epico: '#c084fc', epic: '#c084fc', lendário: '#fbbf24', lendario: '#fbbf24', legendary: '#fbbf24' }
 const catalog = new Map(EQUIPMENT_CATALOG.map(item => [item.id, item]))
 
-export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory = false, milestone = false, resting = false }: Props) {
+export function WarriorAvatar({ avatarStyle = 'auto', size = 88, level, hp, gear, attack = 0, victory = false, milestone = false, resting = false }: Props) {
   const [look, setLook] = useState({ x: 0, y: 0 })
   const [pulse, setPulse] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -36,13 +37,16 @@ export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory 
   const armorArt = getEquipmentArt(armor?.id ?? '')
   const capeArt = getEquipmentArt(cape?.id ?? '')
   const weaponArt = getEquipmentArt(weapon?.id ?? '')
+  const style = resolveAvatarStyle(avatarStyle, gear)
+  const energy = style === 'murim' ? '#fb923c' : '#60a5fa'
+  const openFace = style === 'murim' && (!helmArt || ['band', 'diadem', 'crown', 'halo'].includes(helmArt.family))
   const lowHp = hp !== undefined && hp <= 30
   function follow(event: PointerEvent<HTMLButtonElement>) {
     if (event.pointerType !== 'mouse' || paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const bounds = event.currentTarget.getBoundingClientRect()
     setLook({ x: Math.max(-4, Math.min(4, (event.clientX - bounds.left - bounds.width / 2) / bounds.width * 8)), y: Math.max(-3, Math.min(3, (event.clientY - bounds.top - bounds.height / 2) / bounds.height * 6)) })
   }
-  return <div className="warrior-avatar" data-paused={paused} data-resting={resting} data-hp={lowHp ? 'low' : 'normal'} data-victory={victory} data-attack={attack} data-level-up={Boolean(levelUp || milestone)} data-equipment={equipped.map(item => item.id).sort().join(',')}>
+  return <div className="warrior-avatar" data-character={style} data-paused={paused} data-resting={resting} data-hp={lowHp ? 'low' : 'normal'} data-victory={victory} data-attack={attack} data-level-up={Boolean(levelUp || milestone)} data-equipment={equipped.map(item => item.id).sort().join(',')}>
     <button type="button" className="warrior-avatar-trigger" aria-label="Interagir com guerreiro" onPointerMove={follow} onPointerLeave={() => setLook({ x: 0, y: 0 })} onClick={() => setPulse(value => value + 1)}>
       <span style={{ position: 'relative', display: 'block', width: size, height: size }}>
       <svg width={size} height={size} viewBox="0 0 256 256" aria-hidden="true" focusable="false">
@@ -72,7 +76,7 @@ export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory 
 <path d="M96 188h64v13H96z" fill="#b95724" stroke="#09090b" strokeWidth="3"/><path d="m128 189 10 6-10 9-10-9z" fill="#fdba74" stroke="#512817" strokeWidth="2"/><path d="m126 201-10 14m14-14 12 13" stroke="#fb923c" strokeWidth="5" strokeLinecap="round"/>
 <circle cx="79" cy="181" r="12" fill="#52525b" stroke="#09090b" strokeWidth="4"/><circle cx="186" cy="182" r="12" fill="#52525b" stroke="#09090b" strokeWidth="4"/>
 
-          <g className="warrior-qi"><circle cx="50" cy="165" r="21" fill="#fb923c" opacity=".14"/><circle cx="50" cy="165" r="15" fill="#fb923c" opacity=".28"/><circle cx="50" cy="165" r="10" fill="#fb923c"/><circle cx="50" cy="165" r="5" fill="#fff1d6"/><path d="M50 141v7m-24 17h7m17 17v7m17-24h7" stroke="#fdba74" strokeWidth="2" strokeLinecap="round"/>
+          <g className="warrior-qi"><circle cx="50" cy="165" r="21" fill={energy} opacity=".14"/><circle cx="50" cy="165" r="15" fill={energy} opacity=".28"/><circle cx="50" cy="165" r="10" fill={energy}/><circle cx="50" cy="165" r="5" fill="#fff1d6"/><path d="M50 141v7m-24 17h7m17 17v7m17-24h7" stroke="#fdba74" strokeWidth="2" strokeLinecap="round"/>
 </g>
           {helm && helmArt?.family === 'halo' && <AvatarEquipmentLayer id={helm.id} art={helmArt} slot="elmo" />}
           <path d="M117 43v-9q0-9 11-9t11 9v9" fill="#52525b" stroke="#09090b" strokeWidth="4"/><path d="M118 34h20" stroke="#fb923c" strokeWidth="3" strokeLinecap="round"/>
@@ -81,13 +85,14 @@ export function WarriorAvatar({ size = 88, level, hp, gear, attack = 0, victory 
 <path d="M77 67q51-9 102 0l3 16q-54-9-108 0z" fill={trim('elmo')} stroke="#09090b" strokeWidth="3" strokeLinejoin="round"/><path d="m117 70 11-8 11 8-11 8z" fill="#fff1d6" stroke="#b95724" strokeWidth="2"/>
 <path d="M84 85q44-7 88 0l3 18-10 20q-37 13-74 0l-10-20z" fill="#09090b" stroke="#a1a1aa" strokeWidth="2.5" strokeLinejoin="round"/>
 
+          {openFace && <g><path d="M81 76Q78 47 111 43Q112 22 128 23Q146 23 147 43Q179 47 176 76L167 91 89 91Z" fill="#252028"/><path d="M87 82Q128 69 169 82L167 116 151 136 105 136 89 116Z" fill="#c99873" stroke="#09090b" strokeWidth="3"/></g>}
           {helm && helmArt && helmArt.family !== 'halo' && <AvatarEquipmentLayer id={helm.id} art={helmArt} slot="elmo" />}
-          <g transform={paused ? undefined : 'translate(' + look.x + ' ' + look.y + ')'}><g className="warrior-eyes"><path d="m95 97 21 3-3 10H99zM161 97l-21 3 3 10h14z" fill={lowHp ? "#f87171" : "#fb923c"}/><path d="m99 101 12 1-1 4H101zm58 0-12 1 1 4h9z" fill="#fff1d6"/></g></g>
+          <g transform={paused ? undefined : 'translate(' + look.x + ' ' + look.y + ')'}><g className="warrior-eyes"><path d="m95 97 21 3-3 10H99zM161 97l-21 3 3 10h14z" fill={lowHp ? '#f87171' : openFace ? '#252028' : energy}/><path d="m99 101 12 1-1 4H101zm58 0-12 1 1 4h9z" fill="#fff1d6"/></g></g>
           <path d="M117 117h22" stroke="#fb923c" strokeWidth="2" strokeLinecap="round" opacity=".7"/>
 <path d="m88 127 13 10h54l13-10-12 5h-56z" fill="#71717a"/><path d="M74 91h-5v17l8 4m105-21h5v17l-8 4" fill="#3f3f46" stroke="#09090b" strokeWidth="3" strokeLinejoin="round"/>
         </g>
       </svg>
-      <WarriorAvatar3D size={size} gear={gear} look={look} paused={paused} pulse={pulse} attack={attack} levelUp={levelUp} victory={victory} milestone={milestone} resting={resting} lowHp={lowHp} />
+      <WarriorAvatar3D avatarStyle={avatarStyle} size={size} gear={gear} look={look} paused={paused} pulse={pulse} attack={attack} levelUp={levelUp} victory={victory} milestone={milestone} resting={resting} lowHp={lowHp} />
       </span>
     </button>
     <button className="warrior-motion" type="button" aria-label="Pausar animações do guerreiro" aria-pressed={paused} onClick={() => {setPaused(value => !value); setLook({x: 0, y: 0})}}>{paused ? '▶' : 'Ⅱ'}</button>
