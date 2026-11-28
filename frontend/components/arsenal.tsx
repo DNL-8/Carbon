@@ -171,7 +171,7 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
       </header>
       <div className="active-gear">
         <div className="arsenal-stage">
-          <WarriorAvatar size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} />
+          <WarriorAvatar size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences} />
           <Button variant="outlined" onClick={onSettings} startIcon={<span aria-hidden="true">⚙</span>}>Personalizar personagem</Button>
           <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}
@@ -223,6 +223,20 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
     </section>}
     <section className="surface overview arsenal-loadouts" aria-labelledby="arsenal-loadouts">
       <h2 id="arsenal-loadouts">Conjuntos salvos</h2>
+      <p className="muted">Salve um conjunto de equipamento ativo para cada personagem. Aplicar é uma ação explícita; a troca de aparência não altera os bônus.</p>
+      <div className="rpg-grid">{(['Murim', 'Caçador'] as const).map(character => {
+        const title = 'Personagem · ' + character
+        const saved = loadouts.data?.find(item => item.name === title)
+        return <div key={character} className="surface inset overview">
+          <h3>{character}</h3>
+          {saved ? <><p>{Object.values(saved.gear).filter(Boolean).length}/4 peças salvas</p>
+            <Button variant="outlined" disabled={mutation.isPending} onClick={() => run({ action: 'apply', id: saved.id })}>Equipar conjunto {character}</Button></> :
+            <Button variant="outlined" disabled={mutation.isPending || items.isPending || loadouts.isPending || !items.data || !loadouts.data} onClick={() => {
+              if (!draft.current || draft.current.name !== title) draft.current = { id: crypto.randomUUID(), name: title }
+              run({ action: 'save', ...draft.current })
+            }}>Salvar conjunto {character}</Button>}
+        </div>
+      })}</div>
       <form className="inline-form" noValidate onSubmit={form.handleSubmit(({ name }) => {
         if (!draft.current || draft.current.name !== name) draft.current = { id: crypto.randomUUID(), name }
         run({ action: 'save', ...draft.current })

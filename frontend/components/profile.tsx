@@ -29,8 +29,10 @@ export function Profile({ profile, onSave, onSignOut }: {
     <form noValidate className="profile-form" onSubmit={handleSubmit(async values => {
       try {
         setError('')
-        const { profile: saved } = read(await api.PUT('/api/heroi', { body: values }), profileResult)
-        if (saved) onSave(saved)
+        const body = { ...values }
+        if (body.avatar?.startsWith('c2:')) delete body.avatar
+        const { profile: saved } = read(await api.PUT('/api/heroi', { body }), profileResult)
+        if (saved) onSave({ ...saved, ...(profile?.avatar?.startsWith('c2:') ? { avatar: profile.avatar } : {}) })
       } catch (cause) { setError(errorMessage(cause)) }
     })}>
       <TextField name="name" label="Nome do herói" defaultValue={profile?.name}

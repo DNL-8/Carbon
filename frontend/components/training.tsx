@@ -10,12 +10,12 @@ import { getWorkoutCombat } from '../shared/boss'
 import { api, number, read, rewardResult, type FinishInput, type Reward } from '../lib/api'
 import { errorMessage } from '../lib/auth'
 import { WarriorAvatar, type AvatarGear } from './warrior-avatar'
-import type { AvatarStyle } from '../lib/avatar-preferences'
+import type { AvatarStyle, AvatarPreferences } from '../lib/avatar-preferences'
 import { savePendingWorkout, removePendingWorkout } from '../lib/pending-workouts'
 import { saveDraft, removeDraft, type WorkoutDraft } from '../lib/workout-draft'
 
-export function Training({ owner, workout, draft, bonus, level, hp, gear, avatarStyle, onFinish, onCancel }: {
-  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; level?: number; hp?: number; gear?: AvatarGear[]; avatarStyle?: AvatarStyle; onFinish: (reward: Reward) => void; onCancel: () => void
+export function Training({ owner, workout, draft, bonus, level, hp, gear, avatarStyle, appearances, onFinish, onCancel }: {
+  owner: string; workout: WorkoutTemplate; draft: WorkoutDraft | null; bonus: number; level?: number; hp?: number; gear?: AvatarGear[]; avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; onFinish: (reward: Reward) => void; onCancel: () => void
 }) {
   const [sets, setSets] = useState(() => draft?.sets ?? initialFocusSets(workout))
   const [attack, setAttack] = useState(0)
@@ -127,7 +127,7 @@ export function Training({ owner, workout, draft, bonus, level, hp, gear, avatar
         {exercise.executionTip && <details><summary>Dicas técnicas de execução</summary><p>{exercise.executionTip}</p></details>}
       </section>
       <section aria-label="Combate e tempo da sessão" className="surface combat-card">
-        <WarriorAvatar avatarStyle={avatarStyle} size={112} level={level} hp={hp} gear={gear} attack={attack} victory={combat.state.bossDefeated} resting={paused || rest > 0} />
+        <WarriorAvatar avatarStyle={avatarStyle} appearances={appearances} size={112} level={level} hp={hp} gear={gear} attack={attack} victory={combat.state.bossDefeated} resting={paused || rest > 0} />
         <div className="timer mono"><small className="timer-label">{remaining > 0 ? 'Tempo restante' : 'Tempo decorrido'}</small><strong>{formatSecondsMMSS(remaining || elapsed)}</strong><span>Decorrido: {formatSecondsMMSS(elapsed)}</span></div>
         <Button variant="outlined" disabled={busy || locked} onClick={pause}>{paused ? 'Continuar' : 'Pausar'}</Button>
         <div className="surface inset boss">

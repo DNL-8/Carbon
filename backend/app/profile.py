@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Annotated, Literal, Self
 
 from fastapi import APIRouter, Depends
@@ -44,6 +45,8 @@ class ProfileInput(BaseModel):
     def avatar_length(cls, value: str | None) -> str:
         if value is None or js_length(value) > 24:
             raise ValueError("Avatar invalido")
+        if value.startswith("c2:") and not re.fullmatch(r"c2:[012][01](?:[0-3][0-2][0-3][0-3][0-4]){2}", value):
+            raise ValueError("Aparencia invalida")
         return value
 
     @field_validator("restingHrBaseline", "maxHrEstimated", mode="before")
@@ -65,7 +68,10 @@ def save_profile(db: Connection, user: str, data: dict) -> None:
     db.execute(text("""
         INSERT INTO fitness_hero_profile (user_id, data)
         VALUES (:uid, CAST(:data AS jsonb))
-        ON CONFLICT (user_id) DO UPDATE SET data = EXCLUDED.data
+        ON CONFLICT (user_id) DO UPDATE SET data = CASE
+            WHEN NOT jsonb_exists(EXCLUDED.data, 'avatar') AND fitness_hero_profile.data->>'avatar' LIKE 'c2:%'
+            THEN EXCLUDED.data || jsonb_build_object('avatar', fitness_hero_profile.data->'avatar')
+            ELSE EXCLUDED.data END
     """), {"uid": user, "data": json.dumps(data, ensure_ascii=True, allow_nan=False)})
 
 

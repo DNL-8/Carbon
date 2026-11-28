@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, FormLabel, IconButton, LinearProgress, Radio, RadioGroup, Switch } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, FormLabel, IconButton, LinearProgress, MenuItem, Radio, RadioGroup, Switch, TextField } from '@mui/material'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { WorkoutTemplate } from '../../src/types/fitness'
 import { calculateLevel, getLevelProgress } from '../../src/utils/rpgLogic'
@@ -17,7 +17,7 @@ import { CustomWorkouts } from './custom-workouts'
 import { Achievements, Missions } from './missions'
 import { itemsResult, refreshRpg } from '../lib/rpg-api'
 import { WarriorAvatar } from './warrior-avatar'
-import { defaultAvatarPreferences, loadAvatarPreferences, saveAvatarPreferences, type AvatarPreferences } from '../lib/avatar-preferences'
+import { appearanceOptions, decodeAvatarPreferences, defaultAvatarPreferences, encodeAvatarPreferences, loadAvatarPreferences, resolveAvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 import { Profile } from './profile'
 import { Training } from './training'
 import { PendingWorkouts } from './pending-workouts'
@@ -46,17 +46,32 @@ export function Murim({ owner }: { owner: string }) {
   const [error, setError] = useState('')
   const [signingOut, setSigningOut] = useState(false)
   const [avatarSettings, setAvatarSettings] = useState(false)
-  const [avatarPreferences, setAvatarPreferences] = useState<AvatarPreferences>(defaultAvatarPreferences)
-  const [avatarStorageError, setAvatarStorageError] = useState(false)
-  useEffect(() => { setAvatarPreferences(loadAvatarPreferences(owner)); setAvatarSettings(false); setAvatarStorageError(false) }, [owner])
-  function updateAvatarPreferences(value: AvatarPreferences) {
-    setAvatarPreferences(value); setAvatarStorageError(!saveAvatarPreferences(owner, value))
-  }
+  const [localAppearance, setLocalAppearance] = useState<AvatarPreferences>(defaultAvatarPreferences)
+  const [avatarDraft, setAvatarDraft] = useState<AvatarPreferences>(defaultAvatarPreferences)
+  const [avatarSaving, setAvatarSaving] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+  useEffect(() => { setLocalAppearance(loadAvatarPreferences(owner)); setAvatarSettings(false); setAvatarError('') }, [owner])
   const main = useRef<HTMLElement>(null)
   const receiptHeading = useRef<HTMLHeadingElement>(null)
   const trigger = useRef<HTMLElement>(null)
   const profile = useQuery({ queryKey: ['hero'], queryFn: async () => read(await api.GET('/api/heroi'), profileResult) })
+  const avatarPreferences = decodeAvatarPreferences(profile.data?.profile?.avatar) ?? localAppearance
   const ready = Boolean(profile.data?.profile)
+  function openAvatarSettings() {
+    setAvatarDraft(avatarPreferences); setAvatarError(''); setAvatarSettings(true)
+  }
+  async function saveAvatarSettings() {
+    setAvatarSaving(true); setAvatarError('')
+    try {
+      const current = read(await api.GET('/api/heroi'), profileResult).profile
+      if (!current) throw new Error('Ficha indisponível.')
+      const saved = read(await api.PUT('/api/heroi', { body: { ...current, avatar: encodeAvatarPreferences(avatarDraft) } }), profileResult)
+      if (!saved.profile) throw new Error('Não foi possível salvar a aparência.')
+      client.setQueryData(['hero'], saved)
+      setAvatarSettings(false)
+    } catch (cause) { setAvatarError(errorMessage(cause)) }
+    finally { setAvatarSaving(false) }
+  }
   const progress = useQuery({ queryKey: ['progress'], enabled: ready, queryFn: async () => read(await api.GET('/api/progresso'), progressResult) })
   const dashboard = useQuery({ queryKey: ['dashboard'], enabled: ready, queryFn: async () => read(await api.GET('/api/painel'), dashboardResult) })
   const catalog = useQuery({ queryKey: ['catalog'], enabled: ready && ['inicio', 'painel', 'treinar'].includes(view), queryFn: async () => read(await api.GET('/api/catalogo'), workouts) })
@@ -71,6 +86,7 @@ export function Murim({ owner }: { owner: string }) {
   const userQueries = [profile, progress, dashboard, custom, history, ledger]
   const sessionError = userQueries.some(query => query.error instanceof ApiError && [401, 403].includes(query.error.status))
   const gear = useQuery({ queryKey: ['arsenal'], enabled: ready, queryFn: async () => read(await api.GET('/api/arsenal'), itemsResult) })
+  const editingStyle = resolveAvatarStyle(avatarDraft.style, gear.data)
   const metrics = progress.data
   const overview = dashboard.data
   const level = metrics ? getLevelProgress(metrics.xp) : undefined
@@ -132,7 +148,7 @@ export function Murim({ owner }: { owner: string }) {
     window.scrollTo(0, 0)
   }
 
-  if (active) return <Training owner={owner} avatarStyle={avatarPreferences.style} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} level={metrics?.level} hp={metrics?.hp} gear={gear.data} onFinish={finish} onCancel={() => {
+  if (active) return <Training owner={owner} avatarStyle={avatarPreferences.style} appearances={avatarPreferences} workout={active} draft={resume} bonus={metrics?.bossDamageBonus ?? 0} level={metrics?.level} hp={metrics?.hp} gear={gear.data} onFinish={finish} onCancel={() => {
     setActive(undefined); setResume(null); setDraft(loadDraft(owner))
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected) trigger.current.focus()
@@ -168,7 +184,7 @@ export function Murim({ owner }: { owner: string }) {
       <div className="brand"><span><Glyph name="bolt" /></span>Carbon · Murim</div>
       <div className="surface sidebar-progress">
         <div className="character">
-          <WarriorAvatar avatarStyle={avatarPreferences.style} size={54} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} />
+          <WarriorAvatar avatarStyle={avatarPreferences.style} appearances={avatarPreferences} size={54} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} />
           <div><strong>{profile.data?.profile?.name}</strong><p className="orange">Rank {metrics?.rank ?? '—'} · Nv. {metrics?.level ?? '—'}</p></div>
         </div>
         {metrics && <><p className="mono">{totals(metrics.xp, metrics.coins)}</p>
@@ -179,7 +195,7 @@ export function Murim({ owner }: { owner: string }) {
       <nav aria-label="Menu principal">{menus}</nav>
     </aside>
     <div className="shell-content">
-      <header className="topbar"><strong>Carbon · Fitness RPG &amp; Saúde</strong><div className="row" style={{ flexWrap: 'nowrap' }}><IconButton aria-label="Personalizar personagem" title="Personalizar personagem" onClick={() => setAvatarSettings(true)} sx={{ minWidth: 44, minHeight: 44 }}><span aria-hidden="true" style={{ fontSize: 23, lineHeight: 1 }}>⚙</span></IconButton>{signOutButton}</div></header>
+      <header className="topbar"><strong>Carbon · Fitness RPG &amp; Saúde</strong><div className="row" style={{ flexWrap: 'nowrap' }}><IconButton aria-label="Personalizar personagem" title="Personalizar personagem" onClick={openAvatarSettings} sx={{ minWidth: 44, minHeight: 44 }}><span aria-hidden="true" style={{ fontSize: 23, lineHeight: 1 }}>⚙</span></IconButton>{signOutButton}</div></header>
       <main id="main-content" ref={main} tabIndex={-1} className="content">
         {error && <Alert severity="error">{error}</Alert>}
         {draft && <section className="surface overview" aria-label="Treino em andamento">
@@ -212,7 +228,7 @@ export function Murim({ owner }: { owner: string }) {
           {!catalog.isPending && <Catalog workouts={choices} onStart={start} />}
         </>}
         {(view === 'inicio' || view === 'painel') && <section className="view">
-          <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar avatarStyle={avatarPreferences.style} size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
+          <header className="view-heading avatar-heading"><div className="mobile-warrior"><WarriorAvatar avatarStyle={avatarPreferences.style} appearances={avatarPreferences} size={80} level={metrics?.level} hp={metrics?.hp} gear={gear.data} victory={receipt?.reward.bossDefeated} milestone={receiptLevelUp} resting={Boolean(draft)} /></div><h1>{view === 'inicio' ? 'Seu herói' : 'Painel de controle'}</h1>
             <p>{profile.data?.profile?.name} <span aria-hidden="true">·</span> {profile.data?.profile?.heroClass} {metrics && <>· <span className="green">{metrics.realm}</span></>}</p>
           </header>
           {(progress.isError || dashboard.isError) && <Alert severity="error" action={<Button onClick={() => {void progress.refetch(); void dashboard.refetch()}}>Tentar novamente</Button>}>Não foi possível carregar todo o progresso.</Alert>}
@@ -242,7 +258,7 @@ export function Murim({ owner }: { owner: string }) {
         {view === 'progresso' && <Health owner={owner} overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
         {view === 'coach' && <Oracle progress={metrics} overview={overview} />}
         {view === 'arsenal' && <Arsenal coins={metrics?.coins} heroName={profile.data?.profile?.name}
-          rank={metrics?.rank} realm={metrics?.realm} preferences={avatarPreferences} onSettings={() => setAvatarSettings(true)} onLedger={() => navigate('extrato')} />}
+          rank={metrics?.rank} realm={metrics?.realm} preferences={avatarPreferences} onSettings={openAvatarSettings} onLedger={() => navigate('extrato')} />}
         {view === 'extrato' && <section className="view"><header className="view-heading"><h1>Extrato de recompensas</h1><p>Movimentações de XP e moedas do seu personagem.</p></header>
           <section className="surface overview" aria-label="Lançamentos do extrato">
             {ledger.isPending && <p role="status">Carregando extrato…</p>}
@@ -262,25 +278,36 @@ export function Murim({ owner }: { owner: string }) {
       </main>
     </div>
     <nav className="bottom-menu" aria-label="Menu principal móvel">{menus}</nav>
-    <Dialog open={avatarSettings} onClose={() => setAvatarSettings(false)} fullWidth maxWidth="xs" aria-labelledby="avatar-settings-title">
+    <Dialog open={avatarSettings} onClose={() => { if (!avatarSaving) setAvatarSettings(false) }} fullWidth maxWidth="xs" aria-labelledby="avatar-settings-title">
       <DialogTitle id="avatar-settings-title">Personalizar personagem</DialogTitle>
       <DialogContent dividers>
         <FormControl component="fieldset" fullWidth>
           <FormLabel component="legend">Estilo do personagem</FormLabel>
-          <RadioGroup value={avatarPreferences.style} onChange={(_, style) => {
-            if (style === 'auto' || style === 'murim' || style === 'cacador') updateAvatarPreferences({ ...avatarPreferences, style })
+          <RadioGroup value={avatarDraft.style} onChange={(_, style) => {
+            if (style === 'auto' || style === 'murim' || style === 'cacador') setAvatarDraft(value => ({ ...value, style }))
           }}>
             <FormControlLabel value="murim" control={<Radio />} label="Murim · artista marcial" />
             <FormControlLabel value="cacador" control={<Radio />} label="Caçador · guerreiro tático" />
             <FormControlLabel value="auto" control={<Radio />} label="Automático · pelo equipamento" />
           </RadioGroup>
         </FormControl>
-        <FormControlLabel control={<Switch checked={avatarPreferences.mixed} onChange={(_, mixed) => updateAvatarPreferences({ ...avatarPreferences, mixed })} />} label="Equipamentos dos dois mundos" />
+        <FormControlLabel control={<Switch checked={avatarDraft.mixed} onChange={(_, mixed) => setAvatarDraft(value => ({ ...value, mixed }))} />} label="Equipamentos dos dois mundos" />
         <p className="muted">Ative para escolher peças de Murim e Caçador no mesmo catálogo. Desative para mostrar a trilha do personagem e os itens iniciais. As peças já equipadas e os bônus permanecem.</p>
-        <p className="muted">A aparência é salva neste navegador para sua conta. A progressão XP e Qi continua independente.</p>
-        {avatarStorageError && <Alert severity="warning">O navegador não conseguiu salvar a preferência. A escolha vale nesta sessão.</Alert>}
+        <div style={{ display: 'grid', justifyItems: 'center', marginBlock: 12 }}>
+          <WarriorAvatar size={180} avatarStyle={editingStyle} appearances={avatarDraft} gear={gear.data} />
+        </div>
+        <h3>Aparência de {editingStyle === 'murim' ? 'Murim' : 'Caçador'}</h3>
+        <div className="profile-form">
+          {([['hair','Cabelo'],['face','Rosto'],['skin','Tom de pele'],['hairColor','Cor do cabelo'],['energy','Cor da energia']] as const).map(([key,label]) =>
+            <TextField key={key} select size="small" label={label} value={avatarDraft[editingStyle][key]} disabled={avatarSaving}
+              onChange={event => setAvatarDraft(value => ({ ...value, [editingStyle]: { ...value[editingStyle], [key]: Number(event.target.value) } }))}>
+              {appearanceOptions[key].map((name,index) => <MenuItem key={name} value={index}>{name}</MenuItem>)}
+            </TextField>)}
+        </div>
+        <p className="muted">Cabelos e rosto podem ficar encobertos por elmos fechados. As duas aparências são independentes e salvas na sua conta.</p>
+        {avatarError && <Alert severity="error">{avatarError}</Alert>}
       </DialogContent>
-      <DialogActions><Button variant="contained" onClick={() => setAvatarSettings(false)}>Concluir</Button></DialogActions>
+      <DialogActions><Button disabled={avatarSaving} onClick={() => setAvatarSettings(false)}>Cancelar</Button><Button variant="contained" disabled={avatarSaving} onClick={() => void saveAvatarSettings()}>{avatarSaving ? 'Salvando…' : 'Concluir'}</Button></DialogActions>
     </Dialog>
   </div>
 }

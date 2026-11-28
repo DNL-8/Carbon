@@ -58,7 +58,7 @@ def test_profile_without_biometrics(setup):
 @pytest.mark.parametrize("change", [
     {"name": " "}, {"name": "a" * 81}, {"name": "😀" * 41}, {"name": 12},
     {"heroClass": "other"}, {"objective": "other"}, {"experience": "other"},
-    {"avatar": None}, {"avatar": "😀" * 13}, {"avatar": 12},
+    {"avatar": None}, {"avatar": "😀" * 13}, {"avatar": 12}, {"avatar": "c2:219999999999"},
     {"heightCm": "180"}, {"heightCm": 99}, {"weightKg": 351}, {"weightKg": True},
     {"restingHrBaseline": 60.5}, {"restingHrBaseline": "60"}, {"restingHrBaseline": 29},
     {"maxHrEstimated": 221}, {"restingHrBaseline": 120, "maxHrEstimated": 120},

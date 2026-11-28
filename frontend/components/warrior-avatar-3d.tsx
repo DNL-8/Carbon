@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { getEquipmentArt, type EquipmentFamily } from '../lib/equipment-art'
 import type { AvatarGear } from './warrior-avatar'
-import { resolveAvatarStyle, type AvatarStyle } from '../lib/avatar-preferences'
+import { resolveAvatarStyle, defaultAvatarPreferences, energyColor, skinColors, hairColors, type AvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 
 type V = [number, number, number]
 type Color = V
 type Transform = (v: V) => V
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 type Props = {
-  avatarStyle?: AvatarStyle; size: number; gear?: AvatarGear[]; look: { x: number; y: number }
+  avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; size: number; gear?: AvatarGear[]; look: { x: number; y: number }
   paused: boolean; pulse: number; attack: number; levelUp: number
   victory: boolean; milestone: boolean; resting: boolean; lowHp: boolean
 }
@@ -30,7 +30,6 @@ function color(hex: string): Color {
   const n=/^#[0-9a-f]{6}$/i.test(hex) ? parseInt(hex.slice(1),16) : 0x71717a
   return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]
 }
-const skin=color('#c99873'), hair=color('#252028')
 const dark=color('#24242b'), steel=color('#565963'), black=color('#101116'), gold=color('#fb923c'), light=color('#fff1d6')
 const TAU=Math.PI*2
 
@@ -227,10 +226,12 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
   const helm=bySlot('elmo'), body=bySlot('armadura'), cloak=bySlot('capa'), blade=bySlot('arma')
   // Character identity is independent of equipped item families.
   const martial=resolveAvatarStyle(props.avatarStyle??'auto',props.gear)==='murim'
-  const energy=martial?gold:color('#60a5fa')
+  const appearance=(props.appearances??defaultAvatarPreferences)[martial?'murim':'cacador']
+  const energy=color(energyColor(martial?'murim':'cacador',appearance))
+  const skin=color(skinColors[appearance.skin]),hair=color(hairColors[appearance.hairColor])
   const [armorTint,armorTrim]=palette(body,martial?color('#633c2b'):steel)
   const clothBody=(!body&&martial)||body?.family==='tunic'||body?.family==='robe'||body?.family==='coat'
-  const bareHead=martial&&(!helm||['band','diadem','crown','halo'].includes(helm.family))
+  const bareHead=(martial||Boolean(props.appearances))&&(!helm||['band','diadem','crown','halo'].includes(helm.family))
   const idle=Math.sin(time*(props.resting?1.6:2.5))*.035
   const rig=pose(I,[0,idle+celebrate*.13,0],0,0,Math.sin(time*1.25)*.025+strike*.08)
   const torso=pose(rig,[0,-.12,0],props.resting?.08:0)
@@ -266,14 +267,19 @@ export function drawModel(props: Props, time: number, turn: number, strike: numb
       m.orb(hand,[-.18,.12,.18],[qi,qi,qi],props.lowHp?color('#f87171'):energy,.5)
     }
   }
-  m.orb(head,[0,0,0],[.51,.51,.43],bareHead?skin:dark)
+  m.orb(head,[0,0,0],[bareHead&&appearance.face===1?.54:.51,.51,.43],bareHead?skin:dark)
   if(bareHead){
     // Original martial artist silhouette: visible face, tied hair and topknot.
-    m.ringBody(head,[0,0,-.015],[[.14,.51,.44],[.32,.47,.42],[.49,.30,.29],[.53,0,0]],hair)
-    m.orb(head,[0,.53,-.10],[.15,.14,.14],hair)
-    m.box(head,[0,.43,-.10],[.22,.075,.20],armorTrim,.025)
+    if(appearance.hair!==3)m.ringBody(head,[0,0,-.015],[[.14,.51,.44],[.32,.47,.42],[.49,.30,.29],[.53,0,0]],hair)
+    if(appearance.hair===0){
+      m.orb(head,[0,.53,-.10],[.15,.14,.14],hair)
+      m.box(head,[0,.43,-.10],[.22,.075,.20],armorTrim,.025)
+    }else if(appearance.hair===2){
+      for(const sign of [-1,1])m.box(head,[sign*.37,-.23,-.18],[.24,.68,.29],hair,.06)
+      m.box(head,[0,-.20,-.34],[.68,.73,.22],hair,.09)
+    }
     m.box(head,[0,-.12,.43],[.09,.12,.10],skin,.035)
-    for(const side of [-1,1])m.box(head,[side*.17,.025,.41],[.20,.045,.045],hair,.015)
+    for(const side of [-1,1])m.box(pose(head,[side*.17,.025,.41],0,0,appearance.face===2?side*.25:0),[0,0,0],[.20,.045,.045],hair,.015)
   }else m.box(head,[0,-.09,.38],[.82,.38,.18],black,.12)
   if(helm||!bareHead)helmet(m,head,helm)
   const blink=moving&&time%4.8>4.66?.12:1
