@@ -357,7 +357,8 @@ export function WarriorAvatar3D(props: Props) {
   const wakeRef=useRef<(()=>void)|null>(null)
   const [ready,setReady]=useState(false)
   useEffect(()=>{latest.current=props;wakeRef.current?.()},[props])
-  useEffect(()=>{props.onRendererChange?.(ready)},[ready,props.onRendererChange])
+  const { onRendererChange } = props
+  useEffect(()=>{onRendererChange?.(ready)},[ready,onRendererChange])
   useEffect(()=>{
     const target=ref.current
     if(!target) return
