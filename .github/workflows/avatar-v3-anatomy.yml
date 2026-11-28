@@ -1,0 +1,34 @@
+name: Avatar V3 · anatomia PC
+on:
+  push:
+    branches: ['feature/avatar-v3-high-poly']
+    paths:
+      - 'frontend/experiments/avatar-v3/**'
+      - '.github/workflows/avatar-v3-anatomy.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  anatomy:
+    if: github.ref == 'refs/heads/feature/avatar-v3-high-poly'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Instalar Blender no runner descartável
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+          /usr/bin/blender --version
+      - name: Gerar escultura procedural e candidatos desktop
+        run: |
+          env -u LD_LIBRARY_PATH -u PYTHONHOME -u PYTHONPATH /usr/bin/blender -b --factory-startup --python-exit-code 1 --python frontend/experiments/avatar-v3/anatomy.py -- "$RUNNER_TEMP/avatar-v3-anatomy"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avatar-v3-anatomy-pc
+          path: ${{ runner.temp }}/avatar-v3-anatomy
+          if-no-files-found: error
+          retention-days: 14
