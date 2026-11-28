@@ -597,3 +597,41 @@ export function getEquipmentArt(id: string) {
   if (!item || !art) return null
   return { ...art, accent: item.accentHex, trim: item.secondaryHex, rarity: item.rarityKey, tier: item.requirement.valor, track: item.requirement.tipo }
 }
+
+// Local coordinates of each family relative to the original 256 × 256 rig.
+// Weapon transforms are nested under the existing strike pivot (190, 182).
+export const avatarTransforms = {
+  "hood": "translate(61 21) scale(1.4 1.42)",
+  "band": "translate(68 30) scale(1.25 .95)",
+  "visor": "translate(70 51) scale(1.2 1.05)",
+  "lens": "translate(70 51) scale(1.2 1.05)",
+  "diadem": "translate(66 11) scale(1.3 .9)",
+  "helm": "translate(63 25) scale(1.35 1.32)",
+  "horn": "translate(63 19) scale(1.35 1.4)",
+  "mask": "translate(70 49) scale(1.2 1)",
+  "crown": "translate(66 11) scale(1.3 .9)",
+  "halo": "translate(51 5) scale(1.6 1.6)",
+  "tunic": "translate(76 119) scale(1.08 .98)",
+  "robe": "translate(74 119) scale(1.125 1.08)",
+  "vest": "translate(79 120) scale(1.02 .94)",
+  "plate": "translate(72 119) scale(1.17 .96)",
+  "exo": "translate(70 116) scale(1.21 1.02)",
+  "coat": "translate(75 119) scale(1.1 1.08)",
+  "cloak": "translate(36 111) scale(1.92 1.28)",
+  "coatTail": "translate(36 111) scale(1.92 1.28)",
+  "veil": "translate(36 109) scale(1.92 1.29)",
+  "banner": "translate(36 111) scale(1.92 1.28)",
+  "wings": "translate(23 99) scale(2.19 1.39)",
+  "split": "translate(36 111) scale(1.92 1.28)",
+  "ribbon": "translate(36 111) scale(1.92 1.28)",
+  "wood": "translate(190 182) rotate(16) scale(.85 1.25) translate(-48 -82)",
+  "dagger": "translate(190 182) rotate(16) scale(.82 .95) translate(-48 -82)",
+  "sword": "translate(190 182) rotate(16) scale(.85 1.35) translate(-48 -82)",
+  "sabre": "translate(190 182) rotate(16) scale(.85 1.35) translate(-48 -82)",
+  "spear": "translate(190 182) rotate(16) scale(.65 1.65) translate(-48 -74)",
+  "staff": "translate(190 182) rotate(16) scale(.7 1.55) translate(-48 -74)",
+  "twin": "translate(190 182) rotate(12) scale(.72 1.18) translate(-48 -82)",
+  "spirit": "translate(190 182) rotate(16) scale(.85 1.35) translate(-48 -82)",
+  "hammer": "translate(190 182) rotate(10) scale(.82 1.25) translate(-48 -80)",
+  "fan": "translate(190 182) rotate(10) scale(.82 1.02) translate(-48 -79)"
+} satisfies Record<EquipmentFamily, string>

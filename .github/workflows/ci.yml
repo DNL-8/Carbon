@@ -53,6 +53,7 @@ jobs:
       - run: node ../scripts/check-fastapi-catalog.mjs
       - run: node ../scripts/check-fastapi-progression.mjs > "$MURIM_PROGRESSION_ORACLE"
       - run: node ../scripts/check-fastapi-equipment.mjs > "$MURIM_EQUIPMENT_ORACLE"
+      - run: node ../scripts/check-equipment-art.mjs
       - run: node ../scripts/check-fastapi-rewards.mjs > "$MURIM_REWARDS_ORACLE"
       - uses: actions/setup-python@v7
         with:

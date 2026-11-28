@@ -62,4 +62,4 @@ Nenhuma decisão de escopo em aberto. Os marcos e preços foram definidos; a sim
 
 ### Biblioteca visual V2
 
-104 IDs mapeados para 33 silhuetas SVG originais, com cores do catálogo, detalhes por variante, marcador de trilha e acabamento de raridade. Miniaturas decorativas no catálogo e slots reutilizam a mesma biblioteca sem dependências externas. As formas de arte são estudos vetoriais implementados; validação de capturas e integração das formas ao mascote ainda pendentes.
+104 IDs mapeados para 33 silhuetas SVG originais, com cores do catálogo, detalhes por variante, marcador de trilha e acabamento de raridade. Miniaturas decorativas no catálogo e slots reutilizam a mesma biblioteca sem dependências externas. O mascote utiliza as mesmas 33 famílias com encaixes próprios para cabeça, tronco, costas e arma, mantendo o pivô de golpe, os olhos, a animação de respiração e o controle de movimento reduzido. As formas de arte são estudos vetoriais implementados; validação de capturas ainda pendente.

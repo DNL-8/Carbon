@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import { EQUIPMENT_CATALOG } from '../src/utils/equipmentCatalog.ts'
-import { equipmentArt, equipmentShapes } from '../frontend/lib/equipment-art.ts'
+import { avatarTransforms, equipmentArt, equipmentShapes } from '../frontend/lib/equipment-art.ts'
 
 assert.equal(Object.keys(equipmentArt).length, 104)
+assert.deepEqual(Object.keys(avatarTransforms).sort(), Object.keys(equipmentShapes).sort())
+assert.ok(Object.values(avatarTransforms).every(transform => transform.startsWith('translate(')))
 assert.deepEqual(Object.keys(equipmentArt).sort(), EQUIPMENT_CATALOG.map(item => item.id).sort())
 for (const slot of ['elmo', 'armadura', 'capa', 'arma']) {
   const variants = EQUIPMENT_CATALOG.filter(item => item.slot === slot).map(item => equipmentArt[item.id])
