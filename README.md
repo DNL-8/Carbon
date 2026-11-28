@@ -1,56 +1,57 @@
+<div align="center">
+
+<img src="frontend/public/assets/mascote-murim.svg" width="160" alt="Mascote do Murim: robô guerreiro de armadura grafite com espada de treino e esfera de Qi">
+
 # Murim — Fitness RPG & Saúde
+
+**Treine no mundo real, evolua seu personagem no jogo.**
 
 [![Murim CI](https://github.com/DNL-8/Carbon/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DNL-8/Carbon/actions/workflows/ci.yml)
 
-Aplicativo privado de treinos, saúde e evolução de personagem, inspirado no universo Murim. Combina acompanhamento de atividades físicas com progressão de Caçadores (XP) e cultivo (Qi), batalhas, missões e recuperação.
+[Funcionalidades](#funcionalidades) · [Arquitetura](#arquitetura) · [Como rodar](#como-rodar-localmente) · [Testes](#testes-e-qualidade) · [Status](#status-do-projeto) · [Documentação](#documentação)
 
-Desenvolvido para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. O acesso à aplicação é restrito às identidades Google autorizadas; não há cadastro público.
+</div>
+
+---
+
+Aplicação web e Android de treinos, saúde e progressão de personagem, inspirada no universo Murim. As atividades físicas alimentam duas trilhas de evolução, a de **Caçador (XP)** e a de **cultivo (Qi)**, com batalhas, missões e acompanhamento de recuperação.
+
+O projeto é de uso privado, feito para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. Só entram contas Google previamente autorizadas: não há cadastro público, login por senha nem modo visitante.
 
 ## Funcionalidades
 
-| Módulo | Recursos |
+| Módulo | O que faz |
 | --- | --- |
-| Treinos | Catálogo, treinos personalizados, séries, cargas, repetições, cronômetro de descanso e histórico. |
-| Progressão RPG | XP, Qi, níveis, atributos, batalhas contra chefes, missões, votos e conquistas. |
-| Arsenal | 104 equipamentos, dez conjuntos especializados, 15 recompensas de marco, 87 compras, dois itens iniciais, prévia animada e extrato de compras. |
-| Saúde | Atividades, passos, sono, frequência cardíaca, calorias, peso, IMC e indicadores de carga e recuperação. |
-| Relatórios | Gráficos MUI X Charts de evolução do peso e tendência de atividades, filtros por período e fonte e valores textuais acessíveis. |
-| Importação | Apple Health, Samsung Health, GPX e CSV; integração OAuth com Strava. |
-| Android | Aplicativo Kotlin para autenticação e sincronização de dados autorizados via Health Connect. |
-| Oráculo | Assistente Gemini com consentimento para compartilhamento de resumo de saúde e treino. |
+| 🏋️ **Treinos** | Catálogo e treinos personalizados, séries, cargas, repetições, cronômetro de descanso e histórico. |
+| ⚔️ **Progressão RPG** | XP, Qi, níveis, atributos, batalhas contra chefes, missões, votos e conquistas. |
+| 🛡️ **Arsenal** | 104 equipamentos em dez conjuntos, com bônus, prévia animada no mascote e extrato de compras. |
+| ❤️ **Saúde** | Atividades, passos, sono, frequência cardíaca, calorias, peso, IMC e indicadores de carga e recuperação. |
+| 📈 **Relatórios** | Gráficos de evolução do peso e tendência de atividades, filtros por período e fonte e valores em texto. |
+| 📥 **Importação** | Arquivos do Apple Health e Samsung Health, GPX e CSV, além de integração OAuth com o Strava. |
+| 📱 **Android** | App Kotlin que sincroniza dados autorizados do Health Connect. |
+| 🔮 **Oráculo** | Assistente com Gemini para consultas sobre treino e recuperação. |
 
-As métricas de recuperação e as sugestões do Oráculo são informativas, não constituem diagnóstico ou recomendação médica individual.
+O Oráculo envia ao Gemini a pergunta, dados de progressão e perfil de jogo e um resumo dos treinos. O resumo de recuperação e carga só é incluído quando autorizado na consulta.
 
-## Arsenal V2
+> [!IMPORTANT]
+> As métricas de recuperação e as respostas do Oráculo são informativas. Não constituem diagnóstico nem recomendação médica individual.
 
-- Quatro slots (26 peças por slot): elmo, armadura, capa e arma. São 51 peças de Caçador, 51 de Murim e dois itens iniciais.
-- Resgate gratuito após atingir um marco, inclusive para progresso anterior; compra com moedas e equipar são operações distintas. Os 52 IDs anteriores e os dez IDs de conjuntos foram preservados.
-- Bônus especializados em XP, moedas ou dano contra chefes; bônus de conjunto de 2 peças (+4%) ou 4 peças (+10%, substitui o de 2).
-- Catálogo com busca sem acentos, filtros, ordenação, 24 peças por página e comparação da prévia com o equipamento ativo.
-- Mascote SVG interativo com 33 famílias visuais, miniaturas, animação de golpe e pausa. A coleção completa é opcional; não exige uma rotina específica de treino.
+<details>
+<summary><strong>Regras do Arsenal</strong></summary>
 
-Consulte [Arsenal — catálogo, regras e economia](docs/plano-arsenal.md).
+<br>
 
-## Stack tecnológica
+- **Peças:** quatro slots (elmo, armadura, capa e arma), com 26 peças cada. São 51 de Caçador, 51 de Murim e duas iniciais.
+- **Aquisição:** 15 recompensas de marco, resgatadas sem custo (inclusive por progresso anterior), e 87 compras com moedas. Adquirir e equipar são ações separadas.
+- **Bônus:** especializados em XP, moedas ou dano contra chefes. Os conjuntos dão +4% com 2 peças ou +10% com 4 peças (não acumulam).
+- **Catálogo:** busca que ignora acentos, filtros, ordenação, 24 peças por página e comparação com o equipamento ativo.
+- **Mascote:** SVG interativo com 33 famílias visuais, animação de golpe e pausa.
 
-| Camada | Tecnologia |
-| --- | --- |
-| Frontend | Next.js (App Router), React, TypeScript |
-| Interface | Material UI, Emotion, MUI X Charts Community |
-| Estado e formulários | TanStack Query, React Hook Form, Zod |
-| API | Python, FastAPI, Pydantic, Uvicorn |
-| Autenticação | Authlib, Google OAuth2/OIDC, sessões próprias |
-| Banco de dados | PostgreSQL / Neon, SQLAlchemy, psycopg, Alembic |
-| Android | Kotlin, Jetpack Compose, Material 3, Health Connect, WorkManager |
-| Integrações | Google, Gemini e Strava |
-| Qualidade | Ruff, pytest, Playwright, axe-core, JUnit, Gradle, GitHub Actions |
-| Dependências | Bun e uv, com lockfiles versionados |
+A coleção completa é opcional e não exige uma rotina específica de treino. Detalhes em [Arsenal V2](docs/plano-arsenal.md).
 
-A implementação atual não depende de Vue, Nuxt, Nitro ou Better Auth.
+</details>
 
 ## Arquitetura
-
-Visão geral para quem possui conhecimentos básicos de informática.
 
 ```mermaid
 flowchart TD
@@ -75,43 +76,55 @@ flowchart TD
     class D storage
 ```
 
-- **Frontend:** interface que o usuário acessa pelo navegador.
-- **Android:** aplicativo que coleta dados autorizados do Health Connect.
-- **Proxy:** encaminha as solicitações dos aplicativos à API.
-- **Backend:** valida o acesso e processa treinos, saúde, XP, Qi e equipamentos.
-- **Banco de dados:** armazena contas, histórico e progresso.
-- **Integrações:** Google para login, Strava para atividades e Gemini para o assistente Oráculo.
+A web e o Android falam com a API pelo proxy do Next.js. O FastAPI concentra autenticação, autorização, regras de negócio e persistência. O diagrama descreve a arquitetura do código, não um ambiente de produção homologado.
 
-O diagrama representa a arquitetura lógica do código, não a confirmação de um ambiente de produção homologado.
+### Stack
 
-## Estrutura do repositório
+| Camada | Tecnologias |
+| --- | --- |
+| Web | Next.js (App Router), React, TypeScript |
+| Interface | Material UI, Emotion, MUI X Charts Community |
+| Estado e formulários | TanStack Query, React Hook Form, Zod |
+| API | Python, FastAPI, Pydantic, Uvicorn |
+| Autenticação | Google OAuth2/OIDC com Authlib e sessões próprias |
+| Banco de dados | PostgreSQL / Neon, SQLAlchemy, psycopg, Alembic |
+| Android | Kotlin, Jetpack Compose, Material 3, Health Connect, WorkManager |
+| Qualidade | Biome, Ruff, pytest, Playwright, axe-core, JUnit, GitHub Actions |
+| Dependências | Bun e uv, com lockfiles versionados |
+
+### Estrutura do repositório
 
 ```text
 Carbon/
 ├── frontend/           # Next.js, componentes, gráficos e testes Playwright
-├── backend/            # FastAPI, testes, Alembic e regras de negócio
-├── android/            # Kotlin, Health Connect e Gradle wrapper
-├── src/                # Tipos e regras RPG compartilhadas
-├── scripts/            # Paridade, backup e utilitários
+├── backend/            # FastAPI, regras de negócio, Alembic e testes
+├── android/            # App Kotlin, Health Connect e Gradle wrapper
+├── src/                # Tipos e regras RPG de referência em TypeScript
+├── scripts/            # Verificações de paridade e backup
 ├── docs/               # Documentação técnica e homologação
-├── .github/workflows/  # CI e backup PostgreSQL
-├── AGENTS.md           # Instruções de desenvolvimento para agentes
-├── DESIGN.md           # Identidade visual e acessibilidade
-└── README.md
+├── .github/workflows/  # CI e backup do PostgreSQL
+├── AGENTS.md           # Instruções para agentes de desenvolvimento
+└── DESIGN.md           # Identidade visual e acessibilidade
 ```
 
-## Desenvolvimento local
+## Como rodar localmente
 
 ### Pré-requisitos
 
-- Node.js 24 e Bun 1.4.5.
-- Python 3.13 e uv.
-- PostgreSQL isolado para desenvolvimento e testes.
-- JDK 17 e Android SDK 35 para compilar o aplicativo Android.
+| Para | Instale |
+| --- | --- |
+| Web | Node.js 24 e Bun 1.4.5 |
+| API | Python 3.13 e uv |
+| Banco | PostgreSQL 16 ou superior (a CI usa o 18), em uma instância só para desenvolvimento |
+| Login | Cliente OAuth no Google Cloud |
+| Android (opcional) | JDK 17 e Android SDK 35 |
 
-Os comandos abaixo usam Windows PowerShell. Execute cada bloco em um terminal separado, a partir da raiz do repositório.
+Os comandos usam **Windows PowerShell**. Comece na raiz do repositório; as etapas 2 a 4 continuam no diretório `backend/`.
 
-### 1. Backend
+> [!CAUTION]
+> Nunca aponte o ambiente local, os testes ou o bootstrap para o banco de produção.
+
+### 1. Configurar o backend
 
 ```powershell
 cd backend
@@ -119,19 +132,68 @@ uv sync --locked
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Copie o arquivo de exemplo somente na primeira configuração, sem sobrescrever um `.env` existente. Preencha o banco e a autenticação seguindo o [guia do backend](backend/README.md) e a [configuração Google](docs/python-auth-cutover.md).
+Preencha o `backend/.env`:
 
-Antes de iniciar a aplicação, prepare o banco com Alembic conforme o [guia PostgreSQL / Neon](docs/neon-postgresql.md). Não execute bootstrap de banco vazio contra uma base existente.
+| Variável | Uso |
+| --- | --- |
+| `DATABASE_URL` | Conexão PostgreSQL da API. |
+| `APP_ORIGIN` | Origem exata do frontend. Localmente, `http://127.0.0.1:38200` (a configuração HTTP de login não aceita `localhost`; fora do loopback, use HTTPS). |
+| `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` | Cliente OAuth do Google. |
+| `PYTHON_AUTH_SECRET` | Segredo aleatório com pelo menos 32 caracteres. |
+| `GOOGLE_USERS` | JSON que liga o `sub` de cada conta Google a um ID interno distinto. |
+| `ENABLE_WRITES` | Vem como `false`. Use `true` em um ambiente preparado para registrar dados e usar o Oráculo. |
+| `GEMINI_API_KEY` e `GEMINI_MODEL` | Opcionais, para o Oráculo. |
+| `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` e `STRAVA_SESSION_SECRET` | Opcionais, para o Strava. Exigem `APP_ORIGIN` em HTTPS e segredo de sessão com 32 caracteres ou mais. |
+
+No Google Cloud, cadastre a URI de callback `http://127.0.0.1:38200/api/auth/callback/google`. Veja [autenticação Google](docs/python-auth-cutover.md).
+
+### 2. Preparar o banco
+
+O Alembic lê as variáveis do terminal (não do `.env`) e exige uma conexão direta, sem pooler. Crie previamente um banco de desenvolvimento **novo e vazio**:
+
+```powershell
+$env:MURIM_MIGRATION_DATABASE_URL = 'postgresql://USUARIO:SENHA@127.0.0.1:5432/murim_dev'
+$env:MURIM_BOOTSTRAP_EMPTY = '1'
+uv run alembic upgrade head
+Remove-Item Env:MURIM_BOOTSTRAP_EMPTY
+uv run alembic check
+Remove-Item Env:MURIM_MIGRATION_DATABASE_URL
+```
+
+Substitua os valores de exemplo pela conexão privada de desenvolvimento e confirme o sucesso de cada comando. Em um banco **existente** com o schema compatível, não defina `MURIM_BOOTSTRAP_EMPTY`. Para o schema antigo, siga a [migração legada](docs/migracao-legado.md).
+
+### 3. Provisionar o usuário
+
+O login não cria contas. Em um banco de desenvolvimento novo, após confirmar a identidade e o e-mail verificado de cada conta Google, insira o usuário com o mesmo e-mail:
+
+```sql
+INSERT INTO auth_user (id, name, email, email_verified)
+VALUES ('jogador-dev', 'Jogador Dev', 'voce@example.com', true);
+```
+
+Depois, associe o `sub` verificado dessa conta ao ID no `.env`:
+
+```dotenv
+GOOGLE_USERS={"SEU_GOOGLE_SUB":"jogador-dev"}
+```
+
+Use IDs distintos para as duas contas autorizadas. Nunca vincule automaticamente uma conta apenas pelo e-mail nem versione as identidades reais.
+
+### 4. Iniciar a API
 
 ```powershell
 uv run uvicorn app.main:app --host 127.0.0.1 --port 38202 --no-access-log
 ```
 
-- API local: http://127.0.0.1:38202
-- Swagger: http://127.0.0.1:38202/docs
-- Health: `/api/health`; readiness: `/api/ready`.
+| Endereço | Para quê |
+| --- | --- |
+| http://127.0.0.1:38202/docs | Swagger |
+| http://127.0.0.1:38202/api/health | Verifica se o processo está no ar |
+| http://127.0.0.1:38202/api/ready | Verifica autenticação e banco |
 
-### 2. Frontend
+### 5. Iniciar o frontend
+
+Em outro terminal, na raiz do repositório:
 
 ```powershell
 cd frontend
@@ -140,68 +202,79 @@ if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 bun run dev --port 38200
 ```
 
-Copie o exemplo apenas na primeira configuração. O valor local de `MURIM_FASTAPI_ORIGIN` é `http://127.0.0.1:38202`. Acesse http://127.0.0.1:38200. Consulte o [guia do frontend](frontend/README.md).
+O `.env.local` precisa de `MURIM_FASTAPI_ORIGIN=http://127.0.0.1:38202`. Acesse http://127.0.0.1:38200.
 
-### 3. Android
+### 6. Compilar o Android (opcional)
+
+Em outro terminal, na raiz do repositório:
 
 ```powershell
 cd android
-.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug "-PfitnessApiOrigin=https://seu-app.example"
 ```
 
-APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
+- O APK sai em `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Informe sempre a origem HTTPS do seu ambiente, igual ao `APP_ORIGIN`, por `-PfitnessApiOrigin` ou pela variável `FITNESS_API_ORIGIN`. Sem isso, o build usa o padrão definido em `app/build.gradle.kts`.
+- No Google Cloud, registre o pacote `com.dnl8.fitnessrpg.debug` (versão debug) e o SHA-1 da assinatura.
+- Requer Android 8.0 (API 26) ou superior. A disponibilidade do Health Connect depende também do sistema e das permissões do dispositivo.
 
-Configure `fitnessApiOrigin` com a origem HTTPS autorizada e registre o pacote e a assinatura do APK no Google Cloud. Para instalação e permissões, consulte o [guia Android](android/README.md).
-
-## Health Connect
-
-A sincronização manual consulta os últimos 30 dias. O WorkManager pode sincronizar periodicamente, aproximadamente a cada seis horas, quando houver conexão e permissão de leitura em segundo plano.
-
-- Coleta de calorias ativas, sem metabolismo basal.
-- Medições ausentes não são apresentadas como zeros medidos nos relatórios.
-- Importações deduplicadas; atividades corrigidas mantêm o XP original.
-- Tokens de alterações criptografados por conta e permissões; o checkpoint avança após confirmação dos lotes.
-- Limitações atuais: alterações provocam releitura da janela de 30 dias; exclusões individuais e correções fora da janela ainda não são reconciliadas automaticamente. Calorias antigas podem representar energia total.
-
-## Segurança e privacidade
-
-A autenticação é restrita a identificadores Google previamente vinculados a contas internas distintas. O servidor valida a sessão, a origem das escritas e a propriedade dos registros. Sessões web usam cookies HttpOnly, Secure em HTTPS e SameSite, com tokens armazenados em hash no servidor e expiração de sete dias. O Android mantém o cookie em armazenamento criptografado.
-
-Nunca versione segredos, tokens, IDs de contas autorizadas ou dados pessoais de saúde. Use os arquivos de exemplo e configure credenciais apenas no ambiente privado. Não utilize produção para testes ou bootstrap. O backup PostgreSQL criptografado possui workflow independente, cuja configuração e restauração precisam ser verificadas.
+No Linux ou macOS, use `./gradlew`. Instalação e permissões estão no [guia Android](android/README.md).
 
 ## Testes e qualidade
 
-| Diretório | Verificações |
+| Diretório | Comandos |
 | --- | --- |
-| backend/ | `uv run ruff check .` · `uv run pytest -q` |
-| frontend/ | `bun run lint` · `bun run typecheck` · `bun run build` · `bun run test` |
-| android/ | `.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug` |
+| `backend/` | `uv run ruff check .` · `uv run pytest -q` |
+| `frontend/` | `bun run lint` · `bun run typecheck` · `bun run build` · `bun run test` |
+| `android/` | `.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug` |
 
-Quando o contrato OpenAPI mudar, execute `bun run generate:api` em `frontend/`. Os testes de integração exigem PostgreSQL descartável em loopback, banco `murim_fastapi_test` e dados sintéticos. Consulte [CI](docs/ci.md).
+- **Integração:** exige um PostgreSQL descartável em loopback, com banco `murim_fastapi_test` já inicializado, informado em `MURIM_TEST_DATABASE_URL`. Sem a variável, o pytest pula esses testes de integração.
+- **Playwright:** além do banco acima em `127.0.0.1`, requer `uv sync --locked` no backend, `bun run build`, o Chromium (`bunx playwright install chromium`) e as portas 38200 e 38212 livres. Os provedores Google, Gemini e Strava são simulados.
+- **Contrato da API:** ao mudar o OpenAPI, execute `bun run generate:api` em `frontend/`.
 
-O pipeline principal possui dois jobs: Aplicação (FastAPI + Next.js) e Android (testes e APK). Inclui auditoria de dependências, paridade RPG, migrations, contratos, testes de integração e acessibilidade desktop/mobile.
+A CI tem dois jobs, **Aplicação** (FastAPI + Next.js) e **Android**, que cobrem paridade das regras RPG, lint, testes, auditoria de dependências, migrations, backup e restauração em banco descartável, builds, testes web em desktop e mobile e testes de interface no emulador. Veja [CI](docs/ci.md).
 
-## Estado e homologação
+## Health Connect
 
-- Arsenal V2 publicado na main no commit [cbee77b](https://github.com/DNL-8/Carbon/commit/cbee77bf5ea24532ccc445bcd68c76aee034e60e). Estado consultado em 28/11/2026: [execução 46104328684](https://github.com/DNL-8/Carbon/actions/runs/46104328684), homologação automatizada ainda não concluída na consulta. Acompanhe o [pipeline atual](https://github.com/DNL-8/Carbon/actions); esta anotação é histórica.
-- Referência anterior: [commit 44c093c](https://github.com/DNL-8/Carbon/actions/runs/46039846414), aprovado nos dois jobs antes da expansão.
-- Google, Gemini e Strava são simulados nos testes automatizados.
-- Homologação com provedores reais, Health Connect em aparelho físico, restauração de backup e compatibilidade do banco de destino ainda precisam ser confirmadas.
-- Não há confirmação de que um deployment de produção executa esta versão da stack. Valide o commit e o ambiente antes de utilizar o aplicativo com dados reais.
+A sincronização manual consulta os últimos 30 dias. Com conexão e permissão de leitura em segundo plano, o WorkManager também sincroniza periodicamente, a cada seis horas aproximadamente.
+
+- Coleta somente calorias ativas, sem o metabolismo basal.
+- Medições ausentes não aparecem como zero nos relatórios.
+- Importações são deduplicadas, e atividades corrigidas mantêm o XP original.
+- Tokens de alterações são criptografados por conta e permissões; o checkpoint só avança após a confirmação dos lotes.
+
+**Limitações atuais:** alterações provocam a releitura da janela de 30 dias; exclusões individuais e correções fora dessa janela não são reconciliadas automaticamente; calorias importadas por versões antigas podem representar a energia total.
+
+## Segurança e privacidade
+
+- Acesso restrito a identidades Google vinculadas a contas internas distintas.
+- O servidor valida a sessão, a origem das escritas e a propriedade dos registros.
+- Sessões web usam cookies `HttpOnly` e `SameSite` (`Secure` em HTTPS), expiram em sete dias e têm apenas o hash do token guardado no servidor.
+- O Android mantém o cookie em armazenamento criptografado.
+- Nunca versione segredos, tokens, IDs de contas autorizadas ou dados pessoais de saúde.
+- O backup criptografado do PostgreSQL tem workflow próprio; sua configuração e a restauração real precisam ser verificadas.
+
+## Status do projeto
+
+O resultado atual da integração contínua está no selo no topo e em [Actions](https://github.com/DNL-8/Carbon/actions). CI aprovada não equivale a homologação com serviços reais.
+
+Ainda falta confirmar:
+
+- [ ] Login Google, Gemini e Strava com provedores reais
+- [ ] Health Connect em aparelho físico
+- [ ] Restauração de um backup real em ambiente isolado
+- [ ] Compatibilidade do banco de destino (há um [schema legado](docs/neon-postgresql.md) documentado)
+- [ ] Correspondência entre o deployment de produção e esta versão
+- [ ] Validação visual manual do Arsenal e dos encaixes do mascote
+
+Antes de usar dados reais, siga o [roteiro de homologação](docs/homologacao.md).
 
 ## Documentação
 
-| Documento | Conteúdo |
+| Tema | Documentos |
 | --- | --- |
-| [AGENTS.md](AGENTS.md) | Arquitetura, regras de trabalho, segurança e Codex |
-| [DESIGN.md](DESIGN.md) | Identidade visual, tipografia, componentes e acessibilidade |
-| [Frontend](frontend/README.md) | Execução web e contratos |
-| [Backend](backend/README.md) | API, banco e testes |
-| [Android](android/README.md) | APK, autenticação e Health Connect |
-| [Autenticação Google](docs/python-auth-cutover.md) | Configuração privada das contas |
-| [PostgreSQL / Neon](docs/neon-postgresql.md) | Compatibilidade, Alembic e backup |
-| [CI](docs/ci.md) | Pipeline de validação |
-| [Homologação](docs/homologacao.md) | Roteiro de aceite e testes reais |
-| [Arsenal V2](docs/plano-arsenal.md) | Catálogo, regras, arte, API e simulação econômica |
-| [Auditoria](docs/auditoria.md) | Alterações e limitações conhecidas |
-| [Migração legada](docs/migracao-legado.md) | Pré-voo e preservação de dados |
+| Aplicações | [Frontend](frontend/README.md) · [Backend](backend/README.md) · [Android](android/README.md) |
+| Configuração e dados | [Autenticação Google](docs/python-auth-cutover.md) · [PostgreSQL / Neon](docs/neon-postgresql.md) · [Migração legada](docs/migracao-legado.md) |
+| Qualidade | [CI](docs/ci.md) · [Homologação](docs/homologacao.md) · [Auditoria](docs/auditoria.md) |
+| Produto e design | [Arsenal V2](docs/plano-arsenal.md) · [Design system](DESIGN.md) |
+| Contribuição com agentes | [AGENTS.md](AGENTS.md) |
