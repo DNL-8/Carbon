@@ -15,13 +15,14 @@ type AnimationRequest = { clip: Clip; sequence: number }
 type Art = NonNullable<ReturnType<typeof getEquipmentArt>>
 const slots = ['elmo', 'armadura', 'capa', 'arma'] as const
 
-// The catalog is authoritative. These are prototype attachments, not final sculpted assets.
+// Catalog-driven original procedural attachments; item-specific geometry and finish, not final hand-sculpted assets.
 function makeAttachment(art: Art, slot: typeof slots[number]) {
   const group = new THREE.Group()
-  const main = new THREE.MeshStandardMaterial({ color: art.accent, roughness: slot === 'arma' ? .32 : .74, metalness: slot === 'arma' ? .7 : .2, side: THREE.DoubleSide })
+  const rigid = slot==='arma' || ['visor','lens','helm','horn','mask','crown','plate','exo'].includes(art.family)
+  const main = new THREE.MeshStandardMaterial({ color: art.accent, roughness: rigid ? .30+art.detail%4*.045 : .85, metalness: rigid ? .62 : .05, side: THREE.DoubleSide })
   const trim = new THREE.MeshStandardMaterial({ color: art.trim, roughness: .42, metalness: .45, side: THREE.DoubleSide })
   const dark = new THREE.MeshStandardMaterial({ color: '#17191e', roughness: .8 })
-  const glow = new THREE.MeshStandardMaterial({ color: art.trim, emissive: art.trim, emissiveIntensity: art.tier >= 4 ? .8 : .1 })
+  const glow = new THREE.MeshStandardMaterial({ color: art.trim, emissive: art.trim, emissiveIntensity: art.tier >= 4 ? .65 : .12 })
   const f = art.family
   const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x=0, y=0, z=0) => {
     const mesh = new THREE.Mesh(geometry, material)
@@ -35,8 +36,40 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     const shape=new THREE.Shape()
     points.forEach(([px,py],i)=>{ if(i===0)shape.moveTo(px,py);else shape.lineTo(px,py) })
     shape.closePath()
-    const mesh=add(new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false}),m,x,y,z-depth/2)
+    const bevel=Math.min(.003,depth*.16)
+    const mesh=add(new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:1,steps:1}),m,x,y,z-depth/2)
     return mesh
+  }
+  // A five-bit relief motif encodes the 26 designs in each slot without changing their fit.
+  // The motif is actual geometry: raised studs versus incised-looking dark rivets.
+  const motif=(x:number,y:number,z:number,axis:'x'|'y',spacing:number,radius:number)=>{
+    for(let bit=0;bit<5;bit++){
+      const raised=(art.detail&(1<<bit))!==0
+      const stud=ball(raised?radius:radius*.58,raised?trim:dark,x+(axis==='x'?(bit-2)*spacing:0),y+(axis==='y'?(bit-2)*spacing:0),z)
+      stud.scale.z=raised?.75:.45
+      stud.name='DetailBit'+bit+(raised?'Raised':'Recessed')
+    }
+  }
+  // A narrow cape is curved away from the body rather than made of a flat slab.
+  const drape=(side:number,w:number,h:number,offset:number)=>{
+    const points:number[]=[],indices:number[]=[]
+    const rows=10,columns=8
+    for(let row=0;row<=rows;row++){
+      const t=row/rows
+      for(let col=0;col<=columns;col++){
+        const u=col/columns
+        const x=side*(offset+u*w*(1+.28*t))
+        const z=-.055-.15*t-.025*Math.sin(u*Math.PI*3+art.detail*.17)*t
+        points.push(x,-h*t*(1-.12*(1-u)),z)
+      }
+    }
+    for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
+      const a=row*(columns+1)+col,b=a+columns+1
+      indices.push(a,b,a+1,a+1,b,b+1)
+    }
+    const geometry=new THREE.BufferGeometry()
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setIndex(indices);geometry.computeVertexNormals()
+    return add(geometry,main)
   }
   if(slot==='elmo'){
     if(f==='halo'){ring(.17,.012,glow,0,.03,-.12);ball(.022,trim,0,.20,-.12)}
@@ -48,7 +81,8 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       const mask=f==='mask'
       box(.222,mask?.088:.039,.024,main,0,mask?-.077:-.032,.124)
       if(mask){box(.142,.018,.012,dark,0,-.092,.142)}
-      else{box(.18,.016,.013,dark,0,-.032,.141);if(f==='lens')ring(.029,.006,glow,.048,-.032,.154)}
+      else{box(.18,.016,.013,dark,0,-.032,.141);if(f==='lens'){ring(.029,.006,glow,.048,-.032,.154);ball(.019,glow,.048,-.032,.154).scale.z=.35}}
+      for(const s of [-1,1])ball(.008,trim,s*.10,mask?-.075:-.032,.139)
     }else{
       const shell=add(new THREE.SphereGeometry(.138,16,12,0,Math.PI*2,0,Math.PI*.55),main,0,.027,-.006)
       shell.scale.set(1,1.12,1.04)
@@ -56,8 +90,12 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)}
       if(f==='horn')for(const s of [-1,1]){const horn=add(new THREE.ConeGeometry(.033,.12,8),trim,s*.105,.11,0);horn.rotation.z=-s*.5}
     }
+    if(f==='halo')motif(0,.19,-.12,'x',.014,.005)
+    else if(f==='band'||f==='diadem'||f==='crown')motif(0,f==='band'?-.01:.055,.12,'x',.016,.005)
+    else motif(0,f==='mask'?-.105:f==='visor'||f==='lens'?-.012:.012,.147,'x',.023,.005)
   } else if(slot==='armadura'){
     const heavy=f==='plate'||f==='exo'
+    const plateWidth=heavy ? .15+art.detail%5*.004 : .12
     const chest=add(new THREE.CylinderGeometry(heavy?.25:.22,.17,.35,10),main,0,.19,0)
     chest.scale.z=.62
     for(const s of [-1,1]){
@@ -67,19 +105,27 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       if(f==='vest')box(.065,.07,.035,trim,s*.10,.12,.14)
     }
     box(.27,.045,.24,dark,0,0,0);box(.075,.052,.024,trim,0,0,.132)
-    if(heavy)plate([[-.15,.08],[0,.13],[.15,.08],[.10,-.11],[0,-.15],[-.10,-.11]],.03,trim,0,.19,.15)
+    if(heavy){
+      plate([[-plateWidth,.08],[0,.13],[plateWidth,.08],[.10,-.11],[0,-.15],[-.10,-.11]],.03,trim,0,.19,.15)
+      for(const s of [-1,1]){plate([[0,0],[s*.055,.035],[s*.06,-.06],[0,-.08]],.012,main,s*.12,.22,.155);if(f==='exo')box(.026,.11,.033,glow,s*.205,.22,.075)}
+    } else if(f==='tunic')box(.14,.026,.025,trim,0,.09,.145)
+    motif(0,.044,.155,'x',.025,.006)
   }else if(slot==='capa'){
     for(const s of [-1,1]){
-      if(f==='wings')plate([[0,0],[s*.40,.12],[s*.36,-.24],[s*.10,-.36],[0,-.18]],.025,main,s*.04,-.02,-.05)
+      if(f==='wings'){
+        plate([[0,0],[s*.40,.12],[s*.36,-.24],[s*.10,-.36],[0,-.18]],.025,main,s*.04,-.02,-.05)
+        for(let j=0;j<3;j++){const feather=box(.018,.19+j*.035,.02,trim,s*(.15+j*.068),-.14+j*.025,-.079);feather.rotation.z=-s*(.30+j*.12)}
+      }
       else {
         const narrow=f==='banner'||f==='ribbon'
         const split=f==='split'||f==='coatTail'||f==='ribbon'
         const w=narrow?.10:.23,h=f==='veil'?.48:.65
-        const tail=plate([[0,0],[s*w,0],[s*w*1.28,-h],[0,-h*.88]],.017,main,s*(split?.035:0),0,-.045)
-        tail.rotation.x=.18
-        const border=box(.019,h*.83,.018,trim,s*w*.85,-h*.43,-.055);border.rotation.x=.18
+        drape(s,w,h,split?.035:0)
+        const border=box(.012,h*.83,.014,trim,s*(w*1.1+(split?.035:0)),-h*.43,-.135);border.rotation.x=.22
       }
     }
+    box(.17,.035,.035,trim,0,.004,-.055)
+    motif(0,.003,-.079,'x',.025,.005)
   }else{
     const long=['wood','spear','staff'].includes(f),short=f==='dagger'||f==='twin'
     rod(.019,.019,long?1.40:.27,dark,0,long?.16:0)
@@ -87,14 +133,18 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     if(f==='wood')rod(.022,.025,.9,main,0,.43)
     else if(f==='spear')plate([[-.065,.77],[0,1.10],[.065,.77],[0,.70]],.026,main)
     else if(f==='staff')ball(.07,glow,0,.93)
-    else if(f==='hammer')box(.26,.17,.13,main,0,.43)
-    else if(f==='fan')plate([[0,.08],[-.20,.35],[-.12,.44],[.12,.44],[.20,.35]],.025,main)
+    else if(f==='hammer'){box(.26,.17,.13,main,0,.43);for(const s of [-1,1])box(.038,.18,.144,trim,s*.11,.43,0)}
+    else if(f==='fan'){
+      plate([[0,.08],[-.20,.35],[-.12,.44],[.12,.44],[.20,.35]],.025,main)
+      for(let i=-3;i<=3;i++){const rib=box(.008,.30,.012,trim,i*.025,.26,.018);rib.rotation.z=-i*.16}
+    }
     else{
-      const len=short?.43:.87,bend=f==='sabre'?.10:0
+      const len=(short?.43:.87)+(art.detail%5-2)*.012,bend=f==='sabre'?.10:0
       box(.20,.04,.045,trim,0,.16)
       plate([[-.048,.19],[.048,.19],[bend+.04,len-.09],[bend,len],[bend-.04,len-.09]],.035,f==='spirit'?glow:main)
       plate([[-.008,.22],[.008,.22],[bend,len-.05]],.008,glow,0,0,.022)
     }
+    motif(0,-.025,.025,'y',.022,.004)
     if(f==='twin')group.userData.dual=true
     group.rotation.z=-.30
   }
@@ -102,6 +152,10 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     if(slot==='armadura')box(.012,.035,.009,glow,(i-art.detail%3/2)*.026,.12,.17)
     if(slot==='arma')rod(.025,.025,.012,trim,0,-.08+i*.04)
   }
+  // Release materials not used by this family as well.
+  const used=new Set<THREE.Material>()
+  group.traverse(node=>{if(node instanceof THREE.Mesh)for(const material of Array.isArray(node.material)?node.material:[node.material])used.add(material)})
+  for(const material of [main,trim,dark,glow])if(!used.has(material))material.dispose()
   return group
 }
 
@@ -172,7 +226,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
     scene.traverse(node=>{
       if(!(node instanceof THREE.Mesh))return
       const isHair=hairPattern.test(node.name)
-      const isFace=/^Mesh_(HeadMesh|Ear|EyeWhite|Iris|EyeGlint|Brow|UpperLid|Nose|Mouth)/.test(node.name)
+      const isFace=/^Mesh_(HeadMesh|Ear|EyeWhite|Iris|EyeGlint|Brow|UpperLid|LowerLid|Nose|Mouth)/.test(node.name)
       if(!isHair&&!isFace)return
       changed.push({node,scale:node.scale.clone(),visible:node.visible})
       if(isHair)node.visible=!coveredHair&&appearance.hair===defaultHair
@@ -201,6 +255,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
   useEffect(()=>{
     const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
     const ids: string[] = []
+    const designs: string[] = []
     for(const slot of slots){
       const socket=scene.getObjectByName('slot_'+slot)
       if(!socket)throw new Error('Socket GLB ausente: '+slot)
@@ -213,7 +268,13 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
         group.position.y=['band','diadem','crown','halo'].includes(art.family)?0:-.035
         // Hair coverage is handled by the appearance effect.
       }
-      if(selected&&art&&group.children.length>0)ids.push(selected.id)
+      if(selected&&art&&group.children.length>0){
+        ids.push(selected.id)
+        const bits=group.children.filter(node=>node.name.startsWith('DetailBit')).map(node=>node.name.endsWith('Raised')?'1':'0').reverse().join('')
+        const bounds=new THREE.Box3().setFromObject(group)
+        if(bits.length!==5 || ![...bounds.min.toArray(),...bounds.max.toArray()].every(Number.isFinite))throw new Error('Geometria de equipamento inválida: '+selected.id)
+        designs.push(slot+':'+bits)
+      }
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
         const left=scene.getObjectByName('HandL')??scene.getObjectByName('Hand.L')
@@ -222,6 +283,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onCont
     }
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
+    gl.domElement.dataset.glbDesign=designs.sort().join(',')
     invalidate()
     return ()=>{for(const entry of attached){entry.parent.remove(entry.object);disposeAttachment(entry.object);for(const child of entry.children)child.node.visible=child.visible}}
   },[scene,gear,invalidate,gl,style])

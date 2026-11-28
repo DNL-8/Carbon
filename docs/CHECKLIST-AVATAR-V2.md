@@ -144,3 +144,8 @@ CI 46152196486 e 46152071266: nas três variantes, os testes de movimento reduzi
 ## Revisão artística — etapa 1
 
 Refinamento procedural inicial: normais suaves nas superfícies orgânicas, rosto com 13 anéis de 32 segmentos e mandíbula distinta por personagem, pálpebras inferiores, mechas curvas e cabelo base mais detalhado. Murim recebe costuras e acabamento de lapelas; Caçador recebe fivelas, abas dos bolsos e detalhes do peitoral. Os cinco meshes ponderados usam 24 segmentos e mais anéis de transição nos cotovelos/joelhos. Preservados materiais nomeados, sockets, IDs, 15 juntas, sete clips e a personalização existente. Adicionadas capturas de rosto de frente/perfil e validação de orçamento de 18 mil triângulos e 1,5 MB por GLB. A main permanece com o modelo anterior aprovado. Não equivale a escultura final, textura PBR pintada ou verificação visual de colisões; CI e revisão das capturas pendentes.
+
+
+## Revisão dos equipamentos — etapa 2
+
+As 33 famílias mantêm os 104 IDs existentes. Cada peça passa a ter um relevo geométrico individual (cinco marcas que codificam o índice visual do catálogo por slot), acabamento de materiais rígidos/tecido, chanfros discretos e variações dimensionais de lâminas e placas. Acrescentados detalhes específicos de visores, exotrajes, asas, leques e martelos, e superfícies de capas curvas afastadas do corpo. O teste verifica 104 assinaturas geométricas por personagem, coordenadas finitas e os IDs equipados, sem modificar regras ou bônus. Os modelos continuam procedurais: não são 104 esculturas independentes, nem simulação física de tecido. Validação no navegador e clipping visual pendentes; produção permanece com a última versão aprovada.
