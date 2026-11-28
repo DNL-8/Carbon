@@ -53,7 +53,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 
 ## Evidências
 - [CI principal aprovada](https://github.com/DNL-8/Carbon/actions/runs/46149660148)
-- [Última CI GLB examinada](https://github.com/DNL-8/Carbon/actions/runs/46150219107): geração, lint, typecheck e build passaram; 2 testes de movimento reduzido passaram; 2 falharam na medição de tempo da animação após os testes do Murim.
+- [CI GLB aprovada](https://github.com/DNL-8/Carbon/actions/runs/46150966430): 4/4 testes do renderizador rígido; não inclui skinning.
 - [Laboratório e novas execuções](https://github.com/DNL-8/Carbon/actions?query=branch%3Afeature%2Favatar-v2-glb)
 
 **Limitações:** protótipos rígidos não equivalem a modelos artísticos finais. Os testes de atributos do canvas não certificam qualidade estética ou ausência de colisões. A integração não está em produção. As cinco skills externas solicitadas não estão disponíveis neste ambiente; Playwright convencional é utilizado pela CI.
@@ -62,8 +62,12 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 
 - [x] Preparar gerador de cinco superfícies contínuas com pesos normalizados e 15 juntas, preservando os sockets e as peças rígidas.
 - [x] Preparar teste de deformação real no Blender e exportação GLB + arquivo .blend em runner descartável.
-- [ ] Confirmar execução do Blender, deformação e roundtrip de sockets/clips/skin.
+- [x] Gerar e validar ambos os GLB com skin (15 juntas, cinco malhas e 304 vértices com influência mista por personagem; runner 46150966375).
+- [x] Instalar e executar Blender 5.0.1 no runner.
+- [ ] Confirmar importação no Blender, deformação e roundtrip de sockets/clips/skin.
 - [ ] Revisar a aparência e a orientação dos encaixes após exportação.
 - [ ] Refinar artisticamente as malhas e pesos antes de integrar ao visualizador.
 
 Os protótipos rígidos aprovados continuam como referência. O laboratório Blender é separado e não modifica o código ou ativos da main. A CI 46150418021 aprovou os quatro testes do visualizador rígido; a aprovação não se estende ao novo rig.
+
+Runner Blender 46150966375: os modelos ponderados passaram na validação estrutural; Blender 5.0.1 iniciou, mas a importação falhou por NumPy ausente no Python interno. Instalado python3-numpy da distribuição, isolado o Python do setup-python e acrescentado preflight. Teste de deformação agora exige que vértices de influência mista se movam e que parte da malha permaneça imóvel. A nova execução ainda precisa ser validada.

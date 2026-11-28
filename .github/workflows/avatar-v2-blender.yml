@@ -30,10 +30,11 @@ jobs:
       - name: Instalar Blender no runner descartável
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender
-          blender --version
+          sudo apt-get install -y blender python3-numpy
+          env -u LD_LIBRARY_PATH -u PYTHONHOME -u PYTHONPATH /usr/bin/blender --version
+          env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python-expr "import sys, numpy; print('BLENDER_PYTHON', sys.version, 'NUMPY', numpy.__version__)"
       - name: Importar, testar deformação e exportar com Blender
-        run: blender -b --factory-startup --python-exit-code 1 --python blender_rig.py -- "$PWD"
+        run: env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python blender_rig.py -- "$PWD"
       - run: python validate_skin.py blender-output
       - uses: actions/upload-artifact@v7
         if: always()

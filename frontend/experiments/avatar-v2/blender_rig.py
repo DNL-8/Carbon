@@ -46,8 +46,10 @@ for name in ("murim","cacador"):
     bpy.context.view_layer.update()
     after=vertices()
     moved=sum((x-y).length>0.001 for x,y in zip(before,after))
-    blended=sum(sum(group.weight>0.001 for group in vertex.groups)>=2 for vertex in sleeve.data.vertices)
-    assert moved>0 and blended>0, (name,"deformation",moved,blended)
+    blended_ids=[vertex.index for vertex in sleeve.data.vertices if sum(group.weight>0.001 for group in vertex.groups)>=2]
+    blended=len(blended_ids)
+    moved_blended=sum((before[i]-after[i]).length>0.001 for i in blended_ids)
+    assert moved>0 and moved<len(before) and moved_blended>0, (name,"deformation",moved,blended,moved_blended)
     bone.matrix_basis=old_basis
     if ad:
         ad.action=old_action
@@ -61,4 +63,4 @@ for name in ("murim","cacador"):
     if "export_force_sampling" in properties: opts["export_force_sampling"]=True
     if "export_nla_strips" in properties: opts["export_nla_strips"]=True
     bpy.ops.export_scene.gltf(**opts)
-    print("BLENDER_RIG_OK",name,"bones",len(arm.data.bones),"skinned meshes",len(meshes),"blended vertices",blended,"moved vertices",moved)
+    print("BLENDER_RIG_OK",name,"bones",len(arm.data.bones),"skinned meshes",len(meshes),"blended vertices",blended,"moved vertices",moved,"moved blended vertices",moved_blended)
