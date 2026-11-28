@@ -7,6 +7,7 @@ import math
 import pathlib
 import struct
 import numpy as np
+from generate_models import surface_uv
 
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "skinned"
@@ -99,6 +100,7 @@ def upgrade(name):
         primitive={"attributes":{
             "POSITION":acc(positions,"VEC3",5126,34962,True),
             "NORMAL":acc(np.array(norm,dtype="<f4"),"VEC3",5126,34962),
+            "TEXCOORD_0":acc(surface_uv(positions),"VEC2",5126,34962),
             "JOINTS_0":acc(np.array(ids,dtype="<u2"),"VEC4",5123,34962),
             "WEIGHTS_0":acc(weights,"VEC4",5126,34962)},
             "indices":acc(np.array(faces,dtype="<u2"),"SCALAR",5123,34963),

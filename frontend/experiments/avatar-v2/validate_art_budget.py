@@ -27,4 +27,15 @@ for name in ('murim','cacador'):
     nodes={node.get('name','') for node in doc['nodes']}
     for prefix in ('Mesh_HeadMesh','Mesh_HairCap','Mesh_HairLock','Mesh_BaseWaist','Mesh_LowerLid'):
         assert any(node.startswith(prefix) for node in nodes),(name,prefix)
-    print(name,'bytes',len(raw),'vertices',vertices,'triangles',triangles,'materials and refined mesh names OK')
+    textured={'Skin','BaseCloth','DarkCloth','Lining','Metal','Trim'}
+    for material in doc['materials']:
+        if material['name'] not in textured: continue
+        index=material['pbrMetallicRoughness']['metallicRoughnessTexture']['index']
+        img=doc['images'][doc['textures'][index]['source']]
+        assert 'bufferView' in img and img['mimeType']=='image/png',(name,material['name'],'expected embedded PNG')
+    for mesh in doc['meshes']:
+        for p in mesh['primitives']:
+            if doc['materials'][p['material']]['name'] in textured:
+                uv=doc['accessors'][p['attributes']['TEXCOORD_0']]
+                assert uv['type']=='VEC2' and uv['count']==doc['accessors'][p['attributes']['POSITION']]['count'],(name,mesh['name'],'UV count')
+    print(name,'bytes',len(raw),'vertices',vertices,'triangles',triangles,'materials, UVs and embedded maps OK')

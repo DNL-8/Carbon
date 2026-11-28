@@ -1,7 +1,7 @@
 """Carbon original procedural GLB prototypes. Requires numpy and trimesh.
 Rigid articulated meshes, not a skinned character. Y-up, +Z forward, metres.
 """
-import json, struct, math, pathlib
+import json, struct, math, pathlib, zlib
 import numpy as np
 import trimesh as tm
 OUT=pathlib.Path(__file__).parent
@@ -9,9 +9,38 @@ OUT=pathlib.Path(__file__).parent
 def rgb(h): return [int(h[i:i+2],16)/255 for i in (0,2,4)]
 def quat(axis,angle):
     v=np.asarray(axis,float); v/=np.linalg.norm(v);return [*(v*np.sin(angle/2)),float(np.cos(angle/2))]
+# Small, original, periodic roughness textures. glTF uses G for roughness and B for metallic.
+TEXTURED = {'Skin','BaseCloth','DarkCloth','Lining','Metal','Trim'}
+
+def surface_uv(vertices):
+    # Oblique planar microdetail projection, shared by rigid and weighted meshes.
+    # Coordinates intentionally repeat; no extra vertices or seam splits.
+    return np.column_stack((vertices[:,0]+.37*vertices[:,2],
+                            vertices[:,1]+.19*vertices[:,2])).astype('<f4') / .08
+
+def roughness_png(name):
+    size=64
+    y,x=np.mgrid[0:size,0:size]
+    u=2*math.pi*x/size
+    v=2*math.pi*y/size
+    if name in ('BaseCloth','DarkCloth','Lining'):
+        pattern=.5*np.sin(12*u)*np.sin(12*v)+.3*np.cos(8*u)+.2*np.cos(8*v)
+    elif name in ('Metal','Trim'):
+        pattern=.7*np.sin(16*v)+.3*np.cos(5*u+3*v)
+    else:
+        pattern=.5*np.sin(9*u+7*v)+.3*np.cos(13*u-5*v)+.2*np.cos(4*u+11*v)
+    # Subtle contrast; existing material factors and customization remain authoritative.
+    pixels=np.full((size,size,3),255,dtype=np.uint8)
+    pixels[:,:,1]=np.clip(np.rint(235+15*pattern),0,255).astype(np.uint8)
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    scanlines=b''.join(b'\x00'+row.tobytes() for row in pixels)
+    return (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',size,size,8,2,0,0,0))
+            +chunk(b'IDAT',zlib.compress(scanlines,9))+chunk(b'IEND',b''))
+
 class Model:
     def __init__(self,name):
-        self.name=name;self.buf=bytearray();self.views=[];self.acc=[];self.meshes=[];self.nodes=[];self.mats=[];self.anim=[]
+        self.name=name;self.buf=bytearray();self.views=[];self.acc=[];self.meshes=[];self.nodes=[];self.mats=[];self.anim=[];self.images=[];self.textures=[]
     def data(self,x,typ,component,target=None,bounds=False):
         x=np.ascontiguousarray(x);self.buf.extend(b'\0'*((-len(self.buf))%4));off=len(self.buf);self.buf.extend(x.tobytes());v={'buffer':0,'byteOffset':off,'byteLength':x.nbytes};
         if target:v['target']=target
@@ -23,6 +52,14 @@ class Model:
             raise ValueError(f'Invalid PBR parameters for {name}')
         m={'name':name,'pbrMetallicRoughness':{'baseColorFactor':[*rgb(h),1],'metallicFactor':metal,'roughnessFactor':rough}}
         if emission:m['emissiveFactor']=[v*emission for v in rgb(h)]
+        if name in TEXTURED:
+            raw=roughness_png(name)
+            self.buf.extend(b'\0'*((-len(self.buf))%4))
+            offset=len(self.buf);self.buf.extend(raw)
+            self.views.append({'buffer':0,'byteOffset':offset,'byteLength':len(raw)})
+            self.images.append({'name':name+'_Roughness','bufferView':len(self.views)-1,'mimeType':'image/png'})
+            self.textures.append({'source':len(self.images)-1,'sampler':0})
+            m['pbrMetallicRoughness']['metallicRoughnessTexture']={'index':len(self.textures)-1}
         self.mats.append(m);return len(self.mats)-1
     def node(self,name,parent=None,pos=(0,0,0),mesh=None):
         n={'name':name,'translation':list(pos)}
@@ -36,7 +73,10 @@ class Model:
         organic=name.startswith(('HeadMesh','Ear','EyeWhite','Iris','EyeGlint','Nose','HairCap','HairTuft','HairLock','Topknot','Ponytail','Neck','Hand.','BaseShoulder.','Sleeve.','Forearm.','Pants.','BaseTorso','BaseHip','BaseWaist','Boot.'))
         norm=(mesh.vertex_normals[mesh.faces].reshape(-1,3) if organic else np.repeat(mesh.face_normals,3,axis=0)).astype('<f4')
         p=self.data(v,'VEC3',5126,34962,True);n=self.data(norm,'VEC3',5126,34962)
-        self.meshes.append({'name':name,'primitives':[{'attributes':{'POSITION':p,'NORMAL':n},'material':mat}]})
+        attrs={'POSITION':p,'NORMAL':n}
+        if self.mats[mat]['name'] in TEXTURED:
+            attrs['TEXCOORD_0']=self.data(surface_uv(v),'VEC2',5126,34962)
+        self.meshes.append({'name':name,'primitives':[{'attributes':attrs,'material':mat}]})
         return self.node('Mesh_'+name,parent,mesh=len(self.meshes)-1)
     def animation(self,name,channels):
         a={'name':name,'samplers':[],'channels':[]}
@@ -46,6 +86,8 @@ class Model:
         self.anim.append(a)
     def export(self):
         j={'asset':{'version':'2.0','generator':'Carbon Avatar V2 prototype'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':self.nodes,'meshes':self.meshes,'materials':self.mats,'accessors':self.acc,'bufferViews':self.views,'buffers':[{'byteLength':len(self.buf)}],'animations':self.anim}
+        if self.textures:
+            j.update(images=self.images,textures=self.textures,samplers=[{'wrapS':10497,'wrapT':10497,'magFilter':9729,'minFilter':9987}])
         js=json.dumps(j,separators=(',',':')).encode();js+=b' '*((-len(js))%4);self.buf.extend(b'\0'*((-len(self.buf))%4));b=bytes(self.buf)
         raw=struct.pack('<4sII',b'glTF',2,12+8+len(js)+8+len(b))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(b),b'BIN\0')+b
         (OUT/(self.name+'.glb')).write_bytes(raw)
