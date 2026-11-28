@@ -41,3 +41,8 @@ O código-fonte do laboratório, os geradores, testes, documentação e correç�
 Os GLB reexportados pelo Blender, manifest e lockfile, visualizador, integração no Arsenal e testes autenticados foram incorporados à main. A transferência 46154648698 verificou SHA-256 dos seis arquivos do artefato `avatar-v2-prepared-blender` da execução 46154383597. As três variantes passaram nos testes isolados e a etapa de integração autenticada, incluindo lint, typecheck, build, auditoria de dependências e 20 testes Playwright, foi aprovada. O visualizador é opcional, carregado sob demanda no Arsenal pelo botão “Abrir laboratório GLB”; o avatar anterior continua disponível. Não houve alteração de banco ou regras RPG, nem release. A CI e o deploy da main após a integração precisam ser confirmados. A revisão artística, colisões e desempenho físico continuam pendentes.
 
 O preparo com `prepare.mjs` destina-se à branch de laboratório sem a integração aplicada (`feature/avatar-v2-glb`); não execute novamente sobre a main integrada. Na main, instale com `bun install --frozen-lockfile` e execute lint, typecheck, build e os testes habituais. Os GLB são ativos versionados, portanto não exigem Blender no deploy.
+
+
+### Interface do Arsenal
+
+Os controles de câmera, prévia GLB e personalização ficam recolhidos por padrão em uma engrenagem no canto superior direito do palco do personagem. A prévia continua disponível após recolher o painel. Os testes autenticados verificam abertura/fechamento, teclado, câmera e preservação do inventário. O botão Testar golpe e a pausa permanecem acessíveis fora do painel. A CI da revisão deve confirmar os testes.

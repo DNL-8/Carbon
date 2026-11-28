@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Alert, Button, ButtonBase, Chip, MenuItem, Pagination, Tab, Tabs, TextField } from '@mui/material'
+import { Alert, Button, ButtonBase, Chip, IconButton, MenuItem, Pagination, Tab, Tabs, TextField } from '@mui/material'
 import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -48,6 +48,8 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
   const [previewId, setPreviewId] = useState<string>()
   const [attack, setAttack] = useState(0)
   const [showGlb, setShowGlb] = useState(false)
+  const [showAvatarControls, setShowAvatarControls] = useState(false)
+  const avatarControlsTrigger = useRef<HTMLButtonElement>(null)
   const [message, setMessage] = useState('')
   const draft = useRef<{ id: string; name: string }>(null)
   const equipmentHeading = useRef<HTMLHeadingElement>(null)
@@ -130,6 +132,11 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
     equipmentHeading.current?.scrollIntoView({ block: 'start' })
   }
 
+  function closeAvatarControls() {
+    avatarControlsTrigger.current?.focus()
+    setShowAvatarControls(false)
+  }
+
   function clearPreview() {
     setPreviewId(undefined)
     if (tab === 'catalog' && previewTrigger.current?.isConnected) previewTrigger.current.focus()
@@ -175,10 +182,15 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
       </header>
       <div className="active-gear">
         <div className="arsenal-stage">
-          <WarriorAvatar cameraControls size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences} />
-          <Button variant="outlined" aria-expanded={showGlb} onClick={() => setShowGlb(value => !value)}>{showGlb ? "Fechar laboratório GLB" : "Abrir laboratório GLB"}</Button>
+          <IconButton ref={avatarControlsTrigger} className="arsenal-avatar-settings" color="primary" aria-label="Configurações do avatar" title="Configurações do avatar" aria-expanded={showAvatarControls} aria-controls={showAvatarControls ? 'arsenal-avatar-controls' : undefined} onClick={() => setShowAvatarControls(value => !value)}>
+            <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>⚙</span>
+          </IconButton>
+          <WarriorAvatar cameraControls={showAvatarControls} cameraPanelId="arsenal-avatar-controls" size={224} gear={shownGear} attack={attack} avatarStyle={preferences.style} appearances={preferences}
+            cameraActions={<div className="arsenal-avatar-options">
+              <Button variant="outlined" aria-expanded={showGlb} onClick={() => { closeAvatarControls(); setShowGlb(value => !value) }}>{showGlb ? "Fechar laboratório GLB" : "Abrir laboratório GLB"}</Button>
+              <Button variant="outlined" onClick={() => { closeAvatarControls(); onSettings() }}>Personalizar personagem</Button>
+            </div>} />
           {showGlb && <AvatarGlbPreview preferences={preferences} gear={shownGear ?? EMPTY_GLB_GEAR} />}
-          <Button variant="outlined" onClick={onSettings} startIcon={<span aria-hidden="true">⚙</span>}>Personalizar personagem</Button>
           <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}
             onClick={() => setAttack(value => value + 1)}>Testar golpe</Button>

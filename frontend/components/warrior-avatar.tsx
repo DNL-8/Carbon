@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { Button, ButtonGroup } from '@mui/material'
 import { EQUIPMENT_CATALOG } from '../../src/utils/equipmentCatalog'
 import { getEquipmentArt } from '../lib/equipment-art'
@@ -9,11 +9,11 @@ import { WarriorAvatar3D } from './warrior-avatar-3d'
 import { resolveAvatarStyle, defaultAvatarPreferences, energyColor, skinColors, hairColors, type AvatarStyle, type AvatarPreferences } from '../lib/avatar-preferences'
 
 export type AvatarGear = { id: string; name: string; slot: string; rarity: string; equipped: boolean }
-type Props = { cameraControls?: boolean; avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
+type Props = { cameraControls?: boolean; cameraPanelId?: string; cameraActions?: ReactNode; avatarStyle?: AvatarStyle; appearances?: AvatarPreferences; size?: number; level?: number; hp?: number; gear?: AvatarGear[]; attack?: number; victory?: boolean; milestone?: boolean; resting?: boolean }
 const rarityColors: Record<string, string> = { comum: '#a1a1aa', common: '#a1a1aa', incomum: '#34d399', uncommon: '#34d399', raro: '#60a5fa', rare: '#60a5fa', épico: '#c084fc', epico: '#c084fc', epic: '#c084fc', lendário: '#fbbf24', lendario: '#fbbf24', legendary: '#fbbf24' }
 const catalog = new Map(EQUIPMENT_CATALOG.map(item => [item.id, item]))
 
-export function WarriorAvatar({ cameraControls = false, avatarStyle = 'auto', appearances = defaultAvatarPreferences, size = 88, level, hp, gear, attack = 0, victory = false, milestone = false, resting = false }: Props) {
+export function WarriorAvatar({ cameraControls = false, cameraPanelId, cameraActions, avatarStyle = 'auto', appearances = defaultAvatarPreferences, size = 88, level, hp, gear, attack = 0, victory = false, milestone = false, resting = false }: Props) {
   const [look, setLook] = useState({ x: 0, y: 0 })
   const [pulse, setPulse] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -103,7 +103,7 @@ export function WarriorAvatar({ cameraControls = false, avatarStyle = 'auto', ap
       </span>
     </button>
     <button className="warrior-motion" type="button" aria-label="Pausar animações do guerreiro" aria-pressed={paused} onClick={() => {setPaused(value => !value); setLook({x: 0, y: 0})}}>{paused ? '▶' : 'Ⅱ'}</button>
-    {cameraControls && <div className="avatar-camera" role="group" aria-label="Câmera do personagem">
+    {cameraControls && <div id={cameraPanelId} className="avatar-camera" role="group" aria-label={cameraActions ? "Configurações do personagem" : "Câmera do personagem"}>
       <ButtonGroup size="small" variant="outlined" disabled={!webglReady} aria-label="Rotação">
         <Button aria-label="Girar personagem à esquerda" onClick={() => setCameraYaw(value => (value - Math.PI/4) % (2*Math.PI))}>↶</Button>
         <Button aria-label="Girar personagem à direita" onClick={() => setCameraYaw(value => (value + Math.PI/4) % (2*Math.PI))}>↷</Button>
@@ -111,6 +111,7 @@ export function WarriorAvatar({ cameraControls = false, avatarStyle = 'auto', ap
       </ButtonGroup>
       <Button variant="outlined" size="small" disabled={!webglReady} aria-pressed={cameraZoom>1} onClick={() => setCameraZoom(value => value===1?1.65:1)}>{cameraZoom>1?'Corpo inteiro':'Aproximar rosto'}</Button>
       {!webglReady && <small className="muted">Câmera disponível no modo 3D.</small>}
+      {cameraActions}
     </div>}
     <span className="warrior-sr" role="status">{pulse > 0 ? 'Energia Qi ativada.' : ''}{lowHp ? ' HP baixo.' : ''}{victory ? ' Chefe derrotado.' : ''}{levelUp > 0 || milestone ? ' Novo nível alcançado.' : ''}</span>
   </div>

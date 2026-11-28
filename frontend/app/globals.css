@@ -169,7 +169,12 @@ summary { cursor: pointer; color: #d4d4d8; }
   background: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--orange) 12%, var(--base)), var(--base) 74%);
 }
 .arsenal-stage .warrior-avatar { position: static; }
-.arsenal-stage .warrior-motion { position: absolute; inset: 4px 4px auto auto; }
+.arsenal-stage .warrior-motion { position: absolute; inset: 4px auto auto 4px; }
+.arsenal-stage .arsenal-avatar-settings { position: absolute; inset: 4px 4px auto auto; width: 44px; height: 44px; z-index: 1; }
+.arsenal-stage .arsenal-avatar-settings[aria-expanded=true] { background: color-mix(in srgb, var(--orange) 15%, var(--base)); }
+.arsenal-stage .avatar-camera { padding: 10px; margin-top: 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--base); }
+.arsenal-avatar-options { display: grid; gap: 8px; width: 100%; }
+.arsenal-avatar-options .MuiButton-root { width: 100%; }
 .gear-slots { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .gear-slots li { min-width: 0; align-self: center; }
 .gear-slots .gear-slot {
