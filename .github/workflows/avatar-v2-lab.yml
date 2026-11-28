@@ -41,6 +41,7 @@ jobs:
       - run: python -m pip install numpy==2.3.5 trimesh==4.11.1 scipy networkx==3.5
       - run: python experiments/avatar-v2/generate_models.py
       - run: python experiments/avatar-v2/validate_models.py
+      - run: python experiments/avatar-v2/validate_art_budget.py .
       - if: matrix.rig != 'rigid'
         run: |
           python experiments/avatar-v2/skin_models.py
@@ -54,6 +55,7 @@ jobs:
           env -u LD_LIBRARY_PATH -u PYTHONHOME -u PYTHONPATH /usr/bin/blender --version
           env -u LD_LIBRARY_PATH -u PYTHONHOME PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/blender -b --factory-startup --python-use-system-env --python-exit-code 1 --python blender_rig.py -- "$PWD"
           python validate_skin.py blender-output
+          python validate_art_budget.py blender-output
       - run: node experiments/avatar-v2/prepare.mjs
       - run: bun install --frozen-lockfile
       - run: bun run lint
@@ -93,6 +95,8 @@ jobs:
             frontend/bun.lock
             frontend/components/avatar-glb-preview.tsx
             frontend/components/arsenal.tsx
+            frontend/components/murim.tsx
+            frontend/components/training.tsx
             frontend/public/assets/avatar-v2/*.glb
           retention-days: 7
 
@@ -171,6 +175,8 @@ jobs:
             frontend/bun.lock
             frontend/components/avatar-glb-preview.tsx
             frontend/components/arsenal.tsx
+            frontend/components/murim.tsx
+            frontend/components/training.tsx
             frontend/public/assets/avatar-v2/*.glb
             frontend/tests/arsenal-glb.spec.ts
           if-no-files-found: error

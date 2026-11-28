@@ -1,7 +1,7 @@
 """Carbon original procedural GLB prototypes. Requires numpy and trimesh.
 Rigid articulated meshes, not a skinned character. Y-up, +Z forward, metres.
 """
-import json, struct, math, pathlib
+import json, struct, math, pathlib, zlib
 import numpy as np
 import trimesh as tm
 OUT=pathlib.Path(__file__).parent
@@ -9,9 +9,62 @@ OUT=pathlib.Path(__file__).parent
 def rgb(h): return [int(h[i:i+2],16)/255 for i in (0,2,4)]
 def quat(axis,angle):
     v=np.asarray(axis,float); v/=np.linalg.norm(v);return [*(v*np.sin(angle/2)),float(np.cos(angle/2))]
+# Small, original, periodic roughness textures. glTF uses G for roughness and B for metallic.
+TEXTURED = {'Skin','BaseCloth','DarkCloth','Lining','Metal','Trim'}
+
+def surface_uv(vertices):
+    # Oblique planar microdetail projection, shared by rigid and weighted meshes.
+    # Coordinates intentionally repeat; no extra vertices or seam splits.
+    return np.column_stack((vertices[:,0]+.37*vertices[:,2],
+                            vertices[:,1]+.19*vertices[:,2])).astype('<f4') / .08
+
+def material_png(name,kind):
+    size=64
+    y,x=np.mgrid[0:size,0:size]
+    u=2*math.pi*x/size
+    v=2*math.pi*y/size
+    if name in ('BaseCloth','DarkCloth','Lining'):
+        pattern=.5*np.sin(12*u)*np.sin(12*v)+.3*np.cos(8*u)+.2*np.cos(8*v)
+    elif name in ('Metal','Trim'):
+        pattern=.7*np.sin(16*v)+.3*np.cos(5*u+3*v)
+    else:
+        pattern=.5*np.sin(9*u+7*v)+.3*np.cos(13*u-5*v)+.2*np.cos(4*u+11*v)
+    # Subtle contrast; existing material factors and customization remain authoritative.
+    pixels=np.full((size,size,3),255,dtype=np.uint8)
+    if kind=='Roughness':
+        pixels[:,:,1]=np.clip(np.rint(235+15*pattern),0,255).astype(np.uint8)
+    elif kind=='Normal':
+        # Periodic finite differences, tangent-space normals; no baked lighting.
+        dx=(np.roll(pattern,-1,axis=1)-np.roll(pattern,1,axis=1))*.15
+        dy=(np.roll(pattern,-1,axis=0)-np.roll(pattern,1,axis=0))*.15
+        normals=np.stack((-dx,-dy,np.ones_like(dx)),axis=-1)
+        normals/=np.linalg.norm(normals,axis=-1,keepdims=True)
+        pixels=np.clip(np.rint((normals*.5+.5)*255),0,255).astype(np.uint8)
+    elif kind=='Color':
+        # Neutral grayscale variation preserves the material tint and profile customization.
+        pixels[:]=np.clip(np.rint(244+9*pattern),0,255).astype(np.uint8)[:,:,None]
+    else:
+        raise ValueError(kind)
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    scanlines=b''.join(b'\x00'+row.tobytes() for row in pixels)
+    return (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',size,size,8,2,0,0,0))
+            +chunk(b'IDAT',zlib.compress(scanlines,9))+chunk(b'IEND',b''))
+
+def eased_keys(times,angles,subdivisions=4):
+    # Smoothstep sampling retains original key poses and duration, including loop endpoints.
+    sampled_t=[];sampled_a=[]
+    for i in range(len(times)-1):
+        for step in range(subdivisions):
+            u=step/subdivisions
+            ease=u*u*(3-2*u)
+            sampled_t.append(times[i]+(times[i+1]-times[i])*u)
+            sampled_a.append(angles[i]+(angles[i+1]-angles[i])*ease)
+    return sampled_t+[times[-1]],sampled_a+[angles[-1]]
+
 class Model:
     def __init__(self,name):
-        self.name=name;self.buf=bytearray();self.views=[];self.acc=[];self.meshes=[];self.nodes=[];self.mats=[];self.anim=[]
+        self.name=name;self.buf=bytearray();self.views=[];self.acc=[];self.meshes=[];self.nodes=[];self.mats=[];self.anim=[];self.images=[];self.textures=[]
     def data(self,x,typ,component,target=None,bounds=False):
         x=np.ascontiguousarray(x);self.buf.extend(b'\0'*((-len(self.buf))%4));off=len(self.buf);self.buf.extend(x.tobytes());v={'buffer':0,'byteOffset':off,'byteLength':x.nbytes};
         if target:v['target']=target
@@ -19,9 +72,24 @@ class Model:
         if bounds:a.update(min=np.atleast_1d(x.min(axis=0)).tolist(),max=np.atleast_1d(x.max(axis=0)).tolist())
         self.acc.append(a);return len(self.acc)-1
     def material(self,name,h,metal=0,rough=.75,emission=0):
+        if not all(math.isfinite(value) and 0 <= value <= 1 for value in (metal,rough,emission)):
+            raise ValueError(f'Invalid PBR parameters for {name}')
         m={'name':name,'pbrMetallicRoughness':{'baseColorFactor':[*rgb(h),1],'metallicFactor':metal,'roughnessFactor':rough}}
         if emission:m['emissiveFactor']=[v*emission for v in rgb(h)]
+        if name in TEXTURED:
+            m['pbrMetallicRoughness']['metallicRoughnessTexture']={'index':self.texture(name,'Roughness')}
+            if name!='Skin':
+                m['normalTexture']={'index':self.texture(name,'Normal'),'scale':.30}
+                m['pbrMetallicRoughness']['baseColorTexture']={'index':self.texture(name,'Color')}
         self.mats.append(m);return len(self.mats)-1
+    def texture(self,name,kind):
+        raw=material_png(name,kind)
+        self.buf.extend(b'\0'*((-len(self.buf))%4))
+        offset=len(self.buf);self.buf.extend(raw)
+        self.views.append({'buffer':0,'byteOffset':offset,'byteLength':len(raw)})
+        self.images.append({'name':name+'_'+kind,'bufferView':len(self.views)-1,'mimeType':'image/png'})
+        self.textures.append({'source':len(self.images)-1,'sampler':0})
+        return len(self.textures)-1
     def node(self,name,parent=None,pos=(0,0,0),mesh=None):
         n={'name':name,'translation':list(pos)}
         if mesh is not None:n['mesh']=mesh
@@ -33,17 +101,30 @@ class Model:
         v=np.asarray(mesh.triangles.reshape(-1,3),dtype='<f4')
         organic=name.startswith(('HeadMesh','Ear','EyeWhite','Iris','EyeGlint','Nose','HairCap','HairTuft','HairLock','Topknot','Ponytail','Neck','Hand.','BaseShoulder.','Sleeve.','Forearm.','Pants.','BaseTorso','BaseHip','BaseWaist','Boot.'))
         norm=(mesh.vertex_normals[mesh.faces].reshape(-1,3) if organic else np.repeat(mesh.face_normals,3,axis=0)).astype('<f4')
+        # Merge only identical position/normal pairs: preserve hard edges and triangle winding.
+        packed,indices=np.unique(np.column_stack((v,norm)),axis=0,return_inverse=True)
+        indices=indices.reshape(-1)
+        assert np.array_equal(packed[indices],np.column_stack((v,norm)))
+        v=packed[:,:3].astype('<f4');norm=packed[:,3:].astype('<f4')
         p=self.data(v,'VEC3',5126,34962,True);n=self.data(norm,'VEC3',5126,34962)
-        self.meshes.append({'name':name,'primitives':[{'attributes':{'POSITION':p,'NORMAL':n},'material':mat}]})
+        attrs={'POSITION':p,'NORMAL':n}
+        if self.mats[mat]['name'] in TEXTURED:
+            attrs['TEXCOORD_0']=self.data(surface_uv(v),'VEC2',5126,34962)
+        short=len(v)<=65535
+        index=self.data(indices.astype('<u2' if short else '<u4'),'SCALAR',5123 if short else 5125,34963)
+        self.meshes.append({'name':name,'primitives':[{'attributes':attrs,'indices':index,'material':mat}]})
         return self.node('Mesh_'+name,parent,mesh=len(self.meshes)-1)
     def animation(self,name,channels):
         a={'name':name,'samplers':[],'channels':[]}
         for node,axis,angles,times in channels:
+            times,angles=eased_keys(times,angles)
             inp=self.data(np.array(times,dtype='<f4'),'SCALAR',5126,bounds=True);out=self.data(np.array([quat(axis,angle) for angle in angles],dtype='<f4'),'VEC4',5126)
             a['samplers'].append({'input':inp,'output':out,'interpolation':'LINEAR'});a['channels'].append({'sampler':len(a['samplers'])-1,'target':{'node':node,'path':'rotation'}})
         self.anim.append(a)
     def export(self):
         j={'asset':{'version':'2.0','generator':'Carbon Avatar V2 prototype'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':self.nodes,'meshes':self.meshes,'materials':self.mats,'accessors':self.acc,'bufferViews':self.views,'buffers':[{'byteLength':len(self.buf)}],'animations':self.anim}
+        if self.textures:
+            j.update(images=self.images,textures=self.textures,samplers=[{'wrapS':10497,'wrapT':10497,'magFilter':9729,'minFilter':9987}])
         js=json.dumps(j,separators=(',',':')).encode();js+=b' '*((-len(js))%4);self.buf.extend(b'\0'*((-len(self.buf))%4));b=bytes(self.buf)
         raw=struct.pack('<4sII',b'glTF',2,12+8+len(js)+8+len(b))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(b),b'BIN\0')+b
         (OUT/(self.name+'.glb')).write_bytes(raw)
@@ -81,7 +162,18 @@ def curved_trim(points,r=.004):
 
 def build(martial):
     m=Model('murim' if martial else 'cacador'); root=m.node('CharacterRoot'); pelvis=m.node('Hips',root,(0,.91,0));spine=m.node('Spine',pelvis,(0,.13,0));head=m.node('Head',spine,(0,.48,0));
-    skin=m.material('Skin','C99873',rough=.63);hair=m.material('Hair','292027',rough=.52);cloth=m.material('BaseCloth','30282A' if martial else '252B35',rough=.91);dark=m.material('DarkCloth','17191E',rough=.88);accent=m.material('Trim','B7833B' if martial else '527898',.4);metal=m.material('Metal','8E673C' if martial else '7E8797',.7,.36);inner=m.material('Lining','9C3F28' if martial else '234F76');energy=m.material('Energy','FFAB42' if martial else '55C8FF',.1,.35,.8);white=m.material('Eyes','F4E5CF');iris=m.material('Iris','50301F');
+    # Distinguish dielectric surfaces from metals using the core glTF PBR model.
+    # These are material parameters, not baked texture maps.
+    skin=m.material('Skin','C99873',rough=.58)
+    hair=m.material('Hair','292027',rough=.48 if martial else .56)
+    cloth=m.material('BaseCloth','30282A' if martial else '252B35',rough=.67 if martial else .88)
+    dark=m.material('DarkCloth','17191E',rough=.92)
+    accent=m.material('Trim','B7833B' if martial else '527898',metal=.58 if martial else .38,rough=.39 if martial else .49)
+    metal=m.material('Metal','8E673C' if martial else '7E8797',metal=.78 if martial else .82,rough=.32 if martial else .43)
+    inner=m.material('Lining','9C3F28' if martial else '234F76',rough=.72 if martial else .89)
+    energy=m.material('Energy','FFAB42' if martial else '55C8FF',metal=.0,rough=.32,emission=.8)
+    white=m.material('Eyes','F4E5CF',rough=.24)
+    iris=m.material('Iris','50301F',rough=.31)
     P=m.part;w=.93 if martial else 1.08
     P('BaseTorso',spine,loft([(0,.15*w,.105,0),(.17,.19*w,.115,0),(.32,.235*w,.12,0),(.39,.19*w,.105,0),(.43,.075,.075,0)],12),cloth)
     # Base clothing is independent of equipment sockets: no item or bonus is implied.
@@ -95,6 +187,10 @@ def build(martial):
             P('BaseRobeSkirt',pelvis,panel([(s*.024,.08,.116),(s*.147,.08,.105),(s*.222,-.26,.106),(s*.045,-.30,.14)],.018),cloth)
             P('BaseRobeHem',pelvis,rod((s*.045,-.294,.151),(s*.222,-.254,.117),.008),accent)
             P('BaseRobeSeam',pelvis,curved_trim([(s*.078,.055,.130),(s*.099,-.08,.145),(s*.12,-.23,.153)],.0035),accent)
+            # Low relief cloth folds within the existing robe silhouette.
+            for offset in (.0,.034):
+                P('BaseRobeFold',pelvis,curved_trim([(s*(.104+offset),.04,.122),(s*(.126+offset),-.09,.134),(s*(.151+offset),-.235,.122)],.004),cloth)
+            P('BaseRobeCollarEdge',spine,curved_trim([(s*.027,.33,.143),(s*.072,.377,.132),(s*.092,.392,.121)],.003),accent)
             P('BaseCollarDetail',spine,curved_trim([(s*.026,.328,.142),(s*.062,.347,.143),(s*.083,.367,.135)],.004),accent)
     else:
         P('BaseChestPanel',spine,panel([(-.18,.29,.126),(0,.34,.137),(.18,.29,.126),(.145,.11,.132),(0,.075,.136),(-.145,.11,.132)],.018),dark)
@@ -104,6 +200,10 @@ def build(martial):
             P('BaseHipPouch',pelvis,box((s*.14,-.025,.101),(.074,.114,.055)),cloth)
             P('BasePouchFlap',pelvis,panel([(s*.106,.023,.134),(s*.174,.023,.134),(s*.174,-.008,.136),(s*.140,-.024,.137),(s*.106,-.008,.136)],.008),dark)
             P('BaseHarnessBuckle',spine,box((s*.143,.175,.152),(.046,.030,.012)),metal)
+            # Recessed-looking armor seams and small fasteners on the base tactical vest.
+            P('BaseChestSeam',spine,curved_trim([(s*.052,.302,.145),(s*.114,.269,.143),(s*.127,.219,.144)],.0035),metal)
+            for y in (.142,.196):
+                P('BaseHarnessRivet',spine,ell((s*.142,y,.155),(.006,.006,.003),1),metal)
             for y in (.12,.155):
                 P('BaseChestStitch',spine,rod((s*.055,y,.149),(s*.12,y+.013,.146),.0035,.0035),accent)
     P('Neck',spine,rod((0,.38,0),(0,.49,0),.055),skin)
@@ -111,18 +211,27 @@ def build(martial):
     jaw=1.0 if martial else 1.055
     P('HeadMesh',head,loft([(0,.041,.048,.017),(.015,.055*jaw,.065,.016),(.034,.074*jaw,.078,.013),(.058,.087*jaw,.085,.009),(.078,.095,.091,.006),(.100,.102,.096,.002),(.135,.105,.099,0),(.157,.105,.098,-.001),(.180,.101,.095,-.004),(.20,.093,.089,-.008),(.218,.079,.075,-.011),(.235,.050,.053,-.015),(.245,.009,.014,-.02)],32),skin)
     for s in (-1,1):
-        P('Ear',head,ell((s*.101,.115,-.005),(.017,.035,.023),1),skin)
+        # Outer ear with a shallow folded rim; remains within the existing helmet envelope.
+        P('Ear',head,ell((s*.101,.115,-.005),(.017,.035,.023),2),skin)
+        P('EarRim',head,curved_trim([(s*.105,.084,.006),(s*.113,.105,.009),(s*.113,.131,.008),(s*.104,.143,.003)],.0035),skin)
         P('EyeWhite',head,ell((s*.043,.132,.091),(.029,.009,.012),2),white)
         P('Iris',head,ell((s*.043,.132,.102),(.010,.009,.004),2),iris)
         P('EyeGlint',head,ell((s*.043-.003,.135,.106),(.0028,.0028,.0014),1),white)
-        P('UpperLid',head,rod((s*.017,.139,.101),(s*.070,.140,.094),.0025,.002),hair)
+        P('UpperLid',head,curved_trim([(s*.017,.132,.100),(s*.031,.140,.105),(s*.049,.142,.105),(s*.070,.135,.096)],.0022),hair)
         P('Brow',head,curved_trim([(s*.019,.153,.099),(s*.042,.159 if martial else .155,.102),(s*.072,.160,.089)],.0038),hair)
         P('LowerLid',head,curved_trim([(s*.019,.126,.099),(s*.044,.123,.104),(s*.069,.128,.096)],.0017),hair)
-    P('Nose',head,ell((0,.104,.104),(.012,.021,.013),2),skin);P('Mouth',head,rod((-.018,.064,.090),(.018,.064,.090),.0028),iris)
+    # A tapered bridge connects the brow to the rounded nasal tip, instead of a detached sphere.
+    P('Nose',head,loft([(.083,.006,.004,.097),(.090,.015,.010,.104),(.101,.013,.016,.106),(.114,.009,.012,.103),(.132,.007,.008,.099),(.151,.004,.004,.096)],16),skin)
+    for s in (-1,1):
+        P('NoseWing',head,ell((s*.009,.092,.105),(.007,.006,.007),1),skin)
+        P('NoseCrease',head,ell((s*.009,.088,.110),(.003,.0016,.0012),1),iris)
+    P('Mouth',head,curved_trim([(-.023,.065,.090),(-.011,.062,.100),(0,.061,.104),(.011,.062,.100),(.023,.065,.090)],.0022),iris)
     P('HairCap',head,loft([(.15,.108,.099,-.018),(.181,.112,.103,-.018),(.21,.112,.102,-.018),(.237,.101,.089,-.019),(.255,.075,.069,-.019),(.265,.008,.008,-.019)],24),hair)
     for i in range(7):
         x=(i-3)*.026
-        P('HairLock',head,curved_trim([(x,.226,-.100),(x*.85,.251,-.066),(x*.52,.263,-.023),(x*.45,.244,.035)],.006),hair)
+        # Tapered layered locks follow the scalp instead of ending in uniform tubes.
+        points=[(x,.226,-.100),(x*.85,.251,-.066),(x*.52,.263,-.023),(x*.45,.244,.035)]
+        P('HairLock',head,tm.util.concatenate([rod(a,b,r1,r2,8) for a,b,r1,r2 in zip(points,points[1:],(.007,.009,.006),(.009,.006,.002))]),hair)
     for s in (-1,1):
         P('Fringe',head,panel([(s*.012,.23,.08),(s*.097,.20,.062),(s*.074,.129,.085),(s*.038,.183,.107)],.025),hair)
     if martial:
@@ -146,8 +255,11 @@ def build(martial):
         side='L' if s<0 else 'R';a=m.node('UpperArm.'+side,spine,(s*.225*w,.32,0));arms.append(a);e=m.node('Forearm.'+side,a,(s*.16,-.15,0));h=m.node('Hand.'+side,e,(s*.10,-.19,0));hands.append(h)
         P('BaseShoulder.'+side,a,ell((s*.017,-.014,0),(.087 if martial else .103,.076,.092),1),cloth if martial else dark)
         P('BaseShoulderTrim.'+side,a,rod((s*.034,-.025,.071),(s*.080,-.070,.057),.009 if martial else .014),accent)
-        P('Sleeve.'+side,a,rod((0,0,0),(s*.16,-.15,0),.075,.057),cloth);P('Forearm.'+side,e,rod((0,0,0),(s*.10,-.17,0),.052,.041),skin);P('Bracer.'+side,e,rod((s*.025,-.045,0),(s*.083,-.145,0),.059,.048),metal);P('Hand.'+side,h,ell((s*.018,-.027,.006),(.039,.066,.03),1),skin)
-        leg=m.node('Thigh.'+side,pelvis,(s*.095,0,0));legs.append(leg);k=m.node('Shin.'+side,leg,(0,-.43,0));f=m.node('Foot.'+side,k,(0,-.38,0));P('Pants.'+side,leg,loft([(-.43,.065,.066,0),(-.20,.09,.087,0),(0,.102,.10,0)],10),dark);P('Boot.'+side,k,loft([(-.38,.052,.06,0),(-.15,.067,.073,0),(0,.071,.073,0)],10),cloth);P('Greave.'+side,k,panel([(-.055,-.03,.075),(.055,-.03,.075),(.045,-.27,.067),(-.045,-.27,.067)],.025),metal);P('Foot.'+side,f,box((0,-.035,.045),(.12,.11,.22)),dark)
+        P('Sleeve.'+side,a,rod((0,0,0),(s*.16,-.15,0),.075,.057),cloth);P('Forearm.'+side,e,rod((0,0,0),(s*.10,-.17,0),.052,.041),skin);P('Bracer.'+side,e,rod((s*.025,-.045,0),(s*.083,-.145,0),.059,.048),metal);P('Hand.'+side,h,ell((s*.018,-.025,.006),(.036,.055,.028),2),skin)
+        P('Hand.Thumb.'+side,h,ell((-s*.015,-.036,.022),(.016,.027,.016),1),skin)
+        for finger in range(4):
+            P('Hand.Knuckle.'+side,h,ell((s*(.003+finger*.011),-.060+abs(finger-1.5)*.005,.022),(.009,.014,.010),1),skin)
+        leg=m.node('Thigh.'+side,pelvis,(s*.095,0,0));legs.append(leg);k=m.node('Shin.'+side,leg,(0,-.43,0));f=m.node('Foot.'+side,k,(0,-.38,0));P('Pants.'+side,leg,loft([(-.43,.065,.066,0),(-.20,.09,.087,0),(0,.102,.10,0)],10),dark);P('Boot.'+side,k,loft([(-.38,.052,.06,0),(-.15,.067,.073,0),(0,.071,.073,0)],10),cloth);P('Greave.'+side,k,panel([(-.055,-.03,.075),(.055,-.03,.075),(.045,-.27,.067),(-.045,-.27,.067)],.025),metal);P('Foot.'+side,f,ell((0,-.025,.043),(.060,.045,.108),2),dark);P('Foot.Sole.'+side,f,ell((0,-.061,.043),(.063,.015,.110),2),dark)
     weapon=m.node('slot_arma',hands[1],(.035,-.026,.02));
     if martial:
         P('SpearShaft',weapon,rod((0,-.75,0),(0,.8,0),.018),dark);P('SpearGrip',weapon,rod((0,-.14,0),(0,.14,0),.023),inner);P('SpearBlade',weapon,panel([(0,.76,0),(.077,.88,0),(0,1.12,0),(-.077,.88,0)],.028),metal);P('SpearCore',weapon,panel([(0,.83,.019),(.021,.9,.019),(0,1.08,.019),(-.021,.9,.019)],.006),energy)
@@ -156,6 +268,6 @@ def build(martial):
     m.animation('guard',[(arms[0],[1,0,0],[0,-.42,-.42,0],[0,.35,1.25,1.8]),(arms[1],[1,0,0],[0,-.72,-.72,0],[0,.35,1.25,1.8]),(spine,[0,1,0],[0,.14,.14,0],[0,.35,1.25,1.8])]);
     m.animation('dodge',[(pelvis,[0,0,1],[0,-.15,.21,0] if martial else [0,.19,-.13,0],[0,.20,.52,.95]),(spine,[0,0,1],[0,-.18,.18,0],[0,.20,.52,.95]),(arms[0],[0,0,1],[0,-.30,-.24,0],[0,.20,.52,.95]),(cape,[1,0,0],[0,.28,.42,0],[0,.20,.52,.95])]);
     m.animation('channel',[(arms[0],[0,0,1],[0,-.42,-.55,-.42,0] if martial else [0,-.18,-.30,-.18,0],[0,.5,1.25,2,2.5]),(arms[1],[0,0,1],[0,.42,.55,.42,0] if martial else [0,.65,.85,.65,0],[0,.5,1.25,2,2.5]),(head,[1,0,0],[0,.08,.10,.08,0],[0,.5,1.25,2,2.5])]);
-    m.animation('idle',[(spine,[0,0,1],[0,.018,0,-.018,0],[0,.75,1.5,2.25,3]),(cape,[1,0,0],[0,.08,0,-.05,0],[0,.75,1.5,2.25,3])]);m.animation('attack',[(arms[1],[1,0,0],[0,-.95,1.05,0] if martial else [0,-.60,.78,0],[0,.25,.6,1]),(spine,[0,1,0],[0,-.38,.48,0] if martial else [0,-.18,.25,0],[0,.25,.6,1]),(arms[0],[0,0,1],[0,-.35,-.18,0] if martial else [0,-.12,-.06,0],[0,.25,.6,1]),(pelvis,[0,1,0],[0,-.20,.28,0] if martial else [0,-.11,.18,0],[0,.25,.6,1]),(legs[0],[1,0,0],[0,-.12,.16,0],[0,.25,.6,1]),(legs[1],[1,0,0],[0,.14,-.11,0],[0,.25,.6,1]),(cape,[1,0,0],[0,.10,.28,0],[0,.25,.6,1])]);m.animation('victory',[(arms[0],[0,0,1],[0,-.65,-.65,0],[0,.5,1.3,2]),(arms[1],[0,0,1],[0,.65,.65,0],[0,.5,1.3,2])]);m.animation('rest',[(spine,[1,0,0],[0,.12,.12,0],[0,.5,1.5,2])]);m.export()
+    m.animation('idle',[(spine,[0,0,1],[0,.018,0,-.018,0],[0,.75,1.5,2.25,3]),(cape,[1,0,0],[0,.08,0,-.05,0],[0,.75,1.5,2.25,3]),(arms[0],[0,0,1],[.27,.29,.27,.25,.27],[0,.75,1.5,2.25,3]),(arms[1],[0,0,1],[-.27,-.25,-.27,-.29,-.27],[0,.75,1.5,2.25,3])]);m.animation('attack',[(arms[1],[1,0,0],[0,-.95,1.05,0] if martial else [0,-.60,.78,0],[0,.25,.6,1]),(spine,[0,1,0],[0,-.38,.48,0] if martial else [0,-.18,.25,0],[0,.25,.6,1]),(arms[0],[0,0,1],[0,-.35,-.18,0] if martial else [0,-.12,-.06,0],[0,.25,.6,1]),(pelvis,[0,1,0],[0,-.20,.28,0] if martial else [0,-.11,.18,0],[0,.25,.6,1]),(legs[0],[1,0,0],[0,-.12,.16,0],[0,.25,.6,1]),(legs[1],[1,0,0],[0,.14,-.11,0],[0,.25,.6,1]),(cape,[1,0,0],[0,.10,.28,0],[0,.25,.6,1])]);m.animation('victory',[(arms[0],[0,0,1],[0,-.65,-.65,0],[0,.5,1.3,2]),(arms[1],[0,0,1],[0,.65,.65,0],[0,.5,1.3,2])]);m.animation('rest',[(spine,[1,0,0],[0,.12,.12,0],[0,.5,1.5,2])]);m.export()
 if __name__=='__main__':
     build(True);build(False)

@@ -125,6 +125,15 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     }
     await page.getByRole('button',{name:'Repouso',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-animation','idle')
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-face-meshes'))).toBeGreaterThan(0)
+    await page.getByRole('button',{name:'Defesa',exact:true}).click()
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-eye-open'))).toBeLessThan(.95)
+    const cape=EQUIPMENT_CATALOG.find(item=>item.slot==='capa'&&getEquipmentArt(item.id)?.family!=='wings')
+    if(!cape)throw Error('Capa ausente')
+    await piece.selectOption(cape.id)
+    await page.getByRole('button',{name:'Repouso',exact:true}).click()
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-displacement'))).toBeGreaterThan(.001)
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-cape-inward'))).toBeLessThan(.00001)
     await page.getByRole('button',{name:'Pausar',exact:true}).click()
     await canvas.screenshot({path:info.outputPath(style+'.png')})
   }
