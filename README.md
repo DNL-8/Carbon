@@ -4,7 +4,7 @@
 
 Aplicativo privado de treinos, saúde e evolução de personagem, inspirado no universo Murim. Combina acompanhamento de atividades físicas com progressão de Caçadores (XP) e cultivo (Qi), batalhas, missões e recuperação.
 
-Desenvolvido para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. O acesso à aplicação é restrito às duas identidades Google autorizadas; não há cadastro público.
+Desenvolvido para duas pessoas, com foco em simplicidade, desempenho, segurança, baixo custo e manutenção. O acesso à aplicação é restrito às identidades Google autorizadas; não há cadastro público.
 
 ## Funcionalidades
 
@@ -135,7 +135,7 @@ A sincronização manual consulta os últimos 30 dias. O WorkManager pode sincro
 
 ## Segurança e privacidade
 
-A autenticação é restrita a dois identificadores Google previamente vinculados a contas distintas. O servidor valida a sessão, a origem das escritas e a propriedade dos registros. Sessões web usam cookies HttpOnly, Secure em HTTPS e SameSite, com tokens armazenados em hash no servidor e expiração de sete dias. O Android mantém o cookie em armazenamento criptografado.
+A autenticação é restrita a identificadores Google previamente vinculados a contas internas distintas. O servidor valida a sessão, a origem das escritas e a propriedade dos registros. Sessões web usam cookies HttpOnly, Secure em HTTPS e SameSite, com tokens armazenados em hash no servidor e expiração de sete dias. O Android mantém o cookie em armazenamento criptografado.
 
 Nunca versione segredos, tokens, IDs de contas autorizadas ou dados pessoais de saúde. Use os arquivos de exemplo e configure credenciais apenas no ambiente privado. Não utilize produção para testes ou bootstrap. O backup PostgreSQL criptografado possui workflow independente, cuja configuração e restauração precisam ser verificadas.
 
@@ -167,7 +167,7 @@ O pipeline principal possui dois jobs: Aplicação (FastAPI + Next.js) e Android
 | [Frontend](frontend/README.md) | Execução web e contratos |
 | [Backend](backend/README.md) | API, banco e testes |
 | [Android](android/README.md) | APK, autenticação e Health Connect |
-| [Autenticação Google](docs/python-auth-cutover.md) | Configuração privada das duas contas |
+| [Autenticação Google](docs/python-auth-cutover.md) | Configuração privada das contas |
 | [PostgreSQL / Neon](docs/neon-postgresql.md) | Compatibilidade, Alembic e backup |
 | [CI](docs/ci.md) | Pipeline de validação |
 | [Homologação](docs/homologacao.md) | Roteiro de aceite e testes reais |

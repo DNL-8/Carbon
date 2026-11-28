@@ -148,11 +148,62 @@ summary { cursor: pointer; color: #d4d4d8; }
 .achievement > span { font-size: 20px; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
 .inline-form > .MuiFormControl-root { flex: 1 1 12rem; min-width: 0; }
-.active-gear { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.gear-slots { flex: 1 1 12rem; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 12px; }
-.gear-slots > div { padding: 8px; }
-.gear-slots dt { color: var(--muted); }
-.gear-slots dd { margin: 0; overflow-wrap: anywhere; }
+.arsenal-view { width: 100%; max-width: 69rem; margin-inline: auto; gap: 20px; }
+.arsenal-heading { grid-template-columns: 1fr; align-items: center; gap: 12px; }
+.arsenal-heading h1 { text-wrap: balance; }
+.arsenal-heading p { margin-block-start: 4px; }
+.arsenal-actions { gap: 8px; }
+.arsenal-actions strong { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; }
+.arsenal-equipment {
+  min-width: 0; padding: clamp(12px, 2vw, 20px);
+  border-color: color-mix(in srgb, var(--orange) 32%, var(--border));
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--orange) 8%, transparent), transparent 62%);
+}
+.arsenal-equipment-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.arsenal-equipment-heading h2 { font-size: 1.125rem; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+.arsenal-equipment-heading p { font-size: .8125rem; }
+.active-gear { display: grid; gap: 12px; }
+.arsenal-stage {
+  position: relative; display: grid; justify-items: center; align-content: center; gap: 8px; min-width: 0;
+  padding: 12px; border: 1px solid color-mix(in srgb, var(--orange) 32%, var(--border)); border-radius: 8px;
+  background: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--orange) 12%, var(--base)), var(--base) 74%);
+}
+.arsenal-stage .warrior-avatar { position: static; }
+.arsenal-stage .warrior-motion { position: absolute; inset: 4px 4px auto auto; }
+.gear-slots { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.gear-slots li { min-width: 0; align-self: center; }
+.gear-slots .gear-slot {
+  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start;
+  width: 100%; min-height: 76px; gap: 2px; padding: 12px;
+  text-align: start; font: inherit; font-size: .8125rem; overflow-wrap: anywhere; pointer-events: auto;
+}
+.gear-slot:hover, .gear-slot[data-preview=true] { border-color: var(--orange); }
+.gear-slot[data-preview=true] { background: color-mix(in srgb, var(--orange) 9%, var(--inset)); }
+.arsenal-preview { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; }
+.arsenal-preview:has(.row) { margin-top: 12px; }
+.arsenal-preview p { font-size: .875rem; }
+.arsenal-bonuses { display: grid; gap: 8px; }
+.arsenal-stats { margin: 0; padding: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.arsenal-stats dt { color: var(--muted); font-size: .8125rem; }
+.arsenal-stats dd { margin: 3px 0 0; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.arsenal-set-bonus { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 12px 14px; font-size: .8125rem; }
+.arsenal-loadouts h2 { font-size: 1.125rem; }
+.arsenal-card-meta { align-self: stretch; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; font-size: .8125rem; }
+.arsenal-cards .workout-card .orange { color: var(--orange); }
+.arsenal-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+@media (min-width: 640px) {
+  .arsenal-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 800px) and (max-width: 1023px), (min-width: 1120px) {
+  .active-gear { grid-template-columns: minmax(0, 1fr) minmax(250px, 1.65fr) minmax(0, 1fr); column-gap: 16px; }
+  .arsenal-stage { grid-column: 2; grid-row: 1; }
+  .gear-slots { grid-column: 1 / -1; grid-row: 1; grid-template-columns: subgrid; grid-template-rows: repeat(2, 1fr); pointer-events: none; }
+  .gear-slots > li:nth-child(odd) { grid-column: 1; }
+  .gear-slots > li:nth-child(even) { grid-column: 3; }
+}
+@media (min-width: 1200px) {
+  .arsenal-heading { grid-template-columns: minmax(0, 1fr) auto; }
+}
 .editor-fields { display: grid; gap: 12px; min-width: 0; }
 .workout-editor > .editor-fields { margin-top: 12px; }
 .workout-editor fieldset { padding: 12px; margin: 0; }

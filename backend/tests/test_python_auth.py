@@ -82,15 +82,19 @@ def test_fail_closed_and_private_only(client, monkeypatch):
 
 @pytest.mark.parametrize("users", [
     {},
-    {"sub-a": "existing-a"},
-    {"sub-a": "existing-a", "sub-b": "existing-b", "sub-c": "existing-c"},
     {"sub-a": "existing-a", "sub-b": "existing-a"},
     {"sub-a": "existing-a", " ": "existing-b"},
 ])
-def test_requires_two_distinct_provisioned_identities(users):
+def test_requires_distinct_provisioned_identities(users):
     with pytest.raises(HTTPException) as exc:
         python_auth.config(settings().model_copy(update={"google_users": users}))
     assert exc.value.status_code == 503
+
+
+@pytest.mark.parametrize("count", [1, 2, 3])
+def test_accepts_explicitly_authorized_identities(count):
+    users = {f"sub-{index}": f"existing-{index}" for index in range(count)}
+    assert python_auth.config(settings().model_copy(update={"google_users": users})) == (ORIGIN, users)
 
 
 def test_session_lifecycle_postgres(client, monkeypatch):

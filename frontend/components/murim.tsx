@@ -233,7 +233,8 @@ export function Murim({ owner }: { owner: string }) {
         </section>}
         {view === 'progresso' && <Health owner={owner} overview={overview} profile={profile.data?.profile} onProfile={() => navigate('perfil')} />}
         {view === 'coach' && <Oracle progress={metrics} overview={overview} />}
-        {view === 'arsenal' && <Arsenal coins={metrics?.coins} />}
+        {view === 'arsenal' && <Arsenal coins={metrics?.coins} heroName={profile.data?.profile?.name}
+          rank={metrics?.rank} realm={metrics?.realm} onLedger={() => navigate('extrato')} />}
         {view === 'extrato' && <section className="view"><header className="view-heading"><h1>Extrato de recompensas</h1><p>Movimentações de XP e moedas do seu personagem.</p></header>
           <section className="surface overview" aria-label="Lançamentos do extrato">
             {ledger.isPending && <p role="status">Carregando extrato…</p>}
