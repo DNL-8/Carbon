@@ -113,3 +113,12 @@ Inspeção direta das quatro capturas de navegador da variante skinned (artefato
 - [ ] Revisão artística manual, clipping de combinações extremas, desempenho em hardware físico e integração autenticada na main.
 
 A CI do Blender 46151721448 aprovou a revisão das vestimentas. Os testes das três variantes no commit ce580fb passaram (46151600841). As novas formas ainda são modelos low-poly procedurais, não escultura artística final. As opções não concedem bônus nem alteram o inventário.
+
+## 10. Qualidade e recuperação
+
+- [x] Preparar suspensão de renderização ao final de movimentos não cíclicos e quando pausado/aba oculta.
+- [x] Implementar mensagem e tentativa explícita de recuperação em perda de contexto WebGL.
+- [x] Adicionar alvos de toque de 44px, rótulos de rotação visíveis e teste axe/teclado.
+- [x] Preparar teste de pausa real e evento de perda de contexto simulado, com retomada do visualizador.
+- [ ] Confirmar aprovação dos novos testes e medir desempenho em dispositivo físico; evento sintético não comprova recuperação de perda de GPU real.
+- [ ] Consolidar artefatos validados e lockfile no frontend definitivo. Não promover automaticamente nem alterar a main antes da revisão da CI e capturas.

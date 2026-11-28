@@ -113,11 +113,17 @@ function disposeAttachment(group: THREE.Object3D) {
   for(const material of materials)material.dispose()
 }
 
-function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
-  style: 'murim'|'cacador'; preferences: AvatarPreferences; gear: AvatarGear[]; animation: AnimationRequest; paused:boolean; yaw:number; zoom:boolean; onLoaded:()=>void
+function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded,onContextLost}: {
+  style: 'murim'|'cacador'; preferences: AvatarPreferences; gear: AvatarGear[]; animation: AnimationRequest; paused:boolean; yaw:number; zoom:boolean; onLoaded:()=>void; onContextLost:()=>void
 }) {
   const gltf=useLoader(GLTFLoader,'/assets/avatar-v2/'+style+'.glb')
   const {camera,invalidate,gl}=useThree()
+  useEffect(()=>{
+    const lost=(event:Event)=>{event.preventDefault();onContextLost()}
+    const canvas=gl.domElement
+    canvas.addEventListener('webglcontextlost',lost)
+    return ()=>canvas.removeEventListener('webglcontextlost',lost)
+  },[gl,onContextLost])
   const scene=useMemo(()=>cloneSkeleton(gltf.scene),[gltf.scene])
   useEffect(()=>{
     const descendants=new Set<THREE.Object3D>()
@@ -237,7 +243,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,onLoaded}: {
   useEffect(()=>{onLoaded()},[onLoaded])
   useEffect(()=>{mixer.timeScale=paused?0:1;invalidate()},[paused,mixer,invalidate])
   useEffect(()=>{const resume=()=>{if(!document.hidden)invalidate()};document.addEventListener('visibilitychange',resume);return ()=>document.removeEventListener('visibilitychange',resume)},[invalidate])
-  useFrame((_,dt)=>{if(!paused&&!document.hidden){mixer.update(Math.min(dt,.05));const clip=gltf.animations.find(item=>item.name===animation.clip);const action=clip?mixer.existingAction(clip):null;if(action)gl.domElement.dataset.glbTime=String(action.time);invalidate()}})
+  useFrame((_,dt)=>{if(!paused&&!document.hidden){const clip=gltf.animations.find(item=>item.name===animation.clip);const action=clip?mixer.existingAction(clip):null;if(action?.isRunning()){mixer.update(Math.min(dt,.05));gl.domElement.dataset.glbTime=String(action.time);if(action.isRunning())invalidate()}}})
   return <primitive object={scene} dispose={null} />
 }
 
@@ -255,6 +261,8 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
   const [zoom,setZoom]=useState(false)
   const [loaded,setLoaded]=useState<'murim'|'cacador'|null>(null)
   const [hideHelmet,setHideHelmet]=useState(false)
+  const [contextFailed,setContextFailed]=useState(false)
+  const loseContext=useCallback(()=>{setContextFailed(true);setLoaded(null)},[])
   const style=resolveAvatarStyle(preferences.style,gear)
   const markLoaded=useCallback(()=>setLoaded(style),[style])
   const visibleGear=useMemo(()=>hideHelmet?gear.filter(item=>item.slot!=='elmo'):gear,[gear,hideHelmet])
@@ -269,29 +277,29 @@ export function AvatarGlbPreview({preferences,gear}: {preferences:AvatarPreferen
     <p><strong>Prévia GLB experimental</strong></p>
     <p className="muted">Modelos articulados e encaixes protótipos. O avatar original continua oficial; não altera inventário.</p>
     <div style={{height:320,width:'100%',background:'#111113',borderRadius:8,overflow:'hidden'}}>
-      <PreviewBoundary key={style}>
+      {contextFailed?<Alert severity="warning" action={<Button color="inherit" onClick={()=>setContextFailed(false)}>Tentar novamente</Button>}>Contexto 3D indisponível. Use o avatar original.</Alert>:<PreviewBoundary key={style}>
         <Canvas frameloop="demand" dpr={[1,1.5]} camera={{position:[0,1.02,3.85],fov:34,near:.01,far:20}} fallback={<p role="status">WebGL indisponível. Use o avatar original.</p>}>
           <color attach="background" args={['#111113']}/>
           <ambientLight intensity={1.15}/>
           <directionalLight position={[3,5,4]} intensity={2.1}/>
           <directionalLight position={[-3,2,-3]} intensity={1.4} color={style==='murim'?'#fb923c':'#60a5fa'}/>
           <Suspense fallback={null}>
-            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={markLoaded}/>
+            <Scene key={style} style={style} preferences={preferences} gear={visibleGear} animation={animation} paused={paused||reduced} yaw={yaw} zoom={zoom} onLoaded={markLoaded} onContextLost={loseContext}/>
           </Suspense>
         </Canvas>
-      </PreviewBoundary>
+      </PreviewBoundary>}
     </div>
-    <p role="status">{loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
-    <div className="row" style={{flexWrap:'wrap',gap:8}}>
-      <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental">
+    <p role="status">{contextFailed?'Prévia indisponível':loaded===style?'Prévia carregada (experimental)':'Carregando prévia GLB…'}</p>
+    <div className="row" style={{flexWrap:'wrap',gap:8}} aria-label="Controles do avatar" role="group">
+      <ButtonGroup variant="outlined" size="small" aria-label="Câmera experimental" sx={{flexWrap:"wrap","& .MuiButton-root":{minHeight:44}}}>
         <Button aria-label="Girar GLB à esquerda" onClick={()=>setYaw(v=>v-Math.PI/4)}>Esquerda</Button>
         <Button aria-label="Girar GLB à direita" onClick={()=>setYaw(v=>v+Math.PI/4)}>Direita</Button>
         <Button onClick={()=>{setYaw(0);setZoom(false)}}>Restaurar</Button>
       </ButtonGroup>
-      <Button size="small" variant="outlined" aria-pressed={zoom} onClick={()=>setZoom(v=>!v)}>{zoom?'Corpo inteiro':'Rosto'}</Button>
-      <Button size="small" variant="outlined" aria-pressed={hideHelmet} onClick={()=>setHideHelmet(v=>!v)}>{hideHelmet?'Exibir elmo':'Ocultar elmo'}</Button>
-      <Button size="small" variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Animar':'Pausar'}</Button>
-      {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso'],['guard','Defesa'],['dodge','Esquiva'],['channel',style==='murim'?'Canalizar Qi':'Canalizar mana']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={zoom} onClick={()=>setZoom(v=>!v)}>{zoom?'Corpo inteiro':'Rosto'}</Button>
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={hideHelmet} onClick={()=>setHideHelmet(v=>!v)}>{hideHelmet?'Exibir elmo':'Ocultar elmo'}</Button>
+      <Button size="small" sx={{minHeight:44}} variant="outlined" aria-pressed={paused||reduced} disabled={reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Animar':'Pausar'}</Button>
+      {([['idle','Repouso'],['attack','Ataque'],['victory','Vitória'],['rest','Descanso'],['guard','Defesa'],['dodge','Esquiva'],['channel',style==='murim'?'Canalizar Qi':'Canalizar mana']] as const).map(([name,label])=><Button key={name} variant="outlined" size="small" sx={{minHeight:44}} disabled={reduced} aria-pressed={animation.clip===name} onClick={()=>play(name)}>{label}</Button>)}
     </div>
   </section>
 }
