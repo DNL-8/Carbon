@@ -107,7 +107,7 @@ export function WarriorAvatar({ cameraControls = false, avatarStyle = 'auto', ap
       <ButtonGroup size="small" variant="outlined" disabled={!webglReady} aria-label="Rotação">
         <Button aria-label="Girar personagem à esquerda" onClick={() => setCameraYaw(value => (value - Math.PI/4) % (2*Math.PI))}>↶</Button>
         <Button aria-label="Girar personagem à direita" onClick={() => setCameraYaw(value => (value + Math.PI/4) % (2*Math.PI))}>↷</Button>
-        <Button aria-label="Restaurar câmera" onClick={() => { setCameraYaw(0); setCameraZoom(1) }}>Reset</Button>
+        <Button aria-label="Restaurar câmera" onClick={() => { setCameraYaw(0); setCameraZoom(1) }}>Restaurar</Button>
       </ButtonGroup>
       <Button variant="outlined" size="small" disabled={!webglReady} aria-pressed={cameraZoom>1} onClick={() => setCameraZoom(value => value===1?1.65:1)}>{cameraZoom>1?'Corpo inteiro':'Aproximar rosto'}</Button>
       {!webglReady && <small className="muted">Câmera disponível no modo 3D.</small>}
