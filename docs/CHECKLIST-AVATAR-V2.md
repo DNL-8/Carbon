@@ -159,3 +159,8 @@ Animações de ataque recebem apoio de quadril, pernas e manto, mantendo os sete
 ## Etapa 4 — Integração compacta nas telas principais
 
 Preparado modo compacto econômico, com carregamento dinâmico sob demanda no Início/Painel e na sessão de treino. O combate usa eventos já existentes de séries concluídas e vitória; nenhuma recompensa é recalculada no visualizador. A prévia pode ser pausada/fechada e o avatar anterior permanece visível. O laboratório prepara os componentes Murim e Training em checkout isolado e inclui ambos nos artefatos. Teste autenticado adicional verifica abertura, navegação, ataque e fallback. A versão ainda não substitui automaticamente o avatar oficial; publicação e promoção dependem de homologação e preservação da engrenagem da main. Não há alegação de teste em dispositivo físico.
+
+
+## Inspeção de capturas e preservação da interface
+
+Inspeção das capturas desktop do artefato Blender 15267916971 (run 46156191078): rostos e roupas são legíveis, mas ainda estilizados e simplificados; boca pouco visível, pose de repouso aberta e botas/mãos pouco naturais. Revisão procedural acrescenta boca curva na superfície facial, polegar/nós dos dedos, botas arredondadas com sola e postura de repouso menos aberta. Sem certificação de colisões. O laboratório agora incorpora a engrenagem da main 5e34423, seus estilos e testes de câmera; o preparo insere o GLB no painel recolhido, preservando o comportamento de produção. Validação da nova revisão pendente. A versão GLB continua opcional até revisão artística e homologação completas.
