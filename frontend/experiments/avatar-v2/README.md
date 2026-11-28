@@ -34,3 +34,10 @@ A matriz de CI usa três fontes independentes de GLB: `rigid` (protótipo anteri
 ## Publicação do código-fonte na main
 
 O código-fonte do laboratório, os geradores, testes, documentação e correção do botão Restaurar foram incorporados à main por solicitação do proprietário. A CI principal anterior está aprovada. A execução de integração 46152969894 aprovou as três variantes isoladas e 18/20 testes autenticados; os dois erros de acessibilidade foram corrigidos em 115da01. A execução 46154383597 revalida a correção. Os GLB compilados, o lockfile preparado e a ativação do visualizador no Arsenal ainda não estão incluídos na main. O avatar anterior permanece oficial. Nenhuma release foi criada.
+
+
+## Entrega do Avatar V2 na main
+
+Os GLB reexportados pelo Blender, manifest e lockfile, visualizador, integração no Arsenal e testes autenticados foram incorporados à main. A transferência 46154648698 verificou SHA-256 dos seis arquivos do artefato `avatar-v2-prepared-blender` da execução 46154383597. As três variantes passaram nos testes isolados e a etapa de integração autenticada, incluindo lint, typecheck, build, auditoria de dependências e 20 testes Playwright, foi aprovada. O visualizador é opcional, carregado sob demanda no Arsenal pelo botão “Abrir laboratório GLB”; o avatar anterior continua disponível. Não houve alteração de banco ou regras RPG, nem release. A CI e o deploy da main após a integração precisam ser confirmados. A revisão artística, colisões e desempenho físico continuam pendentes.
+
+O preparo com `prepare.mjs` destina-se à branch de laboratório sem a integração aplicada (`feature/avatar-v2-glb`); não execute novamente sobre a main integrada. Na main, instale com `bun install --frozen-lockfile` e execute lint, typecheck, build e os testes habituais. Os GLB são ativos versionados, portanto não exigem Blender no deploy.

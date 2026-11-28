@@ -10,7 +10,7 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [x] Gerar os dois GLB originais procedurais.
 - [x] Validar estrutura, quatro sockets e quatro clips nos GLB.
 - [x] Aprovar lint, TypeScript e build do laboratório no runner 46150219107.
-- [ ] Incorporar arquivos GLB e lockfile validados ao repositório de produção.
+- [x] Incorporar arquivos GLB e lockfile validados ao repositório de produção.
 
 ## 2. Modelagem e identidade
 - [x] Artes conceituais Murim e Caçador.
@@ -46,10 +46,10 @@ Atualizado em 28/11/2026. Branch de integração: `feature/avatar-v2-glb`. O apl
 - [x] Visualizador experimental preparado com carregamento sob demanda.
 - [x] Avatar anterior preservado como alternativa.
 - [x] Aprovar integralmente a CI isolada GLB (46150418021, 4/4).
-- [ ] Incorporar correção de acessibilidade e demais mudanças recentes da main.
-- [ ] Integrar ativos e dependências validadas; executar CI completa e testes autenticados de Arsenal.
+- [x] Incorporar correção de acessibilidade e demais mudanças recentes da main.
+- [x] Integrar ativos e dependências validadas; testes autenticados de Arsenal aprovados no laboratório (46154383597). CI da main após integração pendente.
 - [ ] Revisar os resultados e capturas.
-- [ ] Publicar integração validada na main sem release.
+- [x] Publicar integração validada na main sem release.
 - [ ] Conferir Vercel, autenticação, inventário e fallback em produção.
 
 ## Evidências
@@ -144,3 +144,8 @@ CI 46152196486 e 46152071266: nas três variantes, os testes de movimento reduzi
 ## Publicação do código-fonte na main
 
 O código-fonte do laboratório, os geradores, testes, documentação e correção do botão Restaurar foram incorporados à main por solicitação do proprietário. A CI principal anterior está aprovada. A execução de integração 46152969894 aprovou as três variantes isoladas e 18/20 testes autenticados; os dois erros de acessibilidade foram corrigidos em 115da01. A execução 46154383597 revalida a correção. Os GLB compilados, o lockfile preparado e a ativação do visualizador no Arsenal ainda não estão incluídos na main. O avatar anterior permanece oficial. Nenhuma release foi criada.
+
+
+## Entrega do Avatar V2 na main
+
+Os GLB reexportados pelo Blender, manifest e lockfile, visualizador, integração no Arsenal e testes autenticados foram incorporados à main. A transferência 46154648698 verificou SHA-256 dos seis arquivos do artefato `avatar-v2-prepared-blender` da execução 46154383597. As três variantes passaram nos testes isolados e a etapa de integração autenticada, incluindo lint, typecheck, build, auditoria de dependências e 20 testes Playwright, foi aprovada. O visualizador é opcional, carregado sob demanda no Arsenal pelo botão “Abrir laboratório GLB”; o avatar anterior continua disponível. Não houve alteração de banco ou regras RPG, nem release. A CI e o deploy da main após a integração precisam ser confirmados. A revisão artística, colisões e desempenho físico continuam pendentes.
