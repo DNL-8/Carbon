@@ -48,6 +48,12 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
         await expect(canvas).toHaveAttribute('data-glb-shoulders',heavy?'2':'0')
         if(heavy)await expect(canvas).toHaveAttribute('data-glb-shoulder-bindings',/^(UpperArm\.?L),(UpperArm\.?R)$/)
       }
+      const before=Number(await canvas.getAttribute('data-glb-equipment-meshes-before'))
+      const after=Number(await canvas.getAttribute('data-glb-equipment-meshes-after'))
+      expect(before).toBeGreaterThan(0)
+      expect(after).toBeGreaterThan(0)
+      expect(after).toBeLessThanOrEqual(before)
+      expect(Number(await canvas.getAttribute('data-glb-equipment-triangles'))).toBeGreaterThan(0)
       designs.add(signature)
     }
     expect(designs.size).toBe(104)
@@ -172,6 +178,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
       expect(sample.weaponInside).toBeGreaterThanOrEqual(0)
       expect(sample.weaponInside).toBeLessThanOrEqual(sample.weaponSamples)
       expect(sample.capeInside).toBeLessThanOrEqual(sample.capeSamples)
+      expect(sample.equipmentMeshesAfter).toBeLessThan(sample.equipmentMeshesBefore)
       poseDiagnostics.push(sample)
       await canvas.screenshot({path:info.outputPath(style+'-pose-'+clip+'.png')})
     }

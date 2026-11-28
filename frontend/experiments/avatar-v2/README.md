@@ -79,3 +79,8 @@ A execução 46166544187 aprovou os três jobs de laboratório, mas o ZIP Blende
 ### Correção da CI das ombreiras
 
 A execução 46167072184 reprovou as três variantes porque a contagem das ombreiras articuladas permaneceu em zero. A causa provável é a sanitização dos nomes de nós pelo GLTFLoader para os bindings de animação (`UpperArm.L` torna-se `UpperArmL`). O renderer resolve o nome sanitizado pela função PropertyBinding.sanitizeNodeName, com fallback ao nome original; uma armadura pesada sem ambos os vínculos agora produz erro explícito. O teste mantém a exigência de duas ombreiras e verifica os nomes dos braços, sem relaxar o teste de movimento. A correção aguarda nova CI; sem deploy.
+
+
+### Agrupamento de geometrias estáticas
+
+Baseline Blender da CI 46167504468 (commit fa54aee): 4 relatórios, 28 janelas de pose, cada uma com 303 vértices amostrados de armas e 110 de tecido; nenhuma amostra interna aos três volumes elipsoidais aproximados. Um conjunto por personagem, sem cobertura exaustiva da trajetória. Murim: 124 draw calls e 14.496 triângulos; Caçador: 126 draw calls e 14.120 triângulos. FPS de software entre 18,5 e 61,5; não representa hardware móvel real. Agrupar apenas malhas estáticas irmãs com material idêntico e layout de atributos compatível, transformações incorporadas e sem mudança de triângulos. Excluir capas deformáveis e ombreiras móveis; manter validação dos motivos antes do agrupamento, liberar geometrias substituídas e verificar contagem por item. A redução real de draw calls e a aparência ainda dependem da CI. Sem deploy.

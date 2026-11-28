@@ -6,6 +6,7 @@ import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js'
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import { getEquipmentArt } from '../lib/equipment-art'
 import { HUNTER_RANK_TIERS, MURIM_REALM_TIERS } from '../../src/utils/progressionCurves'
 import { energyColor, hairColors, resolveAvatarStyle, skinColors, type AvatarPreferences } from '../lib/avatar-preferences'
@@ -175,6 +176,43 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
   return group
 }
 
+// Batch only static sibling meshes with compatible attributes and the exact same material.
+// Cape vertices and articulated shoulders retain independent geometry and transforms.
+function batchStaticAttachment(group:THREE.Group){
+  const meshes=()=>group.children.filter((node):node is THREE.Mesh=>node instanceof THREE.Mesh)
+  const triangles=()=>meshes().reduce((sum,mesh)=>sum+(mesh.geometry.index?.count??mesh.geometry.getAttribute('position').count)/3,0)
+  const before=meshes().length
+  const originalTriangles=triangles()
+  const batches=new Map<string,THREE.Mesh[]>()
+  for(const mesh of meshes()){
+    if(mesh.name==='CarbonDrape'||mesh.name.startsWith('CarbonShoulder.')||Array.isArray(mesh.material)||!mesh.visible)continue
+    const geometry=mesh.geometry
+    const attributes=Object.keys(geometry.attributes).sort().map(name=>{
+      const a=geometry.getAttribute(name)
+      return [name,a.itemSize,a.normalized,a.array.constructor.name].join(':')
+    }).join('|')
+    const key=mesh.material.uuid+':'+Boolean(geometry.index)+':'+attributes
+    const list=batches.get(key)??[]
+    list.push(mesh);batches.set(key,list)
+  }
+  for(const list of batches.values()){
+    if(list.length<2)continue
+    const copies=list.map(mesh=>{
+      mesh.updateMatrix()
+      return mesh.geometry.clone().applyMatrix4(mesh.matrix)
+    })
+    const merged=mergeGeometries(copies,false)
+    for(const geometry of copies)geometry.dispose()
+    if(!merged)continue
+    const combined=new THREE.Mesh(merged,list[0].material)
+    combined.name='CarbonStaticBatch'
+    for(const mesh of list){mesh.removeFromParent();mesh.geometry.dispose()}
+    group.add(combined)
+  }
+  if(triangles()!==originalTriangles)throw new Error('Batch de equipamento alterou a contagem de triângulos')
+  return {before,after:meshes().length,triangles:originalTriangles}
+}
+
 function disposeAttachment(group: THREE.Object3D) {
   const materials=new Set<THREE.Material>()
   group.traverse(node=>{
@@ -300,6 +338,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const designs: string[] = []
     const capeMeshes: THREE.Mesh[] = []
     const shoulderMeshes: typeof shoulders.current = []
+    let meshesBefore=0,meshesAfter=0,equipmentTriangles=0
+    const batch=(group:THREE.Group)=>{const result=batchStaticAttachment(group);meshesBefore+=result.before;meshesAfter+=result.after;equipmentTriangles+=result.triangles}
     gl.domElement.dataset.glbVisorOffset='not-applicable'
     gl.domElement.dataset.glbDualGrip='false'
     for(const slot of slots){
@@ -342,12 +382,14 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
         shoulderMeshes.push({mesh,arm,restArm:bindArm.quaternion.clone(),restMesh:mesh.quaternion.clone(),restPosition:mesh.position.clone(),side})
       }
       if(slot==='capa')group.traverse(node=>{if(node instanceof THREE.Mesh&&node.name==='CarbonDrape')capeMeshes.push(node)})
+      batch(group)
       socket.add(group);attached.push({parent:socket,object:group,children:originals})
       if(group.userData.dual){
         const left=scene.getObjectByName('slot_arma_esquerda')
         if(!left||!art)throw new Error('Socket GLB da mão esquerda ausente')
         const second=makeAttachment(art,slot)
         second.rotation.z=.30
+        batch(second)
         left.add(second);attached.push({parent:left,object:second,children:[]})
         gl.domElement.dataset.glbDualGrip=String(second.parent===left)
       }
@@ -357,6 +399,9 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       return {object:entry.object,socket:entry.parent,rest:entry.object.matrix.clone()}
     })
     gl.domElement.dataset.glbAttachmentDrift='0'
+    gl.domElement.dataset.glbEquipmentMeshesBefore=String(meshesBefore)
+    gl.domElement.dataset.glbEquipmentMeshesAfter=String(meshesAfter)
+    gl.domElement.dataset.glbEquipmentTriangles=String(equipmentTriangles)
     gl.domElement.dataset.glbCharacter=style
     gl.domElement.dataset.glbEquipment=ids.sort().join(',')
     drapes.current=capeMeshes
@@ -499,7 +544,9 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
           clip:animation.clip,sequence:animation.sequence,time,sample:++metrics.samples,
           proxyCount:diagnostics.proxies.length,weaponSamples,weaponInside,capeSamples,capeInside,
           fps:metrics.frames/metrics.elapsed,drawCalls:gl.info.render.calls,triangles:gl.info.render.triangles,
-          geometries:gl.info.memory.geometries,textures:gl.info.memory.textures
+          geometries:gl.info.memory.geometries,textures:gl.info.memory.textures,
+          equipmentMeshesBefore:Number(gl.domElement.dataset.glbEquipmentMeshesBefore),
+          equipmentMeshesAfter:Number(gl.domElement.dataset.glbEquipmentMeshesAfter)
         })
         metrics.elapsed=0;metrics.frames=0
       }
