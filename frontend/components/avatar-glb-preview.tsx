@@ -54,16 +54,16 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     }
   }
   // A narrow cape is curved away from the body rather than made of a flat slab.
-  const drape=(side:number,w:number,h:number,offset:number)=>{
+  const drape=(side:number,w:number,h:number,offset:number,border=false)=>{
     const points:number[]=[],indices:number[]=[]
-    const rows=10,columns=8
+    const rows=10,columns=border?1:8
     for(let row=0;row<=rows;row++){
       const t=row/rows
       for(let col=0;col<=columns;col++){
-        const u=col/columns
+        const u=border?.955+.045*col/columns:col/columns
         const x=side*(offset+u*w*(1+.28*t))
-        const z=-.055-.15*t-.025*Math.sin(u*Math.PI*3+art.detail*.17)*t
-        points.push(x,-h*t*(1-.12*(1-u)),z)
+        const z=-.055-.15*t-.025*Math.sin(u*Math.PI*3+art.detail*.17)*t-.009*(1-Math.cos(u*Math.PI*8))*t*t
+        points.push(x,-h*t*(1-.12*(1-u)),z-(border?.002:0))
       }
     }
     for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
@@ -72,7 +72,7 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     }
     const geometry=new THREE.BufferGeometry()
     geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setIndex(indices);geometry.computeVertexNormals()
-    const mesh=add(geometry,main)
+    const mesh=add(geometry,border?trim:main)
     mesh.name='CarbonDrape'
     mesh.userData.restPositions=new Float32Array(points)
     return mesh
@@ -93,7 +93,11 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       const shell=add(new THREE.SphereGeometry(.138,16,12,0,Math.PI*2,0,Math.PI*.55),main,0,.027,-.006)
       shell.scale.set(1,1.12,1.04)
       box(.19,.026,.025,trim,0,.012,.125)
-      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)}
+      for(const s of [-1,1]){const cheek=box(.044,.112,.058,main,s*.106,-.077,.008);cheek.rotation.z=-s*.08;box(.022,.075,.025,trim,s*.121,-.079,.036)
+        // Raised lateral fasteners stay clear of the eye opening.
+        for(const y of [-.045,-.09])ball(.006,trim,s*.129,y,.043)
+      }
+      const crest=add(new THREE.SphereGeometry(.14,16,8,0,Math.PI*2,0,Math.PI*.23),trim,0,.029,-.006);crest.scale.set(.19,1.14,1.06)
       if(f==='horn')for(const s of [-1,1]){const horn=add(new THREE.ConeGeometry(.033,.12,8),trim,s*.105,.11,0);horn.rotation.z=-s*.5}
     }
     if(f==='halo')motif(0,.19,-.12,'x',.014,.005)
@@ -113,7 +117,11 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
     box(.27,.045,.24,dark,0,0,0);box(.075,.052,.024,trim,0,0,.132)
     if(heavy){
       plate([[-plateWidth,.08],[0,.13],[plateWidth,.08],[.10,-.11],[0,-.15],[-.10,-.11]],.03,trim,0,.19,.15)
-      for(const s of [-1,1]){plate([[0,0],[s*.055,.035],[s*.06,-.06],[0,-.08]],.012,main,s*.12,.22,.155);if(f==='exo')box(.026,.11,.033,glow,s*.205,.22,.075)}
+      for(const s of [-1,1]){plate([[0,0],[s*.055,.035],[s*.06,-.06],[0,-.08]],.012,main,s*.12,.22,.155);if(f==='exo')box(.026,.11,.033,glow,s*.205,.22,.075)
+        // Overlay narrow segmented relief on the existing breastplate envelope.
+        for(let i=0;i<2;i++)plate([[0,0],[s*.044,.008],[s*.041,-.025],[0,-.032]],.009,trim,s*.081,.12-i*.032,.174)
+        ball(.006,trim,s*.128,.245,.18)
+      }
     } else if(f==='tunic')box(.14,.026,.025,trim,0,.09,.145)
     motif(0,.044,.155,'x',.025,.006)
   }else if(slot==='capa'){
@@ -127,7 +135,7 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
         const split=f==='split'||f==='coatTail'||f==='ribbon'
         const w=narrow?.10:.23,h=f==='veil'?.48:.65
         drape(s,w,h,split?.035:0)
-        const border=box(.012,h*.83,.014,trim,s*(w*1.1+(split?.035:0)),-h*.43,-.135);border.rotation.x=.22
+        drape(s,w,h,split?.035:0,true)
       }
     }
     box(.17,.035,.035,trim,0,.004,-.055)
@@ -149,6 +157,8 @@ function makeAttachment(art: Art, slot: typeof slots[number]) {
       box(.20,.04,.045,trim,0,.16)
       plate([[-.048,.19],[.048,.19],[bend+.04,len-.09],[bend,len],[bend-.04,len-.09]],.035,f==='spirit'?glow:main)
       plate([[-.008,.22],[.008,.22],[bend,len-.05]],.008,glow,0,0,.022)
+      // A shallow tapered fuller on the reverse face adds relief without changing grip.
+      plate([[-.012,.24],[.012,.24],[bend,len-.11]],.005,trim,0,0,-.021)
     }
     motif(0,-.025,.025,'y',.022,.004)
     if(f==='twin')group.userData.dual=true
@@ -202,6 +212,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
   const drapes=useRef<THREE.Mesh[]>([])
   const effects=useRef<THREE.Group|null>(null)
   const hairMotion=useRef<{node:THREE.Object3D;rotation:THREE.Quaternion}[]>([])
+  const faceMotion=useRef<{node:THREE.Mesh;scale:THREE.Vector3;position:THREE.Vector3;offset:THREE.Vector3}[]>([])
   const baseMeshes=useMemo(()=>{const nodes:THREE.Mesh[]=[];scene.traverse(node=>{if(node instanceof THREE.Mesh)nodes.push(node)});return nodes},[scene])
   const appearance=preferences[style]
   const helmet=gear.find(item=>item.equipped&&item.slot==='elmo')
@@ -213,6 +224,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       const clone=(m:THREE.Material)=>{
         const copy=clones.get(m)??m.clone();clones.set(m,copy)
         if(copy instanceof THREE.MeshStandardMaterial){
+          // Low mode avoids extra normal-map sampling, without disposing shared GLTF textures.
+          if(quality==='low')copy.normalMap=null
           if(m.name==='Skin')copy.color.set(skinColors[appearance.skin])
           if(m.name==='Hair')copy.color.set(hairColors[appearance.hairColor])
           if(m.name==='Energy'){const color=energyColor(style,appearance);copy.color.set(color);copy.emissive.set(color)}
@@ -224,7 +237,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     }
     invalidate()
     return ()=>{for(const node of baseMeshes){if(node.userData.originalMaterial){node.material=node.userData.originalMaterial;delete node.userData.originalMaterial}}for(const m of clones.values())m.dispose()}
-  },[baseMeshes,appearance,style,invalidate])
+  },[baseMeshes,appearance,style,quality,invalidate])
   useEffect(()=>{
     const head=scene.getObjectByName('Head')
     if(!head)return
@@ -241,6 +254,14 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
       if(isFace)node.scale.x*= [1,.94,1.04][appearance.face]??1
       if(node.name.startsWith('Mesh_Brow'))node.scale.y*= [1,1.08,.95][appearance.face]??1
     })
+    faceMotion.current=changed.flatMap(({node})=>{
+      if(!(node instanceof THREE.Mesh)||!/^Mesh_(EyeWhite|Iris|EyeGlint)/.test(node.name))return []
+      node.geometry.computeBoundingBox()
+      const center=node.geometry.boundingBox?.getCenter(new THREE.Vector3())??new THREE.Vector3()
+      const offset=new THREE.Vector3(0,center.y*node.scale.y,0).applyQuaternion(node.quaternion)
+      return [{node,scale:node.scale.clone(),position:node.position.clone(),offset}]
+    })
+    gl.domElement.dataset.glbFaceMeshes=String(faceMotion.current.length)
     const custom=new THREE.Group();custom.name='AvatarCustomHair'
     if(!coveredHair&&appearance.hair!==3&&appearance.hair!==defaultHair){
       const material=new THREE.MeshStandardMaterial({color:hairColors[appearance.hairColor],roughness:.85})
@@ -259,7 +280,7 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     gl.domElement.dataset.glbAppearance=[appearance.hair,appearance.face,appearance.skin,appearance.hairColor,appearance.energy].join('')
     gl.domElement.dataset.glbHairCovered=String(coveredHair)
     invalidate()
-    return ()=>{for(const entry of hairMotion.current)entry.node.quaternion.copy(entry.rotation);hairMotion.current=[];custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
+    return ()=>{for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}faceMotion.current=[];for(const entry of hairMotion.current)entry.node.quaternion.copy(entry.rotation);hairMotion.current=[];custom.removeFromParent();disposeAttachment(custom);for(const entry of changed){entry.node.scale.copy(entry.scale);entry.node.visible=entry.visible}}
   },[scene,appearance,style,coveredHair,gl,invalidate])
   useEffect(()=>{
     const attached: {parent:THREE.Object3D; object:THREE.Object3D; children:{node:THREE.Object3D;visible:boolean}[]}[]=[]
@@ -322,6 +343,8 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     if(!selected)return
     const action=mixer.clipAction(selected)
     action.reset().setLoop(clip==='idle'||clip==='rest'?THREE.LoopRepeat:THREE.LoopOnce,clip==='idle'||clip==='rest'?Infinity:1)
+    for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.position.copy(entry.position)}
+    gl.domElement.dataset.glbEyeOpen='1'
     action.clampWhenFinished=true;action.play();gl.domElement.dataset.glbAnimation=clip;gl.domElement.dataset.glbSequence=String(animation.sequence);gl.domElement.dataset.glbTime='0';invalidate()
     return ()=>{action.stop();mixer.uncacheAction(selected)}
   },[gltf.animations,mixer,animation,invalidate,gl])
@@ -343,17 +366,31 @@ function Scene({style,preferences,gear,animation,paused,yaw,zoom,quality,stage,o
     const time=action.time
     const active=animation.clip==='attack'||animation.clip==='dodge'||animation.clip==='channel'||animation.clip==='victory'
     const strength=active?.065:.018
+    // Geometry-only eye motion; no facial rig or extra textures required.
+    const blinkPhase=Math.abs(time-1.45)/.14
+    const blink=animation.clip==='idle'?Math.min(1,blinkPhase):1
+    const expression=animation.clip==='channel'||animation.clip==='guard'?.76:1
+    const open=Math.max(.08,blink*expression)
+    for(const entry of faceMotion.current){entry.node.scale.copy(entry.scale);entry.node.scale.y*=open;entry.node.position.copy(entry.position).addScaledVector(entry.offset,1-open)}
+    gl.domElement.dataset.glbEyeOpen=String(open)
     // Bounded, outward-only secondary motion; zero at collar, no physics solver.
+    let capeDisplacement=0
+    let capeInward=0
     for(const mesh of drapes.current){
       const position=mesh.geometry.getAttribute('position')
       const rest=mesh.userData.restPositions as Float32Array
       for(let i=0;i<position.count;i++){
         const y=rest[i*3+1],weight=Math.min(1,Math.abs(y)/.65)
-        position.setZ(i,rest[i*3+2]-strength*weight*weight*(.5+.5*Math.sin(time*5+i%9*.45)))
+        const displacement=strength*weight*weight*(.5+.5*Math.sin(time*5+Math.abs(rest[i*3])*17))
+        position.setZ(i,rest[i*3+2]-displacement)
+        capeDisplacement=Math.max(capeDisplacement,Math.abs(position.getZ(i)-rest[i*3+2]))
+        capeInward=Math.max(capeInward,position.getZ(i)-rest[i*3+2])
       }
       position.needsUpdate=true
       if(quality==='high')mesh.geometry.computeVertexNormals()
     }
+    gl.domElement.dataset.glbCapeDisplacement=String(capeDisplacement)
+    gl.domElement.dataset.glbCapeInward=String(capeInward)
     for(const entry of hairMotion.current){entry.node.quaternion.copy(entry.rotation);entry.node.rotateX(-strength*(.5+.5*Math.sin(time*5)))}
     const group=effects.current
     if(group){
