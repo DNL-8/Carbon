@@ -46,3 +46,8 @@ O preparo com `prepare.mjs` destina-se à branch de laboratório sem a integraç
 ### Interface do Arsenal
 
 Os controles de câmera, prévia GLB e personalização ficam recolhidos por padrão em uma engrenagem no canto superior direito do palco do personagem. A prévia continua disponível após recolher o painel. Os testes autenticados verificam abertura/fechamento, teclado, câmera e preservação do inventário. O botão Testar golpe e a pausa permanecem acessíveis fora do painel. A CI da revisão deve confirmar os testes.
+
+
+## Candidato aprovado — refinamentos e efeitos
+
+A execução 46156191078 (56c3227) aprovou as três variantes e a integração autenticada. Este candidato incorpora os modelos refinados, detalhes geométricos dos 104 equipamentos, sete animações, aura Qi/Mana por progressão, movimento secundário procedural e qualidade gráfica selecionável. A transferência confere SHA-256 dos dois GLBs e do visualizador, preservando a engrenagem da main 5e34423 e suas dependências. O modo compacto em Início/Painel/Treino e a revisão artística posterior continuam em homologação; não estão incluídos neste candidato. O avatar anterior continua disponível. Sem alteração de dados, bônus ou release. A CI da main após publicação deve ser confirmada.

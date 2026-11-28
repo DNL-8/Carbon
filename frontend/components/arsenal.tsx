@@ -190,7 +190,7 @@ export function Arsenal({ coins, heroName, rank, realm, preferences, onSettings,
               <Button variant="outlined" aria-expanded={showGlb} onClick={() => { closeAvatarControls(); setShowGlb(value => !value) }}>{showGlb ? "Fechar laboratório GLB" : "Abrir laboratório GLB"}</Button>
               <Button variant="outlined" onClick={() => { closeAvatarControls(); onSettings() }}>Personalizar personagem</Button>
             </div>} />
-          {showGlb && <AvatarGlbPreview preferences={preferences} gear={shownGear ?? EMPTY_GLB_GEAR} />}
+          {showGlb && <AvatarGlbPreview preferences={preferences} gear={shownGear ?? EMPTY_GLB_GEAR} rank={rank} realm={realm} />}
           <p className="muted">{characterStyle === 'murim' ? 'Murim' : 'Caçador'} · {preferences.mixed ? 'Equipamentos mistos' : 'Catálogo da trilha'}</p>
           <Button variant="outlined" disabled={!shownGear?.some(item => item.slot === 'arma')}
             onClick={() => setAttack(value => value + 1)}>Testar golpe</Button>

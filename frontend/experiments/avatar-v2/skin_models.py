@@ -73,7 +73,7 @@ def upgrade(name):
                    "inverseBindMatrices":acc(np.array(inverse,dtype="<f4"),"MAT4",5126)}]
     root=names["CharacterRoot"]
     materials={m["name"]:i for i,m in enumerate(doc["materials"])}
-    def surface(label, rings, j1, j2, material, segments=16):
+    def surface(label, rings, j1, j2, material, segments=24):
         # Each ring: center, tangent, radius along first/second local axes, second-joint weight.
         pos=[];norm=[];weights=[];ids=[];faces=[]
         for center,tangent,r1,r2,w in rings:
@@ -106,7 +106,7 @@ def upgrade(name):
         nodes[root].setdefault("children",[]).append(len(nodes)-1)
     def limb(label, a, b, c, radius, material):
         A,B,C=(origin(j) for j in [a,b,c]);t1=unit(B-A);t2=unit(C-B);rings=[]
-        for t,r,w in [(-.10,radius[0]*.93,0),(0,radius[0],0),(.45,radius[0]*.89,0),(.78,radius[1]*1.05,.08),(.92,radius[1],.28),(1,radius[1],.5),(1.10,radius[1]*.98,.75),(1.25,radius[1]*.95,1),(1.65,radius[2]*1.16,1),(2,radius[2],1)]:
+        for t,r,w in [(-.10,radius[0]*.93,0),(0,radius[0],0),(.45,radius[0]*.89,0),(.76,radius[1]*1.10,.035),(.84,radius[1]*1.06,.14),(.92,radius[1]*1.03,.30),(1,radius[1],.5),(1.08,radius[1]*.99,.70),(1.16,radius[1]*.98,.86),(1.24,radius[1]*.96,.965),(1.32,radius[1]*.94,1),(1.65,radius[2]*1.16,1),(2,radius[2],1)]:
             center=A+(B-A)*t if t<=1 else B+(C-B)*(t-1)
             tangent=t1 if t<.9 else t2 if t>1.1 else unit(t1+t2)
             rings.append((center,tangent,r,r*.88,w))

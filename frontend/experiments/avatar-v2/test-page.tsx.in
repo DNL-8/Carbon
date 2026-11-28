@@ -8,6 +8,7 @@ export default function LabTestPage(){
   const [style,setStyle]=useState<CharacterStyle>('murim')
   const [id,setId]=useState('')
   const [full,setFull]=useState(false)
+  const [advanced,setAdvanced]=useState(false)
   const [appearance,setAppearance]=useState<AvatarPreferences>(defaultAvatarPreferences)
   const preferences=useMemo(()=>({...appearance,style}),[appearance,style])
   const selected=useMemo(()=>{
@@ -37,6 +38,7 @@ export default function LabTestPage(){
         }}>{appearanceOptions[key].map((option,i)=><option key={option} value={String(i)}>{option}</option>)}</select>
       </div>
     })}
-    <AvatarGlbPreview preferences={preferences} gear={gear}/>
+    <label><input type="checkbox" checked={advanced} onChange={e=>setAdvanced(e.target.checked)}/>Progressão máxima de teste</label>
+    <AvatarGlbPreview preferences={preferences} gear={gear} rank={advanced?'S':'F'} realm={advanced?'life_and_death':'third_rate'}/>
   </main>
 }

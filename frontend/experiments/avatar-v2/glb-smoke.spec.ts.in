@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { EQUIPMENT_CATALOG } from '../../../src/utils/equipmentCatalog'
+import { getEquipmentArt } from '../../lib/equipment-art'
 
 test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page},info)=>{
   const errors:string[]=[]
@@ -19,11 +20,29 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
   for(const style of ['murim','cacador']){
     await character.selectOption(style)
     await expect(canvas).toHaveAttribute('data-glb-character',style)
+    await expect(canvas).toHaveAttribute('data-glb-energy',style==='murim'?'qi':'mana')
+    await page.getByLabel('Qualidade gráfica').selectOption('high')
+    await expect(canvas).toHaveAttribute('data-glb-quality','high')
+    await page.getByLabel('Progressão máxima de teste').check()
+    await expect(canvas).toHaveAttribute('data-glb-stage',style==='murim'?'7':'6')
+    await expect(canvas).toHaveAttribute('data-glb-energy-rings','4')
+    await page.getByLabel('Qualidade gráfica').selectOption('low')
+    await expect(canvas).toHaveAttribute('data-glb-energy-rings','1')
+    await page.getByLabel('Progressão máxima de teste').uncheck()
+    await expect(canvas).toHaveAttribute('data-glb-stage','0')
+    await page.getByLabel('Qualidade gráfica').selectOption('auto')
     await expect(canvas).toHaveAttribute('data-glb-skins',['skinned','blender'].includes(process.env.AVATAR_LAB_RIG??'rigid')?'5':'0')
+    const designs=new Set<string>()
     for(const item of EQUIPMENT_CATALOG){
       await piece.selectOption(item.id)
       await expect(canvas).toHaveAttribute('data-glb-equipment',item.id)
+      const art=getEquipmentArt(item.id)
+      if(!art)throw Error('Arte ausente: '+item.id)
+      const signature=item.slot+':'+art.detail.toString(2).padStart(5,'0')
+      await expect(canvas).toHaveAttribute('data-glb-design',signature)
+      designs.add(signature)
     }
+    expect(designs.size).toBe(104)
     const sets=new Map(EQUIPMENT_CATALOG.filter(item=>item.setId).map(item=>[item.setId,item.id]))
     expect(sets.size).toBe(10)
     await page.getByLabel('Conjunto completo').check()
@@ -53,6 +72,15 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await piece.selectOption('')
     await expect(canvas).toHaveAttribute('data-glb-equipment','')
     await canvas.screenshot({path:info.outputPath(style+'-vestimenta-base.png')})
+    await page.getByRole('button',{name:'Rosto',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-zoom','true')
+    await canvas.screenshot({path:info.outputPath(style+'-rosto-frente.png')})
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await page.getByRole('button',{name:'Girar GLB à direita'}).click()
+    await canvas.screenshot({path:info.outputPath(style+'-rosto-perfil.png')})
+    await page.getByRole('button',{name:'Restaurar',exact:true}).click()
+    await expect(canvas).toHaveAttribute('data-glb-yaw','0')
+    await expect(canvas).toHaveAttribute('data-glb-zoom','false')
     for(const hair of ['0','1','2','3']){
       await page.getByRole('combobox',{name:'Cabelo',exact:true}).selectOption(hair)
       await expect.poll(async()=>(await canvas.getAttribute('data-glb-appearance'))?.slice(0,1)).toBe(hair)
@@ -81,6 +109,7 @@ test('GLB: ambos os personagens, 104 peças, conjuntos e controles',async({page}
     await page.getByRole('button',{name:'Animar',exact:true}).click()
     await page.getByRole('button',{name:'Ataque',exact:true}).click()
     await expect(canvas).toHaveAttribute('data-glb-animation','attack')
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-effect-scale'))).toBeGreaterThan(1)
     await expect.poll(async()=>Number(await canvas.getAttribute('data-glb-time'))).toBeGreaterThan(0.1)
     const first=await canvas.getAttribute('data-glb-sequence')
     await page.getByRole('button',{name:'Ataque',exact:true}).click()

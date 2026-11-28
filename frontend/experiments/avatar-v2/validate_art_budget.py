@@ -1,0 +1,30 @@
+"""Budget and material checks for revised procedural models; not an artistic certification."""
+import json
+import pathlib
+import struct
+import sys
+import numpy as np
+
+root=pathlib.Path(__file__).parent
+folder=root/(sys.argv[1] if len(sys.argv)>1 else 'blender-output')
+for name in ('murim','cacador'):
+    raw=(folder/(name+'.glb')).read_bytes()
+    assert len(raw)<=1_500_000,(name,'asset exceeds 1.5 MB',len(raw))
+    magic,version,length=struct.unpack_from('<4sII',raw)
+    assert (magic,version,length)==(b'glTF',2,len(raw))
+    n,kind=struct.unpack_from('<I4s',raw,12)
+    assert kind==b'JSON'
+    doc=json.loads(raw[20:20+n])
+    vertices=triangles=0
+    for mesh in doc['meshes']:
+        for p in mesh['primitives']:
+            count=doc['accessors'][p['attributes']['POSITION']]['count']
+            vertices+=count
+            triangles+=doc['accessors'][p['indices']]['count']//3 if 'indices' in p else count//3
+    assert triangles<=18000,(name,'triangle budget',triangles)
+    materials={m['name'] for m in doc['materials']}
+    assert {'Skin','Hair','BaseCloth','DarkCloth','Trim','Metal','Lining','Energy','Eyes','Iris'}<=materials
+    nodes={node.get('name','') for node in doc['nodes']}
+    for prefix in ('Mesh_HeadMesh','Mesh_HairCap','Mesh_HairLock','Mesh_BaseWaist','Mesh_LowerLid'):
+        assert any(node.startswith(prefix) for node in nodes),(name,prefix)
+    print(name,'bytes',len(raw),'vertices',vertices,'triangles',triangles,'materials and refined mesh names OK')
